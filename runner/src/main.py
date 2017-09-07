@@ -46,13 +46,19 @@
 ################################################################################
 
 
-from commandlines import Command
+import 'fire/fire'
 #import HPCTest
 
 
-# parse command line
-c = Command()    
-      
+def run(tests='all', matrix ='all'):
+  print 'Running tests = {0} on build matrix {1}'.format(tests, matrix)
+
+
+def main():
+  fire.Fire(name='hpctest')
+
+if __name__ == '__main__':
+  main()
 
 
 

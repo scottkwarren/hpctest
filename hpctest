@@ -2,6 +2,6 @@
 
 # hpctest: wrapper for Pythonic invocation of HPCTest
 
-cd run; python src/main.py $@
+cd runner/src; python main.py $@
 
 
