@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  main.py                                                                     #
-#  main program, converts Unix-style command line to HPCTest method calls      #
-#                                                                              #
+#  run.py                                                                      #
+#  run a single test case in a testdir subdirectory                            #
+#                                                                              #                                                                            
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
 #                                                                              #
@@ -46,33 +46,4 @@
 ################################################################################
 
 
-#import HPCTest
-import argparse
-
-
-def main():
-  args = parseCommandLine()
-  return execute(args)
-
-
-def parseCommandLine():
-    
-    parser = argparse.ArgumentParser()
-    
-    # xxx
-    parser.add_argument("echo", help="echo the string you use here")
-    
-    return parser.parse_args()
-
-
-def execute(args):
-    # perform the requested operation by calliung methods of HPCTest
-    
-    return 0
-
-
-if __name__ == '__main__':
-  main()
-
-
-
+# TBD
