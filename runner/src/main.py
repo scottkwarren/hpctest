@@ -51,11 +51,12 @@ import argparse
 
 
 def main():
-  args = parseCommandLine()
-  return execute(args)
+    args = parseCommandLine()
+    return execute(args)
 
 
 def parseCommandLine():
+    # see https://docs.python.org/2/howto/argparse.html
     
     parser = argparse.ArgumentParser()
     
