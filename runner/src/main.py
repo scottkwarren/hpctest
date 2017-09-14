@@ -59,12 +59,12 @@ def parseCommandLine():
     # see https://docs.python.org/2/howto/argparse.html
     
     parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
     
-    # xxx
-    parser.add_argument("square", help="display a square of a given number", type=int)
-    
-    # xxx
-    parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
+    # run <tests> --on <configs> <options>
+    runParser  = subparsers.add_parser('run', help='run a set of tests on each of a set of cofigurations')
+    runParser.add_argument("--tests", help="suite-spec for the set of test cases to be run", type=str)
+    runParser.add_argument("--configs", help="build-spec for the set of build configs on which to test", type=str)
 
     return parser.parse_args()
 
