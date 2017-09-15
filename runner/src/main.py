@@ -46,8 +46,13 @@
 ################################################################################
 
 
-#import HPCTest
 import argparse
+import os
+
+from hpctest import HPCTest 
+hpctest = HPCTest()
+
+
 
 
 def main():
@@ -62,17 +67,20 @@ def parseCommandLine():
     subparsers = parser.add_subparsers()
     
     # run <tests> --on <configs> <options>
-    runParser  = subparsers.add_parser('run', help='run a set of tests on each of a set of cofigurations')
-    runParser.add_argument("--tests", help="suite-spec for the set of test cases to be run", type=str)
-    runParser.add_argument("--configs", help="build-spec for the set of build configs on which to test", type=str)
+    runParser  = subparsers.add_parser('run',                                help='run a set of tests on each of a set of cofigurations')
+    runParser.add_argument("--tests",   "-t", type=str, default="all",       help="test-spec for the set of test cases to be run")
+    runParser.add_argument("--configs", "-c", type=str, default="default",   help="build-spec for the set of build configs on which to test")
+    runParser.add_argument("--dir",     "-d", type=str, default=os.getcwd(), help="working directory in which to run the set of tests")
 
     return parser.parse_args()
 
 
 def execute(args):
     # perform the requested operation by calliung methods of HPCTest
-    
+    hpctest.run(tests=args.tests, configs=args.configs, dir=args.dir)
     return 0
+
+
 
 
 if __name__ == '__main__':

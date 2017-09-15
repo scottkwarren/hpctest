@@ -46,4 +46,11 @@
 ################################################################################
 
 
-# TBD
+
+
+class HPCTest():
+    
+    def run(self, tests, configs, dir):
+        print "Running tests {} on configs {} in dir {}".format(tests, configs, dir)
+
+
