@@ -45,7 +45,6 @@
 #                                                                              #
 ################################################################################
 
-
 import argparse
 import os
 
@@ -62,20 +61,26 @@ def main():
 
 def parseCommandLine():
     # see https://docs.python.org/2/howto/argparse.html
-    
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
     
-    # run <tests> --on <configs> <options>
-    runParser  = subparsers.add_parser('run',                                help='run a set of tests on each of a set of cofigurations')
-    runParser.add_argument("--tests",   "-t", type=str, default="all",       help="test-spec for the set of test cases to be run")
-    runParser.add_argument("--configs", "-c", type=str, default="default",   help="build-spec for the set of build configs on which to test")
-    runParser.add_argument("--dir",     "-d", type=str, default=os.getcwd(), help="working directory in which to run the set of tests")
+    # info ...
 
+    # settings ...
+    
+    # run [tspec ] [--tests tspec] [--configs cspec] [--dir path] <options>
+    runParser = subparsers.add_parser('run', help='run a set of tests on each of a set of cofigurations')
+    group = runParser.add_mutually_exclusive_group()
+    group.add_argument("tests", nargs='?', type=str, default="all", help="test-spec for the set of test cases to be run")
+    group.add_argument("--tests", "-t", type=str, default="all", help="test-spec for the set of test cases to be run")
+    runParser.add_argument("--configs", "-c", type=str, default="default", help="build-spec for the set of build configs on which to test")
+    runParser.add_argument("--dir", "-d", type=str, default=os.getcwd(), help="working directory in which to run the set of tests")
+    
     return parser.parse_args()
 
 
 def execute(args):
+    print args  # DEBUG
     # perform the requested operation by calliung methods of HPCTest
     hpctest.run(tests=args.tests, configs=args.configs, dir=args.dir)
     return 0
