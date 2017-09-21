@@ -46,3 +46,15 @@
 ################################################################################
 
 
+
+
+class Report():
+    
+    @classmethod
+    def printReport(workdir, options):
+        # DEBUG
+        print "...reporting on dir {} with options {}".format(workdir, options)
+
+
+
+

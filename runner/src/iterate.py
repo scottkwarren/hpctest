@@ -47,4 +47,16 @@
 ################################################################################
 
 
-# TBD
+from run import Run
+
+
+
+
+class Iterate():
+    
+    @classmethod
+    def doForAll(tests, configs, workdir, options):
+        for c in configs:
+            for t in tests:
+                run = Run(t, c, workdir, options)
+                status = run.run()

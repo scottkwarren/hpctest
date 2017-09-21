@@ -46,4 +46,20 @@
 ################################################################################
 
 
-# TBD
+
+
+class Run(test, config, workdir, options):
+    
+    def __init__(self, test, config, workdir, options):
+        self.test    = test
+        self.config  = config
+        self.workdir = workdir
+        self.options = options
+
+
+    # TEMPORARY: stub by noop + return AOK
+    def run(self):
+        # DEBUG
+        print "...running test {} with config {} in dir {} with options {}".format(self.test, self.config, self.workdir, self.options)
+        
+        return 0

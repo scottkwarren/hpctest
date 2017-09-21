@@ -46,4 +46,17 @@
 ################################################################################
 
 
-# TBD
+import os
+import glob
+
+
+
+
+# TEMPORARY: stub by taking specstring as a Unix pathname pattern relative to $HPCTEST_HOME/tests
+
+class TestSpec(specString):
+    
+    def __init__(self, xxx, specString):
+        pathname = os.path.join(os.environ["HPCTEST_HOME"], "tests", specString)
+        self.tests = glob.iglob(pathname)  # iterator for set of matching pathnames
+        
