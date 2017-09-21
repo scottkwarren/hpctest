@@ -55,14 +55,13 @@ from report     import Report
 
 class HPCTest():
     
-    def run(self, testSpec, configSpec, dirPath, options):
+    def run(self, testSpec, configSpec, workPath, options):
         # DEBUG
-        print "Running tests {} on configs {} in dir {} with options {}".format(tests, configs, dir, options)
+        print "Running tests {} on configs {} in dir {} with options {}".format(testSpec, configSpec, workPath, options)
         
         tests   = TestSpec(testSpec)
         configs = ConfigSpec(configSpec)
-        workdir = xxx
-        status  = Iterate.doForAll(tests, configs, workdir, options)
+        status  = Iterate.doForAll(tests, configs, workPath, options)
         Report.printReport(workdir, options)
         
         return status

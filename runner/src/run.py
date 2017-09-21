@@ -48,7 +48,7 @@
 
 
 
-class Run(test, config, workdir, options):
+class Run():
     
     def __init__(self, test, config, workdir, options):
         self.test    = test

@@ -50,12 +50,18 @@
 from run import Run
 
 
+# BUG:
+# tests = <testspec.TestSpec instance at 0x7f267ae507e8>, configs = <configspec.ConfigSpec instance at 0x7f267ae50bd8>, workdir = None, options = None
+
+
 
 
 class Iterate():
     
     @classmethod
-    def doForAll(tests, configs, workdir, options):
+    def doForAll(myClass, tests, configs, workdir, options):
+        # DEBUG
+        print "tests = {}, configs = {}, workdir = {}, options = {}".format(tests, configs, workdir, options)
         for c in configs:
             for t in tests:
                 run = Run(t, c, workdir, options)

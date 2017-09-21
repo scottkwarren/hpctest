@@ -95,7 +95,8 @@ def parseCommandLine():
 def execute(args):
     # perform the requested operation by calliung methods of HPCTest
     print args  # DEBUG
-    return hpctest.run(tests=args.tests, configs=args.configs, dir=args.dir, options=args.options)
+    print hpctest
+    return hpctest.run(args.tests, args.configs, args.dir, args.options)
 
 
 

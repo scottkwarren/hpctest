@@ -48,8 +48,9 @@
 
 
 
-class ConfigSpec(specString):
+class ConfigSpec():
     
     def __init__(self, specString):
-        # TEMPORARY: stub by expecting specstring to be a single Spack spec string
-        self.tests = [ specString ]
+        # TEMPORARY: stub by expecting specstring to be a comma-separated list of Spack specs
+        
+        self.tests = [spackspec.strip() for spackspec in specString.split(',')]
