@@ -47,6 +47,6 @@
 ################################################################################
 
 
-cd runner/src; python main.py $@
+export HPCTEST_HOME=`pwd`; cd runner/src; python main.py $@
 
 

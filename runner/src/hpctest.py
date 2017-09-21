@@ -43,15 +43,29 @@
 #  or otherwise) arising in any way out of the use of this software, even      #
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
-################################################################################
+##############################################################################
 
+
+from testspec   import TestSpec
+from configspec import ConfigSpec
+from iterate    import Iterate
+from report     import Report
 
 
 
 class HPCTest():
     
-    def run(self, tests, configs, dir):
-        print "Running tests {} on configs {} in dir {}".format(tests, configs, dir)
+    def run(self, testSpec, configSpec, dirPath, options):
+        # DEBUG
+        print "Running tests {} on configs {} in dir {} with options {}".format(tests, configs, dir, options)
+        
+        tests   = TestSpec(testSpec)
+        configs = ConfigSpec(configSpec)
+        workdir = xxx
+        status  = Iterate.doForAll(tests, configs, workdir, options)
+        Report.printReport(workdir, options)
+        
+        return status
 
 
 

@@ -10,7 +10,7 @@
 #  Part of HPCToolkit (hpctoolkit.org)                                         #
 #                                                                              #
 #  Information about sources of support for research and development of        #
-#  HPCToolkit is at 'hpctoolkit.org' and in 'README.Acknowledgments'.          #
+#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
 #  --------------------------------------------------------------------------- #
 #                                                                              #
 #  Copyright ((c)) 2002-2017, Rice University                                  #
@@ -47,21 +47,25 @@
 
 import argparse
 import os
+from hpctest import HPCTest
+from sys import path
 
-from hpctest import HPCTest 
 hpctest = HPCTest()
+homepath = None
 
 
-
-
-def main():
+def main(path=None):
+    if path is not None:
+        homepath = os.environ["HPCTEST_HOME"] = path
+    else:
+        homepath = os.environ["HPCTEST_HOME"]   # can fail!
     args = parseCommandLine()
     return execute(args)
 
 
-def parseCommandLine():
+def parseCommandLine():    
     # see https://docs.python.org/2/howto/argparse.html
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="hpctest")
     subparsers = parser.add_subparsers()
     
     # info ...
@@ -69,26 +73,34 @@ def parseCommandLine():
     # settings ...
     
     # run [tspec ] [--tests tspec] [--configs cspec] [--dir path] <options>
-    runParser = subparsers.add_parser('run', help='run a set of tests on each of a set of cofigurations')
-    group = runParser.add_mutually_exclusive_group()
-    group.add_argument("tests", nargs='?', type=str, default="all", help="test-spec for the set of test cases to be run")
-    group.add_argument("--tests", "-t", type=str, default="all", help="test-spec for the set of test cases to be run")
-    runParser.add_argument("--configs", "-c", type=str, default="default", help="build-spec for the set of build configs on which to test")
-    runParser.add_argument("--dir", "-d", type=str, default=os.getcwd(), help="working directory in which to run the set of tests")
+    runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
+
+    testGroup = runParser.add_mutually_exclusive_group()
+    testGroup.add_argument("tests", nargs="?", type=str, default="all",     help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("--tests",   "-t",  type=str, default="all",     help="test-spec for the set of test cases to be run")
+
+    runParser.add_argument("--configs", "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
+
+    runParser.add_argument("--dir",     "-d",  type=str, default=homepath,  help="working directory in which to run the set of tests")
     
-    return parser.parse_args()
+    parser.add_argument("--int", dest="options", action="append_const", const=int)
+    runParser.add_argument("--quiet",   "-q", dest="options", action="append_const", const="quiet",   help="run silently")
+    runParser.add_argument("--verbose", "-v", dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
+    runParser.add_argument("--debug",   "-D", dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
+
+    args = parser.parse_args()
+    return args
 
 
 def execute(args):
-    print args  # DEBUG
     # perform the requested operation by calliung methods of HPCTest
-    hpctest.run(tests=args.tests, configs=args.configs, dir=args.dir)
-    return 0
+    print args  # DEBUG
+    return hpctest.run(tests=args.tests, configs=args.configs, dir=args.dir, options=args.options)
 
 
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()
 
 

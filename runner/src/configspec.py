@@ -46,4 +46,10 @@
 ################################################################################
 
 
-# TBD
+
+
+class ConfigSpec(specString):
+    
+    def __init__(self, specString):
+        # TEMPORARY: stub by expecting specstring to be a single Spack spec string
+        self.tests = [ specString ]
