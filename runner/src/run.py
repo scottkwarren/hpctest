@@ -50,16 +50,18 @@
 
 class Run():
     
-    def __init__(self, test, config, workdir, options):
-        self.test    = test
-        self.config  = config
-        self.workdir = workdir
-        self.options = options
+    def __init__(self, test, config, workpath, options):
+        
+        self.test     = test
+        self.config   = config
+        self.workpath = workpath
+        self.options  = options
 
 
-    # TEMPORARY: stub by noop + return AOK
     def run(self):
-        # DEBUG
-        print "...running test {} with config {} in dir {} with options {}".format(self.test, self.config, self.workdir, self.options)
+        # TEMPORARY: stub by noop + return AOK
+
+        if( "debug" in self.options ):
+            print ">>> running the test {} with config {} in dir {} with options {}".format(self.test, self.config, self.workpath, self.options)
         
         return 0

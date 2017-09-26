@@ -58,6 +58,19 @@ class TestSpec():
     
     def __init__(self, specString):
         
-        pathname = specString
-        pathname = os.path.join(os.environ["HPCTEST_HOME"], "tests", specString)
-        self.tests = glob.iglob(pathname)  # iterator for set of matching pathnames
+        patterns = [ pattern.strip() for pattern in specString.split(',') ]
+        #self.list = [ os.path.join(os.environ["HPCTEST_HOME"], "tests", path) for path in glob.glob(pattern.strip()) for pattern in specString.split(',') ]
+        self.list = [ path
+                        for path in glob.glob( os.path.join( os.environ["HPCTEST_HOME"], "tests", pattern.strip() ) )
+                            for pattern in specString.split(',')
+                    ]
+        
+        
+        os.path.join(os.environ["HPCTEST_HOME"], "tests", path)
+        
+        
+        
+        # DEBUG
+        print ">>>>>> {} => {} => {}".format(specString,
+                                             specString.split(','),
+                                             self.list)

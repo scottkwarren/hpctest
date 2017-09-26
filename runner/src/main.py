@@ -46,42 +46,41 @@
 ################################################################################
 
 import argparse
-import os
 from hpctest import HPCTest
 from sys import path
 
 hpctest = HPCTest()
-homepath = None
 
 
-def main(path=None):
-    if path is not None:
-        homepath = os.environ["HPCTEST_HOME"] = path
-    else:
-        homepath = os.environ["HPCTEST_HOME"]   # can fail!
+def main():
+    
     args = parseCommandLine()
+    if "debug" in args.options:
+        print ">>> hpctest.homepath = {}".format(hpctest.homepath)
+
     return execute(args)
 
 
-def parseCommandLine():    
+def parseCommandLine():
     # see https://docs.python.org/2/howto/argparse.html
+    
     parser = argparse.ArgumentParser(prog="hpctest")
     subparsers = parser.add_subparsers()
-    
+
     # info ...
 
     # settings ...
     
-    # run [tspec ] [--tests tspec] [--configs cspec] [--dir path] <options>
+    # hpctest run [tspec ] [--tests tspec] [--configs cspec] [--dir path] <options>
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
 
     testGroup = runParser.add_mutually_exclusive_group()
-    testGroup.add_argument("tests", nargs="?", type=str, default="all",     help="test-spec for the set of test cases to be run")
-    testGroup.add_argument("--tests",   "-t",  type=str, default="all",     help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("tests", nargs="?", type=str, default="all", help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("--tests",   "-t",  type=str, default="all", help="test-spec for the set of test cases to be run")
 
     runParser.add_argument("--configs", "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
 
-    runParser.add_argument("--dir",     "-d",  type=str, default=homepath,  help="working directory in which to run the set of tests")
+    runParser.add_argument("--dir",     "-d",  type=str, default=hpctest.homepath, help="working directory in which to run the set of tests")
     
     parser.add_argument("--int", dest="options", action="append_const", const=int)
     runParser.add_argument("--quiet",   "-q", dest="options", action="append_const", const="quiet",   help="run silently")
@@ -89,13 +88,15 @@ def parseCommandLine():
     runParser.add_argument("--debug",   "-D", dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
 
     args = parser.parse_args()
+    if( "debug" in args.options ):
+        print ">>> parsed args = {}".format(args)
+    
     return args
 
 
 def execute(args):
-    # perform the requested operation by calliung methods of HPCTest
-    print args  # DEBUG
-    print hpctest
+    # perform the requested operation by calling methods of HPCTest
+        
     return hpctest.run(args.tests, args.configs, args.dir, args.options)
 
 

@@ -46,6 +46,8 @@
 ##############################################################################
 
 
+import os
+
 from testspec   import TestSpec
 from configspec import ConfigSpec
 from iterate    import Iterate
@@ -55,14 +57,26 @@ from report     import Report
 
 class HPCTest():
     
-    def run(self, testSpec, configSpec, workPath, options):
-        # DEBUG
-        print "Running tests {} on configs {} in dir {} with options {}".format(testSpec, configSpec, workPath, options)
+    homepath = None
+    
+
+    def __init__(self, path=None):
+        
+        if path is not None:
+            homepath = os.environ["HPCTEST_HOME"] = path
+        else:
+            homepath = os.environ["HPCTEST_HOME"]   # can fail!
+
+
+    def run(self, testSpec, configSpec, workpath, options):
+        
+        if "debug" in options:
+            print ">>> will run tests {} on configs {} in dir {} with options {}".format(testSpec, configSpec, workpath, options)
         
         tests   = TestSpec(testSpec)
         configs = ConfigSpec(configSpec)
-        status  = Iterate.doForAll(tests, configs, workPath, options)
-        Report.printReport(workdir, options)
+        status  = Iterate.doForAll(tests, configs, workpath, options)
+        Report.printReport(workpath, options)
         
         return status
 

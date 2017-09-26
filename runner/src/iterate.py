@@ -51,7 +51,7 @@ from run import Run
 
 
 # BUG:
-# tests = <testspec.TestSpec instance at 0x7f267ae507e8>, configs = <configspec.ConfigSpec instance at 0x7f267ae50bd8>, workdir = None, options = None
+# tests = <testspec.TestSpec instance at 0x7f267ae507e8>, configs = <configspec.ConfigSpec instance at 0x7f267ae50bd8>, workpath = None, options = None
 
 
 
@@ -59,10 +59,12 @@ from run import Run
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, tests, configs, workdir, options):
-        # DEBUG
-        print "tests = {}, configs = {}, workdir = {}, options = {}".format(tests, configs, workdir, options)
-        for c in configs:
-            for t in tests:
-                run = Run(t, c, workdir, options)
+    def doForAll(myClass, tests, configs, workpath, options):
+        
+        if( "debug" in options ):
+            print ">>> iterating over tests = {} X configs = {} using workpath = {} and options = {}".format(tests.list, configs.list, workpath, options)
+            
+        for c in configs.list:
+            for t in tests.list:
+                run = Run(t, c, workpath, options)
                 status = run.run()
