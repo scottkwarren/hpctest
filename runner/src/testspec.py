@@ -52,25 +52,11 @@ import glob
 
 
 
-# TEMPORARY: stub by taking specstring as a Unix pathname pattern relative to $HPCTEST_HOME/tests
+# TEMPORARY: specstring is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
 
 class TestSpec():
     
     def __init__(self, specString):
         
         patterns = [ pattern.strip() for pattern in specString.split(',') ]
-        #self.list = [ os.path.join(os.environ["HPCTEST_HOME"], "tests", path) for path in glob.glob(pattern.strip()) for pattern in specString.split(',') ]
-        self.list = [ path
-                        for path in glob.glob( os.path.join( os.environ["HPCTEST_HOME"], "tests", pattern.strip() ) )
-                            for pattern in specString.split(',')
-                    ]
-        
-        
-        os.path.join(os.environ["HPCTEST_HOME"], "tests", path)
-        
-        
-        
-        # DEBUG
-        print ">>>>>> {} => {} => {}".format(specString,
-                                             specString.split(','),
-                                             self.list)
+        self.list = [ path for pattern in specString.split(',') for path in glob.glob( os.path.join( os.environ["HPCTEST_HOME"], "tests", pattern.strip() ) ) ]
