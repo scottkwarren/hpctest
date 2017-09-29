@@ -58,5 +58,7 @@ class TestSpec():
     
     def __init__(self, specString):
         
-        patterns = [ pattern.strip() for pattern in specString.split(',') ]
-        self.list = [ path for pattern in specString.split(',') for path in glob.glob( os.path.join( os.environ["HPCTEST_HOME"], "tests", pattern.strip() ) ) ]
+        self.list = [ path
+                        for pattern in specString.split(',')
+                            for path in glob.glob( os.path.join( os.environ["HPCTEST_HOME"], "tests", pattern.strip() ) )
+                    ]

@@ -46,22 +46,25 @@
 ################################################################################
 
 
+from common import options, debugprint
+
+
 
 
 class Run():
     
-    def __init__(self, test, config, workpath, options):
+    def __init__(self, test, config, workdir):
         
         self.test     = test
         self.config   = config
-        self.workpath = workpath
-        self.options  = options
+        self.workdir = workdir
 
 
     def run(self):
-        # TEMPORARY: stub by noop + return AOK
+        # TEMPORARY: stub by noop + return AOK, and always print the debug message    
 
-        if( "debug" in self.options ):
-            print ">>> running the test {} with config {} in dir {} with options {}".format(self.test, self.config, self.workpath, self.options)
+        debugprint(">>> running the test {} with config {} in workdir {} with options {}"
+                        .format(self.test, self.config, self.workdir, options),
+                    always=True)
         
         return 0

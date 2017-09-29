@@ -48,37 +48,33 @@
 
 import os
 
-from testspec   import TestSpec
-from configspec import ConfigSpec
-from iterate    import Iterate
-from report     import Report
-
-
 
 class HPCTest():
     
-    homepath = None
-    
-
     def __init__(self, path=None):
         
         if path is not None:
-            homepath = os.environ["HPCTEST_HOME"] = path
+            self.homepath = os.environ["HPCTEST_HOME"] = path
         else:
-            homepath = os.environ["HPCTEST_HOME"]   # can fail!
+            self.homepath = os.environ["HPCTEST_HOME"]   # can fail!
 
 
-    def run(self, testSpec, configSpec, workpath, options):
+    def run(self, testSpec, configSpec, workdir):
         
-        if "debug" in options:
-            print ">>> will run tests {} on configs {} in dir {} with options {}".format(testSpec, configSpec, workpath, options)
+        #from common import options, debugprint
+        import common   # 'from common import options, debugprint' fails: 'options = ...' here does not set 'common.options'
+        from testspec   import TestSpec
+        from configspec import ConfigSpec
+        from iterate    import Iterate
+        from report     import Report
+
+        common.debugprint("will run tests {} on configs {} in workdir {} with options {}"
+                            .format(testSpec, configSpec, workdir, common.options))
         
         tests   = TestSpec(testSpec)
         configs = ConfigSpec(configSpec)
-        status  = Iterate.doForAll(tests, configs, workpath, options)
-        Report.printReport(workpath, options)
+        status  = Iterate.doForAll(tests, configs, workdir)
+        Report.printReport(workdir)
         
         return status
-
-
 

@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  report.py                                                                   #
-#  print the results from running a test suite by extracting from a testdir    #
-#                                                                              #                                                                              #
+#  common.py                                                                   #
+#  storage for stuff shared by all modules, e.g. cmd line, debug, etc          #
+#                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
 #                                                                              #
@@ -10,7 +10,7 @@
 #  Part of HPCToolkit (hpctoolkit.org)                                         #
 #                                                                              #
 #  Information about sources of support for research and development of        #
-#  HPCToolkit is at 'hpctoolkit.org' and in 'README.Acknowledgments'.          #
+#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
 #  --------------------------------------------------------------------------- #
 #                                                                              #
 #  Copyright ((c)) 2002-2017, Rice University                                  #
@@ -46,17 +46,12 @@
 ################################################################################
 
 
-from common import options, debugprint
 
 
-
-class Report():
-    
-    @classmethod
-    def printReport(myclass, workdir):
-        
-        debugprint(">>> reporting on workdir {} with options {}".format(workdir, options), always=True)  # always b/c stubbed
+options = None
 
 
+def debugprint(message, always=False):
 
-
+    if always or "debug" in options:
+          print ">>> {}".format(message)

@@ -47,24 +47,20 @@
 ################################################################################
 
 
-from run import Run
-
-
-# BUG:
-# tests = <testspec.TestSpec instance at 0x7f267ae507e8>, configs = <configspec.ConfigSpec instance at 0x7f267ae50bd8>, workpath = None, options = None
-
-
 
 
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, tests, configs, workpath, options):
+    def doForAll(myClass, tests, configs, workdir):
         
-        if( "debug" in options ):
-            print ">>> iterating over tests = {} X configs = {} using workpath = {} and options = {}".format(tests.list, configs.list, workpath, options)
+        import common   # 'from common import options, debugprint' fails: 'options = ...' here does not set 'common.options'
+        from run import Run
+
+        common.debugprint(">>> iterating over tests = {} X configs = {} using workdir = {} and options = {}"
+                            .format(tests.list, configs.list, workdir, common.options))
             
         for c in configs.list:
             for t in tests.list:
-                run = Run(t, c, workpath, options)
+                run = Run(t, c, workdir)
                 status = run.run()
