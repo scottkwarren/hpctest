@@ -46,25 +46,82 @@
 ################################################################################
 
 
-from common import options, debugprint
+import os
+from common import options, debugmsg, errormsg
+from common import BadTestDescription, PrepareFailed, BuildFailed, RunFailed
 
 
 
 
 class Run():
     
-    def __init__(self, test, config, workdir):
+    def __init__(self, testdir, config, workdir):
         
-        self.test     = test
-        self.config   = config
-        self.workdir = workdir
+        self.testdir  = testdir        # path to test case's directory
+        self.config   = config      # Spack spec for desired build configuration
+        self.workdir  = workdir     # storage for collection of test work subdirs
+
+        # set up for per-test sub-logging
+        ####self.log = xxx    # TODO
 
 
     def run(self):
-        # TEMPORARY: stub by noop + return AOK, and always print the debug message    
-
-        debugprint(">>> running the test {} with config {} in workdir {} with options {}"
-                        .format(self.test, self.config, self.workdir, options),
-                    always=True)
+        debugmsg("running the test {} with config {} in workdir {} with options {}"
+                    .format(self.testdir, self.config, self.workdir, options),
+                 always=True)
         
-        return 0
+        try:
+            
+            testDesc = self.readTestDescription()
+            (srcdir, builddir, rundir)  = self.prepareWorkSubdirectories(testDesc)
+            self.buildTest(testDesc, srcdir, builddir)
+            self.executeBuiltTest(testDesc, builddir, rundir)
+            self.checkTestResults(testDesc, rundir)
+            
+        except BadTestDescription:
+            errormsg("missing or invalid 'hpctest.yml' file in test directory {}".format(self.testdir))
+            
+        except PrepareFailed:
+            errormsg("setup for building test {} failed".format(self.testdir))
+            
+        except BuildFailed:
+            errormsg("build of test {} failed".format(self.testdir))
+            
+        except RunFailed:
+            errormsg("excution of test {} failed".format(self.testdir))
+
+
+    def readTestDescription(self):
+
+        return None     # TEMPORARY
+    
+
+    def prepareWorkSubdirectories(self, testDesc):
+
+        # prepare test's work subdir and build & run ssubdirs
+        subdir   = self.workdir.addSubdir(self.testdir, self.config)
+        srcdir   = self.testdir
+        builddir = os.path.join(subdir, "build"); os.makedirs(builddir)
+        rundir   = os.path.join(subdir, "run");   os.makedirs(rundir)
+        
+        # ...
+        
+        return (srcdir, builddir, rundir)
+
+
+    def buildTest(self, testDesc, srcdir, builddir):
+
+        return          # TEMPORARY
+
+
+    def executeBuiltTest(self, testDesc, builddir, rundir):
+
+        return          # TEMPORARY
+
+
+    def checkTestResults(self, testDesc, rundir):
+
+        return          # TEMPORARY
+
+        
+        

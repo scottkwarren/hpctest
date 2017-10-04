@@ -66,7 +66,7 @@ def main():
 def parseCommandLine():
     # see https://docs.python.org/2/howto/argparse.html
     
-    import common   # 'from common import options, debugprint' fails: 'options = ...' here does not set 'common.options'
+    import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
     global tester
     
     # parsers
@@ -101,7 +101,7 @@ def parseCommandLine():
     args = parser.parse_args()
     if args.options is None: args.options = {}          # can argparse do this automagically?
     common.options = args.options
-    common.debugprint("parsed args = {}".format(args))  # requires 'common.options' to be set
+    common.debugmsg("parsed args = {}".format(args))  # requires 'common.options' to be set
 
     return args
 

@@ -46,7 +46,7 @@
 ################################################################################
 
 
-from common import options, debugprint
+from common import options, debugmsg
 
 
 
@@ -55,7 +55,7 @@ class Report():
     @classmethod
     def printReport(myclass, workdir):
         
-        debugprint(">>> reporting on workdir {} with options {}".format(workdir, options), always=True)  # always b/c stubbed
+        debugmsg(">>> reporting on workdir {} with options {}".format(workdir, options), always=True)  # always b/c stubbed
 
 
 

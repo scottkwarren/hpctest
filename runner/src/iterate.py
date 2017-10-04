@@ -54,10 +54,10 @@ class Iterate():
     @classmethod
     def doForAll(myClass, tests, configs, workdir):
         
-        import common   # 'from common import options, debugprint' fails: 'options = ...' here does not set 'common.options'
+        import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
         from run import Run
 
-        common.debugprint(">>> iterating over tests = {} X configs = {} using workdir = {} and options = {}"
+        common.debugmsg(">>> iterating over tests = {} X configs = {} using workdir = {} and options = {}"
                             .format(tests.list, configs.list, workdir, common.options))
             
         for c in configs.list:

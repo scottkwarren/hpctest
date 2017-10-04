@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  common.py                                                                   #
-#  storage for stuff shared by all modules, e.g. cmd line, debug, etc          #
+#  workdir.py                                                                  #
+#  storage in a file system directory for a collection of test-run dirs        #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -10,7 +10,7 @@
 #  Part of HPCToolkit (hpctoolkit.org)                                         #
 #                                                                              #
 #  Information about sources of support for research and development of        #
-#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
+#  HPCToolkit is at 'hpctoolkit.org' and in 'README.Acknowledgments'.          #
 #  --------------------------------------------------------------------------- #
 #                                                                              #
 #  Copyright ((c)) 2002-2017, Rice University                                  #
@@ -48,38 +48,28 @@
 
 
 
-# list of options parsed from command line
-options = None
+# TEMPORARY: simplest possible thing: hold a path to the dir & just make subdirs on request
 
-# logger used to write test results
-####log = xxx    # TODO
-
-
-# conditionally emit debug message
-def debugmsg(message, always=False):
-    if always or "debug" in options:
-          errormsg(message)
+class WorkDir():   
+    
+    def __init__(self, workpath):
+        
+        # TODO: should check validity of path
+        self.workpath = workpath
 
 
-# emit error message
-def errormsg(message):
-    print ">>> {}".format(message)
+    def addSubdir(self, testdesc, configdesc):
 
+        import time, os
 
-# exceptions denoting fatal errors in subcomputation -- details are logged before raising
-class HPCTestError(Exception):
-    pass
-class BadTestDescription(HPCTestError):
-    pass
-class PrepareFailed(HPCTestError):
-    pass
-class BuildFailed(HPCTestError):
-    pass
-class RunFailed(HPCTestError):
-    pass
+        # TODO: should ensure uniqueness
+        timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
+        subpath = os.path.join(self.workpath, "{}-{}-{}".format(timestamp, testdesc, configdesc))
 
+        return subpath
+    
 
+    def __str__(self):
 
-
-
-
+        return "WorkDir({})".format(self.workpath)
+    
