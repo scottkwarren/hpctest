@@ -77,25 +77,25 @@ def parseCommandLine():
 
     # settings ...
     
-    # hpctest run [tspec] [--tests tspec] [--configs cspec] [--dir workdir] <options>
+    # hpctest run [tspec] [--tests tspec] [--configs cspec] [--workspace workspace] <options>
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
 
     # ... tests
     testGroup = runParser.add_mutually_exclusive_group()
-    testGroup.add_argument("tests", nargs="?", type=str, default="all", help="test-spec for the set of test cases to be run")
-    testGroup.add_argument("--tests",   "-t",  type=str, default="all", help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("tests", nargs="?",   type=str, default="all", help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("--tests",     "-t",  type=str, default="all", help="test-spec for the set of test cases to be run")
 
     # ... configs
-    runParser.add_argument("--configs", "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
+    runParser.add_argument("--configs",   "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
 
-    # ... workdir
-    runParser.add_argument("--dir",     "-d",  type=str, default=tester.homepath, help="working directory in which to run the set of tests")
+    # ... workspace
+    runParser.add_argument("--workspace", "-w",  type=str, default=tester.homepath, help="working directory in which to run the set of tests")
     
     # ... options
     parser.add_argument("--int", dest="options", action="append_const", const=int)
-    runParser.add_argument("--quiet",   "-q", dest="options", action="append_const", const="quiet",   help="run silently")
-    runParser.add_argument("--verbose", "-v", dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
-    runParser.add_argument("--debug",   "-D", dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
+    runParser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
+    runParser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
+    runParser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
 
     # parse the command line
     args = parser.parse_args()
@@ -110,7 +110,7 @@ def execute(args):
     # perform the requested operation by calling methods of HPCTest
     
     global tester
-    return tester.run(args.tests, args.configs, args.dir)
+    return tester.run(args.tests, args.configs, args.workspace)
 
 
 

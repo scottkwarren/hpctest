@@ -53,9 +53,10 @@ from common import options, debugmsg
 class Report():
     
     @classmethod
-    def printReport(myclass, workdir):
+    def printReport(myclass, workspace):
         
-        debugmsg(">>> reporting on workdir {} with options {}".format(workdir, options), always=True)  # always b/c stubbed
+        debugmsg("reporting on workspace {} with options {}".format(workspace, options),
+                 always=True)  # TEMPORARY
 
 
 

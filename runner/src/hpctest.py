@@ -65,19 +65,19 @@ class HPCTest():
         import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
         from testspec   import TestSpec
         from configspec import ConfigSpec
-        from workdir    import WorkDir
+        from workspace  import Workspace
         from iterate    import Iterate
         from report     import Report
 
-        common.debugmsg("will run tests {} on configs {} in workdir {} with options {}"
+        common.debugmsg("will run tests {} on configs {} in workspace {} with options {}"
                             .format(testSpec, configSpec, workpath, common.options))
         
-        tests   = TestSpec(testSpec)
-        configs = ConfigSpec(configSpec)
-        workdir = WorkDir(workpath)
+        tests     = TestSpec(testSpec)
+        configs   = ConfigSpec(configSpec)
+        workspace = Workspace(workpath)
         
-        status  = Iterate.doForAll(tests, configs, workdir)
-        Report.printReport(workdir)
+        status  = Iterate.doForAll(tests, configs, workspace)
+        Report.printReport(workspace)
         
         return status
 

@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
 #  run.py                                                                      #
-#  run a single test case in a testdir subdirectory                            #
+#  run a single test case in a testdir workdirectory                            #
 #                                                                              #                                                                            
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -55,25 +55,26 @@ from common import BadTestDescription, PrepareFailed, BuildFailed, RunFailed
 
 class Run():
     
-    def __init__(self, testdir, config, workdir):
+    def __init__(self, testdir, config, workspace):
         
-        self.testdir  = testdir        # path to test case's directory
-        self.config   = config      # Spack spec for desired build configuration
-        self.workdir  = workdir     # storage for collection of test work subdirs
+        self.testdir   = testdir        # path to test case's directory
+        self.config    = config         # Spack spec for desired build configuration
+        self.workspace = workspace      # storage for collection of test work workdirs
 
         # set up for per-test sub-logging
         ####self.log = xxx    # TODO
 
 
     def run(self):
-        debugmsg("running the test {} with config {} in workdir {} with options {}"
-                    .format(self.testdir, self.config, self.workdir, options),
-                 always=True)
+        
+        debugmsg("running the test {} with config {} in workspace {} with options {}"
+                    .format(self.testdir, self.config, self.workspace, options),
+                 always=True)  # TEMPORARY
         
         try:
             
             testDesc = self.readTestDescription()
-            (srcdir, builddir, rundir)  = self.prepareWorkSubdirectories(testDesc)
+            (srcdir, builddir, rundir)  = self.prepareWorkDir(testDesc)
             self.buildTest(testDesc, srcdir, builddir)
             self.executeBuiltTest(testDesc, builddir, rundir)
             self.checkTestResults(testDesc, rundir)
@@ -96,13 +97,13 @@ class Run():
         return None     # TEMPORARY
     
 
-    def prepareWorkSubdirectories(self, testDesc):
+    def prepareWorkDir(self, testDesc):
 
-        # prepare test's work subdir and build & run ssubdirs
-        subdir   = self.workdir.addSubdir(self.testdir, self.config)
+        # prepare test's work workdir and build & run sworkdirs
+        workdir  = self.workspace.addWorkDir(self.testdir, self.config)
         srcdir   = self.testdir
-        builddir = os.path.join(subdir, "build"); os.makedirs(builddir)
-        rundir   = os.path.join(subdir, "run");   os.makedirs(rundir)
+        builddir = os.path.join(workdir, "build"); os.makedirs(builddir)
+        rundir   = os.path.join(workdir, "run");   os.makedirs(rundir)
         
         # ...
         

@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  workdir.py                                                                  #
-#  storage in a file system directory for a collection of test-run dirs        #
+#  workspace.py                                                                #
+#  storage in a file system directory for a collection of per-test work dirs   #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -50,7 +50,7 @@
 
 # TEMPORARY: simplest possible thing: hold a path to the dir & just make subdirs on request
 
-class WorkDir():   
+class Workspace():   
     
     def __init__(self, workpath):
         
@@ -58,18 +58,18 @@ class WorkDir():
         self.workpath = workpath
 
 
-    def addSubdir(self, testdesc, configdesc):
+    def addWorkDir(self, testdesc, configdesc):
 
         import time, os
 
         # TODO: should ensure uniqueness
         timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-        subpath = os.path.join(self.workpath, "{}-{}-{}".format(timestamp, testdesc, configdesc))
+        workdir = os.path.join(self.workpath, "{}-{}-{}".format(timestamp, testdesc, configdesc))
 
-        return subpath
+        return workdir
     
 
     def __str__(self):
 
-        return "WorkDir({})".format(self.workpath)
+        return "Workspace@{}".format(self.workpath)
     

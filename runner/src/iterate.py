@@ -52,15 +52,15 @@
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, tests, configs, workdir):
+    def doForAll(myClass, tests, configs, workspace):
         
         import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
         from run import Run
 
-        common.debugmsg(">>> iterating over tests = {} X configs = {} using workdir = {} and options = {}"
-                            .format(tests.list, configs.list, workdir, common.options))
+        common.debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
+                            .format(tests.list, configs.list, workspace, common.options))
             
         for c in configs.list:
             for t in tests.list:
-                run = Run(t, c, workdir)
+                run = Run(t, c, workspace)
                 status = run.run()
