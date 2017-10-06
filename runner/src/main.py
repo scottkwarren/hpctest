@@ -48,8 +48,7 @@
 
 from hpctest import HPCTest
 
-import argparse
-from sys import path
+import argparse, os
 
 global tester
 tester = HPCTest()
@@ -69,15 +68,21 @@ def parseCommandLine():
     import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
     global tester
     
+    # default values
+    workpath = os.path.join(tester.homepath, "work")
+    
     # parsers
     parser = argparse.ArgumentParser(prog="hpctest")
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest="subcommand")
 
     # info ...
 
     # settings ...
     
+    
+    # ----------------------------------------------------------------------------------------
     # hpctest run [tspec] [--tests tspec] [--configs cspec] [--workspace workspace] <options>
+    # ----------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
 
     # ... tests
@@ -89,28 +94,52 @@ def parseCommandLine():
     runParser.add_argument("--configs",   "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
 
     # ... workspace
-    runParser.add_argument("--workspace", "-w",  type=str, default=tester.homepath, help="working directory in which to run the set of tests")
+    runParser.add_argument("--work",      "-w",  type=str, default=workpath, help="directory in which to create workspace for this run")
     
     # ... options
-    parser.add_argument("--int", dest="options", action="append_const", const=int)
     runParser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
     runParser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
     runParser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
+
+
+    # ----------------------------------------------------------------------------------------
+    # hpctest clean [<workspaces>] <options>
+    # ----------------------------------------------------------------------------------------
+    cleanParser = subparsers.add_parser("clean", help="clean up by deleting unwanted workspaces")
+
+    # ... workspaces
+    workspacesGroup = cleanParser.add_mutually_exclusive_group()
+    workspacesGroup.add_argument("work", nargs="?", type=str, default=workpath, help="path to workspace or dir-of-workspaces to be cleaned")
+    workspacesGroup.add_argument("--work", "-w",    type=str, default=workpath, help="path to workspace or dir-of-workspaces to be cleaned")
+    
+    # ... options
+    cleanParser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
+    cleanParser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as cleaning is performed")
+    cleanParser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as cleaning is performed")
+
 
     # parse the command line
     args = parser.parse_args()
     if args.options is None: args.options = {}          # can argparse do this automagically?
     common.options = args.options
-    common.debugmsg("parsed args = {}".format(args))  # requires 'common.options' to be set
+    common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
 
     return args
 
 
 def execute(args):
     # perform the requested operation by calling methods of HPCTest
-    
+    # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
+
     global tester
-    return tester.run(args.tests, args.configs, args.workspace)
+
+    if args.subcommand == "run":
+        return tester.run(args.tests, args.configs, args.work)
+    elif args.subcommand == "clean":
+        return tester.clean(args.work)
+    else:
+        fatalmsg("in main.execute, unexpected subcommand name")
+    
 
 
 

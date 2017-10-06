@@ -55,7 +55,7 @@ class Report():
     @classmethod
     def printReport(myclass, workspace):
         
-        debugmsg("reporting on workspace {} with options {}".format(workspace, options),
+        debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options),
                  always=True)  # TEMPORARY
 
 

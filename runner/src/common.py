@@ -66,6 +66,11 @@ def errormsg(message):
     print ">>> {}".format(message)
 
 
+# emit fatal error message
+def fatalmsg(message):
+    print ">>> FATAL ERROR: {}".format(message)
+
+
 # exceptions denoting fatal errors in subcomputation -- details are logged before raising
 class HPCTestError(Exception):
     pass

@@ -46,7 +46,8 @@
 ##############################################################################
 
 
-import os
+import os, shutil
+import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
 
 
 class HPCTest():
@@ -62,7 +63,6 @@ class HPCTest():
     def run(self, testSpec, configSpec, workpath):
         
         #from common import options, debugmsg
-        import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from workspace  import Workspace
@@ -80,4 +80,17 @@ class HPCTest():
         Report.printReport(workspace)
         
         return status
+
+
+    def clean(self, workpath):
+        
+        common.debugmsg("cleaning work directory {}".format(workpath))
+        
+        for name in os.listdir(workpath):
+            path = os.path.join(workpath, name)
+            if name.startswith("workspace-") and os.path.isdir(path):
+                shutil.rmtree(path, ignore_errors=True)
+
+                
+                
 

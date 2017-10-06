@@ -100,7 +100,7 @@ class Run():
     def prepareWorkDir(self, testDesc):
 
         # prepare test's work workdir and build & run sworkdirs
-        workdir  = self.workspace.addWorkDir(self.testdir, self.config)
+        workdir  = self.workspace.addWorkDir(os.path.basename(self.testdir), self.config)
         srcdir   = self.testdir
         builddir = os.path.join(workdir, "build"); os.makedirs(builddir)
         rundir   = os.path.join(workdir, "run");   os.makedirs(rundir)
