@@ -48,39 +48,66 @@
 
 
 
+#==================#
+# Shared variables #
+#==================#
+
 # list of options parsed from command line
 options = None
+
+# count of errors in this test run
+numErrors = 0
 
 # logger used to write test results
 ####log = xxx    # TODO
 
 
-# conditionally emit debug message
+#================#
+# Message output #
+#================#
+
+def infomsg(message):
+    print message
+
+def verbosemsg(message):
+    if "verbose" in options:
+        print message
+
+def errormsg(message):
+    global numErrors
+    numErrors = numErrors + 1
+    infomsg("error: " + message)
+
+def fatalmsg(message):
+    global numErrors
+    numErrors = numErrors + 1
+    infomsg("FATAL ERROR:" + message)
+
 def debugmsg(message, always=False):
     if always or "debug" in options:
-          errormsg(message)
+          infomsg(">>> " + message)
 
 
-# emit error message
-def errormsg(message):
-    print ">>> {}".format(message)
+#===================#
+# Custom exceptions #
+#===================#
 
-
-# emit fatal error message
-def fatalmsg(message):
-    print ">>> FATAL ERROR: {}".format(message)
-
-
-# exceptions denoting fatal errors in subcomputation -- details are logged before raising
 class HPCTestError(Exception):
     pass
+
 class BadTestDescription(HPCTestError):
     pass
+
 class PrepareFailed(HPCTestError):
     pass
+
 class BuildFailed(HPCTestError):
     pass
-class RunFailed(HPCTestError):
+
+class ExecuteFailed(HPCTestError):
+    pass
+
+class CheckFailed(HPCTestError):
     pass
 
 

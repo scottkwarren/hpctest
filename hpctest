@@ -47,6 +47,9 @@
 ################################################################################
 
 
-export HPCTEST_HOME=`pwd`; cd runner/src; python -B main.py $@
+
+export HPCTEST_HOME=`pwd`
+export PYTHONPATH=${HPCTEST_HOME}/runner/spack/lib/spack:${PYTHONPATH}
+cd runner/src; python -B main.py $@
 
 

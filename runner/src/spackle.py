@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  run.py                                                                      #
-#  run a single test case in a testdir workdirectory                            #
-#                                                                              #                                                                            
+#  spackle.py                                                                  #
+#  thin wrapper around private Spack to expose operations we need              #
+#                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
 #                                                                              #
@@ -46,92 +46,14 @@
 ################################################################################
 
 
-import os
-from common  import options, infomsg, errormsg, debugmsg
-from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
-from spackle import loadYamlFile
+import spack
+from common import infomsg
 
 
 
-class Run():
+def loadYamlFile(path):
+    # spack.external.yaml.*
     
-    def __init__(self, testdir, config, workspace):
-        
-        self.testdir   = testdir        # path to test case's directory
-        self.config    = config         # Spack spec for desired build configuration
-        self.workspace = workspace      # storage for collection of test work workdirs
+    infomsg("loading yaml file at {}".format(path))
+    return {}
 
-        # set up for per-test sub-logging
-        ####self.log = xxx    # TODO
-
-
-    def run(self):
-        
-        infomsg("running test {} with config {}".format(self.testdir, self.config))
-        
-        try:
-            
-            testDesc = self.readTestDescription()
-            (srcdir, builddir, rundir)  = self.prepareWorkDir(testDesc)
-            self.buildTest(testDesc, srcdir, builddir)
-            self.executeBuiltTest(testDesc, builddir, rundir)
-            self.checkTestResults(testDesc, rundir)
-            
-        except BadTestDescription:
-            errormsg("missing or invalid 'hpctest.yml' file in test directory {}".format(self.testdir))
-            
-        except PrepareFailed:
-            errormsg("failed in setting up for building test {}".format(self.testdir))
-            
-        except BuildFailed:
-            errormsg("failed in building test {}".format(self.testdir))
-            
-        except ExecuteFailed:
-            errormsg("failed in excuting test {}".format(self.testdir))
-            
-        except CheckFailed:
-            errormsg("failed in checking result of test {}".format(self.testdir))
-
-
-    def readTestDescription(self):
-
-        # read yaml file
-        from spackle import loadYamlFile
-        with open(os.path.join(self.testdir, "hpctest.yml"), 'r') as f:
-            descr = loadYamlFile(f)
-            
-        # validate and apply defaults
-        # TODO
-            
-        return desc
-        
-
-    def prepareWorkDir(self, testDesc):
-
-        # prepare test's work workdir and build & run sworkdirs
-        workdir  = self.workspace.addWorkDir(os.path.basename(self.testdir), self.config)
-        srcdir   = self.testdir
-        builddir = os.path.join(workdir, "build"); os.makedirs(builddir)
-        rundir   = os.path.join(workdir, "run");   os.makedirs(rundir)
-        
-        # ...
-        
-        return (srcdir, builddir, rundir)
-
-
-    def buildTest(self, testDesc, srcdir, builddir):
-
-        return          # TEMPORARY
-
-
-    def executeBuiltTest(self, testDesc, builddir, rundir):
-
-       return          # TEMPORARY
-
-
-    def checkTestResults(self, testDesc, rundir):
-
-        return          # TEMPORARY
-
-        
-        

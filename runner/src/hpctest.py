@@ -69,7 +69,7 @@ class HPCTest():
         from iterate    import Iterate
         from report     import Report
 
-        common.debugmsg("will run tests {} on configs {} in workspace {} with options {}"
+        common.debugmsg("will run tests {} on configs {} in {} with options {}"
                             .format(testSpec, configSpec, workpath, common.options))
         
         tests     = TestSpec(testSpec)
