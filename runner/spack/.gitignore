@@ -1,0 +1,25 @@
+/db
+/var/spack/stage
+/var/spack/cache
+/var/spack/repos/*/index.yaml
+/var/spack/repos/*/lock
+*.pyc
+/opt
+*~
+.DS_Store
+.idea
+# Ignore everything in /etc/spack except /etc/spack/defaults
+/etc/spack/*
+!/etc/spack/defaults
+/etc/spackconfig
+/share/spack/dotkit
+/share/spack/modules
+/share/spack/lmod
+/TAGS
+*.swp
+/htmlcov
+.coverage
+#*
+.#*
+/.cache
+/bin/spackc
