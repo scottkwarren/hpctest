@@ -98,7 +98,7 @@ class Run():
         # read yaml file
         from spackle import loadYamlFile
         with open(os.path.join(self.testdir, "hpctest.yml"), 'r') as f:
-            descr = loadYamlFile(f)
+            desc = loadYamlFile(f)
             
         # validate and apply defaults
         # TODO

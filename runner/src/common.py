@@ -46,6 +46,9 @@
 ################################################################################
 
 
+import spack    # try to avoid Spack init failure by doing this as early as possible
+
+
 
 
 #==================#

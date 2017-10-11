@@ -1,0 +1,3 @@
+test_name: Lulesh 2.0
+build: make CXX=${CXX}
+run: lulesh2.0

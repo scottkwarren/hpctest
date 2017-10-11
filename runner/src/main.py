@@ -57,10 +57,7 @@ tester = HPCTest()
 
 
 def main():
-    
-    import sys
-    print "Putative PYTHONPATH = {}".format(sys.path)
-    
+        
     args = parseCommandLine()    
     return execute(args)
 
