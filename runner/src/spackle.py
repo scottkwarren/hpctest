@@ -47,15 +47,34 @@
 
 
 import spack
-from common import infomsg
+from common import infomsg, debugmsg, errormsg
 
 
 
 def loadYamlFile(path):
-    # spack.external.yaml.*
     
-    infomsg("loading yaml file at {}".format(path))
-    return {}
+    debugmsg("loading yaml file at {}".format(path))
+    
+    import yaml     # in lib/spack/external
+        
+    try:
+        
+        with open(path, 'r') as f:
+            
+            try:
+                object, msg = yaml.load(f), None
+            except:
+                object, msg = None, "file has syntax errors and cannot be used"
+            
+    except Exception as e:
+        if isinstance(e, OSError) and e.errno == errno.EEXIST:
+            object, msg = None, "file is missing"
+        else:
+            object, msg = None, "file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
+    
+    debugmsg("...finished loading yaml file with result object {} and  msg {}".format(object, msg))
+    
+    return object, msg
 
 
 

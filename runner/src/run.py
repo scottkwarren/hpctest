@@ -77,32 +77,35 @@ class Run():
             self.executeBuiltTest(testDesc, builddir, rundir)
             self.checkTestResults(testDesc, rundir)
             
-        except BadTestDescription:
-            errormsg("missing or invalid 'hpctest.yml' file in test directory {}".format(self.testdir))
-            
-        except PrepareFailed:
-            errormsg("failed in setting up for building test {}".format(self.testdir))
-            
-        except BuildFailed:
-            errormsg("failed in building test {}".format(self.testdir))
-            
-        except ExecuteFailed:
-            errormsg("failed in excuting test {}".format(self.testdir))
-            
-        except CheckFailed:
-            errormsg("failed in checking result of test {}".format(self.testdir))
+        except BadTestDescription as e:
+            msg = "missing or invalid 'hpctest.yml' file in test {}: {}".format(self.testdir, e.args[0])
+        except PrepareFailed as e:
+            msg = "failed in setting up for building test {}: {}".format(self.testdir, e.args[0])
+        except BuildFailed as e:
+            msg = "failed in building test {}: {}".format(self.testdir, e.args[0])
+        except ExecuteFailed as e:
+            msg = "failed in excuting test {}: {}".format(self.testdir, e.args[0])
+        except CheckFailed as e:
+            msg = "failed in checking result of test {}: {}".format(self.testdir, e.args[0])
+        else:
+            msg = None
+        
+        if msg: errormsg(msg)
 
 
     def readTestDescription(self):
 
-        # read yaml file
         from spackle import loadYamlFile
-        with open(os.path.join(self.testdir, "hpctest.yml"), 'r') as f:
-            desc = loadYamlFile(f)
-            
+
+        # read yaml file
+        yamlpath = os.path.join(self.testdir, "hpctest.yml")
+        (desc, error) = loadYamlFile(yamlpath)
+        if error:
+            raise BadTestDescription(error)
+
         # validate and apply defaults
         # TODO
-            
+        
         return desc
         
 
