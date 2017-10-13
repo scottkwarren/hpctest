@@ -1,5 +1,41 @@
----
+#=========================================#
+# HPCTest description for test Lulesh 2.0 #
+#=========================================#
+
+
 name:  "Lulesh 2.0"
-build: "make CXX=${CXX}"
-run:   "lulesh2.0"
-...
+
+config:
+
+  variants:
+  
+    - variant:   serial
+      languages: [ cxx ]
+      flags:
+        - CXXFLAGS: "-DUSE_MPI=0 -g -O3 -I."
+        - LDFLAGS:  "-g -O3"
+      
+    - variant:   openmp
+      languages: [ cxx ]
+      flags:
+      - CXXFLAGS: "-DUSE_MPI=0 -g -O3 -fopenmp -I."
+      - LDFLAGS:  "-g -O3 -fopenmp"
+    
+    - variant:   mpi
+      languages: [ mpicxx ]
+      packages:  [ mpi ]
+      flags:
+        - CXXFLAGS: "-DUSE_MPI=1 -g -O3 -I."
+        - LDFLAGS:  "-g -O3"
+    
+    - variant:   mpi+openmp
+      default:   yes
+      languages: [ mpicxx ]
+      packages:  [ mpi ]
+      flags:
+      - CXXFLAGS: "-DUSE_MPI=1 -g -O3 -fopenmp -I."
+      - LDFLAGS:  "-g -O3 -fopenmp"
+      
+build:
+  build cmd: "make ${FLAGS}"
+  run cmd:   "lulesh2.0"
