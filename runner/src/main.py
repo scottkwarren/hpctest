@@ -65,7 +65,8 @@ def main():
 def parseCommandLine():
     # see https://docs.python.org/2/howto/argparse.html
     
-    import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
+    from common import debugmsg
+    import common   # 'from common import debugmsg' fails b/c 'options = ...' is treated as assignment to local, even with 'global options'
     global tester
     
     # default values
@@ -122,7 +123,7 @@ def parseCommandLine():
     args = parser.parse_args()
     if args.options is None: args.options = {}          # can argparse do this automagically?
     common.options = args.options
-    common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
+    debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
 
     return args
 

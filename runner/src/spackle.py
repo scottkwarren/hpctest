@@ -55,7 +55,7 @@ def loadYamlFile(path):
     
     debugmsg("loading yaml file at {}".format(path))
     
-    import yaml     # in lib/spack/external
+    import yaml     # from lib/spack/external via mod to sys.path in HPCTest.__init__
         
     try:
         
@@ -72,7 +72,7 @@ def loadYamlFile(path):
         else:
             object, msg = None, "file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
     
-    debugmsg("...finished loading yaml file with result object {} and  msg '{}'".format(object, msg))
+    debugmsg("...finished loading yaml file with result object {} and msg {}".format(object, repr(msg)))
     
     return object, msg
 

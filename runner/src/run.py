@@ -46,12 +46,6 @@
 ################################################################################
 
 
-import os
-from common  import options, infomsg, errormsg, debugmsg
-from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
-from spackle import loadYamlFile
-
-
 
 class Run():
     
@@ -67,6 +61,9 @@ class Run():
 
     def run(self):
         
+        from common  import infomsg, errormsg
+        from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
+
         infomsg("running test {} with config {}".format(self.testdir, self.config))
         
         try:
@@ -95,10 +92,11 @@ class Run():
 
     def readTestDescription(self):
 
+        from os.path import join
         from spackle import loadYamlFile
 
         # read yaml file
-        yamlpath = os.path.join(self.testdir, "hpctest.yml")
+        yamlpath = join(self.testdir, "hpctest.yml")
         (desc, error) = loadYamlFile(yamlpath)
         if error:
             raise BadTestDescription(error)
@@ -111,11 +109,14 @@ class Run():
 
     def prepareWorkDir(self, testDesc):
 
+        from os import makedirs
+        from os.path import basename, join
+
         # prepare test's work workdir and build & run sworkdirs
-        workdir  = self.workspace.addWorkDir(os.path.basename(self.testdir), self.config)
+        workdir  = self.workspace.addWorkDir(basename(self.testdir), self.config)
         srcdir   = self.testdir
-        builddir = os.path.join(workdir, "build"); os.makedirs(builddir)
-        rundir   = os.path.join(workdir, "run");   os.makedirs(rundir)
+        builddir = join(workdir, "build"); makedirs(builddir)
+        rundir   = join(workdir, "run");   makedirs(rundir)
         
         # ...
         

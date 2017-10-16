@@ -47,11 +47,6 @@
 ################################################################################
 
 
-
-export HPCTEST_HOME=`pwd`
-SPACK_PREFIX=${HPCTEST_HOME}/runner/spack/lib/spack
-export PYTHONPATH=${SPACK_PREFIX}:${SPACK_PREFIX}/external:${SPACK_PREFIX}/external/yaml/lib:${PYTHONPATH}	# for Python 2.x
-#export PYTHONPATH=${SPACK_PREFIX}:${SPACK_PREFIX}/external:${SPACK_PREFIX}/external/yaml/lib3:${PYTHONPATH}	# for Python 3.x
 cd runner/src; python -B main.py $@
 
 

@@ -46,31 +46,36 @@
 ##############################################################################
 
 
-import os, shutil
-import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
-
 
 class HPCTest():
     
     def __init__(self, homepath=None):
         
-        if homepath is not None:
-            self.homepath = os.environ["HPCTEST_HOME"] = homepath
+        from os import environ
+        from os.path import dirname, join, normpath, realpath
+        import sys
+
+        # set up famous paths
+        if homepath:
+            self.homepath = homepath
         else:
-            self.homepath = os.environ["HPCTEST_HOME"]   # can fail!
+            self.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
+        environ["HPCTEST_HOME"] = self.homepath
+        environ["SPACK_PREFIX"] = _prefix = join( self.homepath, "runner", "spack", "lib", "spack" )
+        sys.path[1:0] = [ _prefix, join(_prefix, "external"), join(_prefix, "external", "yaml", "lib") ]
 
 
     def run(self, testSpec, configSpec, workpath):
         
-        #from common import options, debugmsg
+        from common     import debugmsg, options
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from workspace  import Workspace
         from iterate    import Iterate
         from report     import Report
 
-        common.debugmsg("will run tests {} on configs {} in {} with options {}"
-                            .format(testSpec, configSpec, workpath, common.options))
+        debugmsg("will run tests {} on configs {} in {} with options {}"
+                    .format(testSpec, configSpec, workpath, options))
         
         tests     = TestSpec(testSpec)
         configs   = ConfigSpec(configSpec)
@@ -84,12 +89,17 @@ class HPCTest():
 
     def clean(self, workpath):
         
-        common.debugmsg("cleaning work directory {}".format(workpath))
+        from os      import listdir
+        from os.path import join, isdir
+        from shutil  import rmtree
+        from common  import debugmsg
+
+        debugmsg("cleaning work directory {}".format(workpath))
         
-        for name in os.listdir(workpath):
-            path = os.path.join(workpath, name)
-            if name.startswith("workspace-") and os.path.isdir(path):
-                shutil.rmtree(path, ignore_errors=True)
+        for name in listdir(workpath):
+            path = join(workpath, name)
+            if name.startswith("workspace-") and isdir(path):
+                rmtree(path, ignore_errors=True)
 
                 
                 

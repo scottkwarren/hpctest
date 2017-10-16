@@ -46,8 +46,9 @@
 ################################################################################
 
 
-import os
-import glob
+from os import environ
+from os.path import join
+from glob import glob
 
 
 
@@ -60,5 +61,5 @@ class TestSpec():
         
         self.list = [ path
                         for pattern in specString.split(',')
-                            for path in glob.glob( os.path.join( os.environ["HPCTEST_HOME"], "tests", pattern.strip() ) )
+                            for path in glob( join( environ["HPCTEST_HOME"], "tests", pattern.strip() ) )
                     ]

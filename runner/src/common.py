@@ -46,14 +46,9 @@
 ################################################################################
 
 
-import spack    # try to avoid Spack init failure by doing this as early as possible
 
 
-
-
-#==================#
-# Shared variables #
-#==================#
+# Shared variables
 
 # list of options parsed from command line
 options = None
@@ -65,9 +60,9 @@ numErrors = 0
 ####log = xxx    # TODO
 
 
-#================#
-# Message output #
-#================#
+
+
+# Message output
 
 def infomsg(message):
     print message
@@ -91,9 +86,9 @@ def debugmsg(message, always=False):
           infomsg(">>> " + message)
 
 
-#===================#
-# Custom exceptions #
-#===================#
+
+
+# Custom exceptions
 
 class HPCTestError(Exception):
     pass

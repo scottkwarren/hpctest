@@ -54,11 +54,12 @@ class Iterate():
     @classmethod
     def doForAll(myClass, tests, configs, workspace):
         
-        import common   # 'from common import options, debugmsg' fails: 'options = ...' here does not set 'common.options'
+        import common   # 'from common import options' fails b/c 'options = ...' is treated as local assignment, even with 'global options'
+        from common import debugmsg
         from run import Run
 
-        common.debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
-                            .format(tests.list, configs.list, workspace, common.options))
+        debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
+                    .format(tests.list, configs.list, workspace, common.options))
             
         for c in configs.list:
             for t in tests.list:

@@ -46,9 +46,6 @@
 ################################################################################
 
 
-import time, os, shutil
-
-
 
 # TEMPORARY: simplest possible thing: hold a path to the dir & just make subdirs on request
 
@@ -56,10 +53,14 @@ class Workspace():
     
     def __init__(self, path):
         
+        from os import makedirs
+        from os.path import join 
+        from time import strftime
+
         # TODO: should check validity of path
-        timestamp = time.strftime("%Y%m%d%H%M%S")
-        self.path = os.path.join(path, "workspace-{}".format(timestamp))
-        os.makedirs(self.path)
+        timestamp = strftime("%Y%m%d%H%M%S")
+        self.path = join(path, "workspace-{}".format(timestamp))
+        makedirs(self.path)
     
 
     def __str__(self):
@@ -69,13 +70,16 @@ class Workspace():
 
     def addWorkDir(self, testdesc, configdesc):
 
+        from os.path import join 
+
         # TODO: should ensure uniqueness
-        workdir = os.path.join(self.path, "{}-{}".format(testdesc, configdesc))
+        workdir = join(self.path, "{}-{}".format(testdesc, configdesc))
 
         return workdir
         
         
     def clean(self):
         
-        shutil.rmtree(self.path, ignore_errors=True)
+        from shutil import rmtree
+        rmtree(self.path, ignore_errors=True)
     
