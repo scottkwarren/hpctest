@@ -46,40 +46,51 @@
 ################################################################################
 
 
+# TEMPORARY: simplest possible thing: hold a path to the dir & just make run subdirs on request
 
-# TEMPORARY: simplest possible thing: hold a path to the dir & just make subdirs on request
+
+_prefix = "workspace-"
+
 
 class Workspace():   
     
     def __init__(self, path):
         
         from os import makedirs
-        from os.path import join 
+        from os.path import basename, isfile, isdir, join 
         from time import strftime
+        from common import BadWorkspacePath
 
-        # TODO: should check validity of path
-        timestamp = strftime("%Y%m%d%H%M%S")
-        self.path = join(path, "workspace-{}".format(timestamp))
-        makedirs(self.path)
-    
+        if isdir(path) and basename(path).startswith(_prefix):
+                self.path = path
+        elif not isfile(path):
+            timestamp = strftime("%Y%m%d%H%M%S")
+            self.path = join(path, _prefix + timestamp)
+            makedirs(self.path)
+        else:
+            raise BadWorkspacePath(path)
+
 
     def __str__(self):
 
         return "Workspace@{}".format(self.path)
         
 
-    def addWorkDir(self, testdesc, configdesc):
+    def addJobDir(self, testdesc, configdesc):
 
+        import os
         from os.path import join 
 
         # TODO: should ensure uniqueness
-        workdir = join(self.path, "{}-{}".format(testdesc, configdesc))
-
-        return workdir
+        jobdir = join(self.path, "{}-{}".format(testdesc, configdesc))
+        os.makedirs(jobdir)
+        
+        return jobdir
         
         
     def clean(self):
         
         from shutil import rmtree
         rmtree(self.path, ignore_errors=True)
+
     

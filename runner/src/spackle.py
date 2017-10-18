@@ -46,16 +46,26 @@
 ################################################################################
 
 
-import spack
-from common import infomsg, debugmsg, errormsg
 
+
+def do(cmdstring):
+    
+    import os, common
+    os.system(common.own_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
+
+
+def extDo(cmdstring):
+    
+    import os, common
+    os.system(common.ext_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
 
 
 def loadYamlFile(path):
     
+    import os, spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
+    from common import infomsg, debugmsg, errormsg
+
     debugmsg("loading yaml file at {}".format(path))
-    
-    import yaml     # from lib/spack/external via mod to sys.path in HPCTest.__init__
         
     try:
         

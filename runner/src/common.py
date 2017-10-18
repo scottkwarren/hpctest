@@ -50,16 +50,13 @@
 
 # Shared variables
 
-# list of options parsed from command line
-options = None
-
-# count of errors in this test run
-numErrors = 0
-
-# logger used to write test results
-####log = xxx    # TODO
-
-
+options              = None     # list of options parsed from command line
+numErrors            = 0        # count of errors in this test run
+homepath             = None     # path to this HPCTest installation
+ext_spack_home       = None     # path to external Spack's directory if any -- can be None
+own_spack_home       = None     # path to private Spack's directory
+own_spack_module_dir = None     # path to dir containing private Spack's top level module
+logger               = None     # used to write test results -- TODO
 
 
 # Message output
@@ -86,8 +83,6 @@ def debugmsg(message, always=False):
           infomsg(">>> " + message)
 
 
-
-
 # Custom exceptions
 
 class HPCTestError(Exception):
@@ -106,6 +101,9 @@ class ExecuteFailed(HPCTestError):
     pass
 
 class CheckFailed(HPCTestError):
+    pass
+
+class BadWorkspacePath(HPCTestError):
     pass
 
 

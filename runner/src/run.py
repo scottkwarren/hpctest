@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
 #  run.py                                                                      #
-#  run a single test case in a testdir workdirectory                            #
+#  run a single test case in a new job directory in given workspace            #
 #                                                                              #                                                                            
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -53,7 +53,7 @@ class Run():
         
         self.testdir   = testdir        # path to test case's directory
         self.config    = config         # Spack spec for desired build configuration
-        self.workspace = workspace      # storage for collection of test work workdirs
+        self.workspace = workspace      # storage for collection of test job dirs
 
         # set up for per-test sub-logging
         ####self.log = xxx    # TODO
@@ -69,9 +69,9 @@ class Run():
         try:
             
             testDesc = self.readTestDescription()
-            (srcdir, builddir, rundir)  = self.prepareWorkDir(testDesc)
+            (srcdir, builddir, rundir) = self.prepareJobDir(testDesc)
             self.buildTest(testDesc, srcdir, builddir)
-            self.executeBuiltTest(testDesc, builddir, rundir)
+            self.runBuiltTest(testDesc, builddir, rundir)
             self.checkTestResults(testDesc, rundir)
             
         except BadTestDescription as e:
@@ -96,8 +96,7 @@ class Run():
         from spackle import loadYamlFile
 
         # read yaml file
-        yamlpath = join(self.testdir, "hpctest.yml")
-        (desc, error) = loadYamlFile(yamlpath)
+        (desc, error) = loadYamlFile( join(self.testdir, "hpctest.yml") )
         if error:
             raise BadTestDescription(error)
 
@@ -107,16 +106,16 @@ class Run():
         return desc
         
 
-    def prepareWorkDir(self, testDesc):
+    def prepareJobDir(self, testDesc):
 
         from os import makedirs
         from os.path import basename, join
 
-        # prepare test's work workdir and build & run sworkdirs
-        workdir  = self.workspace.addWorkDir(basename(self.testdir), self.config)
+        # prepare test's job directory and build & run subdirs
+        jobdir   = self.workspace.addJobDir(basename(self.testdir), self.config)
         srcdir   = self.testdir
-        builddir = join(workdir, "build"); makedirs(builddir)
-        rundir   = join(workdir, "run");   makedirs(rundir)
+        builddir = join(jobdir, "build"); makedirs(builddir)
+        rundir   = join(jobdir, "run");   makedirs(rundir)
         
         # ...
         
@@ -128,7 +127,7 @@ class Run():
         return          # TEMPORARY
 
 
-    def executeBuiltTest(self, testDesc, builddir, rundir):
+    def runBuiltTest(self, testDesc, builddir, rundir):
 
        return          # TEMPORARY
 

@@ -49,21 +49,29 @@
 
 class HPCTest():
     
-    def __init__(self, homepath=None):
+    def __init__(self, extspackpath=None, homepath=None):
         
         from os import environ
         from os.path import dirname, join, normpath, realpath
         import sys
+        import common, spackle
 
-        # set up famous paths
-        if homepath:
-            self.homepath = homepath
-        else:
-            self.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
-        environ["HPCTEST_HOME"] = self.homepath
-        environ["SPACK_PREFIX"] = _prefix = join( self.homepath, "runner", "spack", "lib", "spack" )
-        sys.path[1:0] = [ _prefix, join(_prefix, "external"), join(_prefix, "external", "yaml", "lib") ]
+        # determine important paths
+        common.homepath  = homepath if homepath else normpath( join(dirname(realpath(__file__)), "..", "..") )
+        common.ext_spack_home = extspackpath  # ok to be None
+        common.own_spack_home = join( common.homepath, "runner", "spack" )
+        common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
+        
+        # adjust environment accordingly
+        environ["HPCTEST_HOME"] = common.homepath
+        sys.path[1:0] = [ common.own_spack_module_dir,
+                          join(common.own_spack_module_dir, "external"),
+                          join(common.own_spack_module_dir, "external", "yaml", "lib")
+                        ]
 
+        # set up our private spack & make it extend the external one if any
+        # spackle.do("repo list")  # TESTING
+        
 
     def run(self, testSpec, configSpec, workpath):
         
@@ -89,17 +97,18 @@ class HPCTest():
 
     def clean(self, workpath):
         
-        from os      import listdir
-        from os.path import join, isdir
-        from shutil  import rmtree
-        from common  import debugmsg
-
+        from os        import listdir
+        from os.path   import join, isdir
+        from shutil    import rmtree
+        from common    import debugmsg
+        from workspace import Workspace
+        
         debugmsg("cleaning work directory {}".format(workpath))
         
         for name in listdir(workpath):
             path = join(workpath, name)
-            if name.startswith("workspace-") and isdir(path):
-                rmtree(path, ignore_errors=True)
+            if isdir(path) and name.startswith("workspace-"):
+                Workspace(path).clean()
 
                 
                 
