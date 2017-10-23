@@ -55,6 +55,7 @@ class HPCTest():
         from os.path import dirname, join, normpath, realpath
         import sys
         import common, spackle
+        global _testDirChecksum
 
         # determine important paths
         common.homepath  = homepath if homepath else normpath( join(dirname(realpath(__file__)), "..", "..") )
@@ -70,6 +71,12 @@ class HPCTest():
                         ]
 
         # set up our private spack & make it extend the external one if any
+        if self._testDirChanged():
+            pass
+            # initialize our test repo
+            # initialize our build repo
+            # extend external repo
+        
         # spackle.do("repo list")  # TESTING
         
 
@@ -110,6 +117,34 @@ class HPCTest():
             if isdir(path) and name.startswith("workspace-"):
                 Workspace(path).clean()
 
-                
-                
+
+    def _testDirChanged(self):
+        
+        from os.path import join, exists
+        from util.checksumdir import dirhash
+        import common
+        global _testDirChecksum
+        
+        testsDir = join(common.homepath, "tests")
+        checksumName = "_checksum_"
+        checksumPath = join(testsDir, checksumName)
+        
+        # get old checksum
+        if exists(checksumPath):
+            with open(checksumPath) as old: oldChecksum = old.read()
+        else:
+            oldChecksum = "no checksum yet"
+        
+        # compute new checksum
+        newChecksum = dirhash(testsDir, hashfunc='md5', excluded_files=[checksumName])
+        
+        # save new checksum
+        with open(checksumPath, 'w') as new: new.write(newChecksum)
+
+        return newChecksum != oldChecksum
+
+
+
+
+
 
