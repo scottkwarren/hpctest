@@ -53,4 +53,9 @@ class ConfigSpec():
     def __init__(self, specString):
         # TEMPORARY: stub by expecting specstring to be a comma-separated list of Spack specs
         
-        self.list = [ spackspec.strip() for spackspec in specString.split(',') ]
+        self.specList = [ spackspec.strip() for spackspec in specString.split(',') ]
+                                
+                                
+    def specs(self):
+            
+        return frozenset(self.specList)

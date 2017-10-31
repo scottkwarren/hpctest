@@ -49,6 +49,7 @@
 from os import environ
 from os.path import join
 from glob import glob
+from common import homepath
 
 
 
@@ -58,8 +59,27 @@ from glob import glob
 class TestSpec():
     
     def __init__(self, specString):
-        
-        self.list = [ path
-                        for pattern in specString.split(',')
-                            for path in glob( join( environ["HPCTEST_HOME"], "tests", pattern.strip() ) )
-                    ]
+                
+        self.pathlist = \
+            [ path
+                for pattern in specString.split(',')
+                    for path in glob( join(homepath, "tests", pattern.strip()) )
+                        ### if isfile( join(path, xxx, xxx) )
+            ]
+                 
+                                
+                                
+                                
+                                ### xxxx
+                                ### homepath, "runner", "repos", "test"
+                                
+                                
+    def paths(self):
+            
+        return frozenset(self.pathlist)
+
+
+
+
+
+

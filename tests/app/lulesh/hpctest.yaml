@@ -1,0 +1,56 @@
+#=========================================#
+# HPCTest description for test Lulesh 2.0 #
+#=========================================#
+
+
+info:
+    name:  "Lulesh 2.0"
+    version: 1.0
+    homepage: https://codesign.llnl.gov/lulesh.php
+    url: https://github.com/HPCToolkit
+    description: >
+        Many important simulation problems of interest to DOE involve complex multi-material
+        systems that undergo large deformations. LULESH is a highly simplified application
+        that represents the numerical algorithms, data motion, and programming style typical
+        in scientific C or C++ based hydrodynamic applications. The Shock Hydrodynamics
+        Challenge Problem was originally defined and implemented by LLNL as one of five
+        challenge problems in the DARPA UHPC program and has since become a widely studied
+        proxy application in DOE co-design efforts for exascale. It has been ported to a number
+        of programming models and optimized for a number of advanced platforms. 
+    
+config:
+    - default variants: [ openmp mpi ]
+    
+    - base: serial
+      description: "Build as a serial program"
+      languages: [ cxx ]
+      flags:
+        +CXXFLAGS: "-g -O3"
+        +LDFLAGS:  "-g -O3"
+        
+    - variant: openmp
+      description: "Build with OpenMP support"
+      flags:
+        +CXXFLAGS: $OPENMP_FLAG
+        +LDFLAGS:  $OPENMP_FLAG
+            
+    - variant: mpi
+      description: "Build with MPI support"
+      depends: [ mpi mpicxx ]
+      flags:
+        +CXXFLAGS: "-DUSE_MPI=1 "
+        env:
+            - "CXX = $MPICXX"
+            - "MPI_INC = $MPI_INC"
+            - "MPI_LIB = $MPI_LIB"
+
+build:
+    kind: makefile
+
+run:
+    cmd: ./lulesh2.0
+
+    
+    
+    
+    

@@ -59,9 +59,15 @@ class Iterate():
         from run import Run
 
         debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
-                    .format(tests.list, configs.list, workspace, common.options))
+                    .format(tests.paths(), configs.specs(), workspace, common.options))
             
-        for c in configs.list:
-            for t in tests.list:
+        for c in configs.specs():
+            for t in tests.paths():
                 run = Run(t, c, workspace)
                 status = run.run()
+
+
+
+
+
+

@@ -48,7 +48,7 @@
 
 
 
-# Shared variables
+# Shared variables, set in HPCTest at startup
 
 options              = None     # list of options parsed from command line
 numErrors            = 0        # count of errors in this test run

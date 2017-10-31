@@ -70,7 +70,6 @@ def loadYamlFile(path):
     try:
         
         with open(path, 'r') as f:
-            
             try:
                 object, msg = yaml.load(f), None
             except:

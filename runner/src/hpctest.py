@@ -71,11 +71,7 @@ class HPCTest():
                         ]
 
         # set up our private spack & make it extend the external one if any
-        if self._testDirChanged():
-            pass
-            # initialize our test repo
-            # initialize our build repo
-            # extend external repo
+        if self._testDirChanged(): self._setUpRepos()
         
         # spackle.do("repo list")  # TESTING
         
@@ -142,6 +138,33 @@ class HPCTest():
         with open(checksumPath, 'w') as new: new.write(newChecksum)
 
         return newChecksum != oldChecksum
+
+
+
+
+    def _setUpRepos(self):
+
+        import os
+        from os.path import join
+        from common import homepath
+
+        # initialize our test repo
+        repoPath  = join(homepath, "runner", "repos", "test")
+        testsPath = join(homepath, "tests")
+        ##spackle.do("repo create {}".format(repoPath))
+        for root, dirs, files in os.walk(testsPath, topdown=False):
+            if "hpctest.yaml" in files:
+                print "... {}".format(root)
+            
+        ##spackle.do( "repo add {}".format(repoPath) )
+    
+        # initialize our build repo
+        repopath = join(homepath, "runner", "repos", "build")
+        ##spackle.do("repo create {}".format(repopath))
+        ##spackle.do("repo add {}".format(repopath))
+        
+        # extend external repo
+        pass
 
 
 

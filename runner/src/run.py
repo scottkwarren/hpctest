@@ -68,14 +68,14 @@ class Run():
         
         try:
             
-            testDesc = self.readTestDescription()
-            (srcdir, builddir, rundir) = self.prepareJobDir(testDesc)
-            self.buildTest(testDesc, srcdir, builddir)
-            self.runBuiltTest(testDesc, builddir, rundir)
-            self.checkTestResults(testDesc, rundir)
+            testDesc = self._readTestDescription()
+            (srcdir, builddir, rundir) = self._prepareJobDir(testDesc)
+            self._buildTest(testDesc, srcdir, builddir)
+            self._runBuiltTest(testDesc, builddir, rundir)
+            self._checkTestResults(testDesc, rundir)
             
         except BadTestDescription as e:
-            msg = "missing or invalid 'hpctest.yml' file in test {}: {}".format(self.testdir, e.args[0])
+            msg = "missing or invalid '{}' file in test {}: {}".format("hpctest.yaml", self.testdir, e.args[0])
         except PrepareFailed as e:
             msg = "failed in setting up for building test {}: {}".format(self.testdir, e.args[0])
         except BuildFailed as e:
@@ -90,13 +90,14 @@ class Run():
         if msg: errormsg(msg)
 
 
-    def readTestDescription(self):
+    def _readTestDescription(self):
 
         from os.path import join
         from spackle import loadYamlFile
+        from common import BadTestDescription
 
         # read yaml file
-        (desc, error) = loadYamlFile( join(self.testdir, "hpctest.yml") )
+        (desc, error) = loadYamlFile( join(self.testdir, "hpctest.yaml") )
         if error:
             raise BadTestDescription(error)
 
@@ -106,7 +107,7 @@ class Run():
         return desc
         
 
-    def prepareJobDir(self, testDesc):
+    def _prepareJobDir(self, testDesc):
 
         from os import makedirs
         from os.path import basename, join
@@ -122,17 +123,17 @@ class Run():
         return (srcdir, builddir, rundir)
 
 
-    def buildTest(self, testDesc, srcdir, builddir):
+    def _buildTest(self, testDesc, srcdir, builddir):
 
         return          # TEMPORARY
 
 
-    def runBuiltTest(self, testDesc, builddir, rundir):
+    def _runBuiltTest(self, testDesc, builddir, rundir):
 
        return          # TEMPORARY
 
 
-    def checkTestResults(self, testDesc, rundir):
+    def _checkTestResults(self, testDesc, rundir):
 
         return          # TEMPORARY
 
