@@ -1,7 +1,0 @@
-enable:
-  - tcl
-tcl:
-  naming_scheme: '${PACKAGE}/${VERSION}-${COMPILERNAME}'
-  all:
-    conflict:
-      - '${PACKAGE}/${COMPILERNAME}'

@@ -1,5 +1,0 @@
-enable:
-  - lmod
-lmod:
-  hierarchy:
-    - mpi

@@ -1,5 +1,0 @@
-enable:
-  - tcl
-tcl:
-  all:
-    template: 'override_from_modules.txt'

@@ -1,7 +1,0 @@
-enable:
-  - tcl
-tcl:
-  mpileaks:
-    suffixes:
-      '+debug': foo
-      '~debug': bar
