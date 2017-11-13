@@ -1,0 +1,61 @@
+#=========================================#
+# HPCTest description for AMG2013         #
+#=========================================#
+
+
+info:
+    name:  "AMG2013"
+    version: 1.0
+    homepage: https://codesign.llnl.gov/amg2013.php
+    url: https://github.com/HPCToolkit
+    description: >
+        AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
+        problems on unstructured grids.  The driver provided with AMG2013 builds linear 
+        systems for various 3-dimensional problems.
+        AMG2013 is written in ISO-C.  It is an SPMD code which uses MPI and OpenMP 
+        threading within MPI tasks. Parallelism is achieved by data decomposition. The 
+        driver provided with AMG2013 achieves this decomposition by simply subdividing 
+        the grid into logical P x Q x R (in 3D) chunks of equal size. 
+    
+config:
+    - default variants: [ openmp mpi ]
+    
+    - base: serial
+      description: "Build as a serial program"
+      languages: [ c ]
+      flags:
+        CXXFLAGS: "-g -O2"
+        LDFLAGS:  "-lm"
+        env:
+            - "INCLUDE_CFLAGS = $CFLAGS"
+            - "INCLUDE_LFLAGS = $LDFLAGS"
+        
+    - variant: openmp
+      description: "Build with OpenMP support"
+      flags:
+        +CFLAGS: $OPENMP_FLAG
+        +LDFLAGS: $OPENMP_FLAG
+        env:
+            - "-DHYPRE_USING_OPENMP"
+            
+    - variant: mpi
+      description: "Build with MPI support"
+      languages: [ mpicc ]
+      depends: [ mpi ]
+      flags:
+        env:
+            - "-DTIMER_USE_MPI"
+            - shouldn't some MPI vars be set here??
+
+build:
+    kind: makefile
+    install: amg2013
+
+run:
+    cmd: "amg2013 -r 36 36 36  -P  1 1 2"
+    mpiexec: "-n 2"
+
+    
+    
+    
+    
