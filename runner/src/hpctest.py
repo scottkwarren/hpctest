@@ -164,6 +164,7 @@ class HPCTest():
 
     def _newPrivateRepo(self, dirname):
         
+        import spack
         from spack.repository import create_repo
         from spack.cmd.repo import repo_add, repo_remove
         from common import homepath
