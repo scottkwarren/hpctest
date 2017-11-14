@@ -118,11 +118,11 @@ class HPCTest():
         
         from os.path import join, exists
         from util.checksumdir import dirhash
-        import common
+        from common import homepath
         global _testDirChecksum
         
-        testsDir = join(common.homepath, "tests")
-        checksumName = "_checksum_"
+        testsDir = join(homepath, "tests")
+        checksumName = ".checksum"
         checksumPath = join(testsDir, checksumName)
         
         # get old checksum
@@ -140,32 +140,48 @@ class HPCTest():
         return newChecksum != oldChecksum
 
 
-
-
     def _setUpRepos(self):
 
         import os
         from os.path import join
         from common import homepath
 
-        # initialize our test repo
-        repoPath  = join(homepath, "runner", "repos", "test")
-        testsPath = join(homepath, "tests")
-        ##spackle.do("repo create {}".format(repoPath))
-        for root, dirs, files in os.walk(testsPath, topdown=False):
-            if "hpctest.yaml" in files:
-                print "... {}".format(root)
-            
-        ##spackle.do( "repo add {}".format(repoPath) )
-    
-        # initialize our build repo
-        repopath = join(homepath, "runner", "repos", "build")
-        ##spackle.do("repo create {}".format(repopath))
-        ##spackle.do("repo add {}".format(repopath))
+        # create new private repo for building test cases
+        self._newPrivateRepo("tests")
         
+        # populate test repo with a package for each test case
+        testsPath = join(homepath, "tests")
+        for root, dirs, files in os.walk(testsPath, topdown=False):
+            if "hpctest.yaml" in files:  # found a test-case directory
+                self._addPackageForTest(repoPath, root)
+    
+        # create private repo for building test case dependencies
+        self._newPrivateRepo("build")
+       
         # extend external repo
         pass
 
+
+    def _newPrivateRepo(self, dirname):
+        
+        from spack.repository import create_repo
+        from spack.cmd.repo import repo_add, repo_remove
+        from common import homepath
+
+        repopath = join(homepath, "runner", "repos", dirname)
+        namespace = "hpctest.{}".format(dirname)
+        
+        repos = spack.config.get_config('repos', namespace)
+        if repoPath in repos:
+            repo_remove({'path_or_namespace':repoPath, 'scope':namespace})
+            
+        _ = create_repo(repoPath, namespace)
+        repo_add({'path':repoPath, 'scope':namespace})
+
+
+    def _addPackageForTest(self, repoPath, testPath):
+        
+        print "...adding package for test {}".format(testPath)
 
 
 

@@ -25,8 +25,8 @@ config:
       description: "Build as a serial program"
       languages: [ cxx ]
       flags:
-        +CXXFLAGS: "-g -O3"
-        +LDFLAGS:  "-g -O3"
+        CXXFLAGS: "-g -O3"
+        LDFLAGS:  "-g -O3"
         
     - variant: openmp
       description: "Build with OpenMP support"
@@ -36,11 +36,10 @@ config:
             
     - variant: mpi
       description: "Build with MPI support"
-      depends: [ mpi mpicxx ]
+      languages: [ mpicxx ]
       flags:
-        +CXXFLAGS: "-DUSE_MPI=1 "
+        +CXXFLAGS: "-DUSE_MPI=1"
         env:
-            - "CXX = $MPICXX"
             - "MPI_INC = $MPI_INC"
             - "MPI_LIB = $MPI_LIB"
 
