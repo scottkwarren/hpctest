@@ -97,9 +97,8 @@ def parseCommandLine():
     runParser.add_argument("--workspace", "-w",  type=str, default=workpath, help="where to create run directory for this run")
     
     # ... options
-    runParser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
-    runParser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
-    runParser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
+    _addOptionArgs(runParser)
+    # -------------------------------------------------------------------------------------------------------
 
 
     # -------------------------------------------------------------------------------------------------------
@@ -113,9 +112,18 @@ def parseCommandLine():
     workGroup.add_argument("--workspace", "-w",    type=str, default=workpath, help="path to run directory or dir-of-rundirs to be cleaned")
     
     # ... options
-    cleanParser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
-    cleanParser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as cleaning is performed")
-    cleanParser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as cleaning is performed")
+    _addOptionArgs(cleanParser)
+    # -------------------------------------------------------------------------------------------------------
+
+
+    # -------------------------------------------------------------------------------------------------------
+    # hpctest reset <options>
+    # -------------------------------------------------------------------------------------------------------
+    resetParser = subparsers.add_parser("reset", help="return hpctest state to just-installed")
+    
+    # ... options
+    _addOptionArgs(resetParser)
+    # -------------------------------------------------------------------------------------------------------
 
 
     # parse the command line
@@ -127,6 +135,13 @@ def parseCommandLine():
     return args
 
 
+def _addOptionArgs(subparser):
+    
+    subparser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
+    subparser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
+    subparser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
+    
+
 def execute(args):
     # perform the requested operation by calling methods of HPCTest
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
@@ -137,6 +152,8 @@ def execute(args):
         return tester.run(args.tests, args.configs, args.workspace)
     elif args.subcommand == "clean":
         return tester.clean(args.workspace)
+    elif args.subcommand == "reset":
+        return tester.reset()
     else:
         fatalmsg("in main.execute, unexpected subcommand name")
     

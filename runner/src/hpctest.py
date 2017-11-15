@@ -114,6 +114,25 @@ class HPCTest():
                 Workspace(path).clean()
 
 
+    def reset(self):
+        
+        from os import remove
+        from os.path import join
+        from shutil import rmtree
+        from common import homepath, own_spack_home
+
+        # remove private repo directories
+        rmtree(join(homepath, "runner", "repos", "tests"))
+        rmtree(join(homepath, "runner", "repos", "build"))
+        
+        # remove repo paths from Spack's repos.yaml
+        with open(join(own_spack_home, "etc", "spack", "repos.yaml"), "w") as f:
+            f.write("repos:\n")
+        
+        # remove checksum file from tests directory
+        remove(join(homepath, "tests", ".checksum"))
+    
+
     def _testDirChanged(self):
         
         from os.path import join, exists
@@ -147,7 +166,7 @@ class HPCTest():
         from common import homepath
 
         # create new private repo for building test cases
-        self._newPrivateRepo("tests")
+        repoPath = self._newPrivateRepo("tests")
         
         # populate test repo with a package for each test case
         testsPath = join(homepath, "tests")
@@ -156,7 +175,7 @@ class HPCTest():
                 self._addPackageForTest(repoPath, root)
     
         # create private repo for building test case dependencies
-        self._newPrivateRepo("build")
+        _ = self._newPrivateRepo("build")
        
         # extend external repo
         pass
@@ -164,20 +183,24 @@ class HPCTest():
 
     def _newPrivateRepo(self, dirname):
         
+        from os.path import join
+        from argparse import Namespace
         import spack
         from spack.repository import create_repo
         from spack.cmd.repo import repo_add, repo_remove
         from common import homepath
 
-        repopath = join(homepath, "runner", "repos", dirname)
+        repoPath = join(homepath, "runner", "repos", dirname)
         namespace = "hpctest.{}".format(dirname)
         
-        repos = spack.config.get_config('repos', namespace)
+        repos = spack.config.get_config('repos', "site")
         if repoPath in repos:
-            repo_remove({'path_or_namespace':repoPath, 'scope':namespace})
+            repo_remove(Namespace(path_or_namespace=repoPath, scope="site"))
             
         _ = create_repo(repoPath, namespace)
-        repo_add({'path':repoPath, 'scope':namespace})
+        repo_add(Namespace(path=repoPath, scope="site"))
+        
+        return repoPath
 
 
     def _addPackageForTest(self, repoPath, testPath):
