@@ -69,11 +69,6 @@ class HPCTest():
                           join(common.own_spack_module_dir, "external"),
                           join(common.own_spack_module_dir, "external", "yaml", "lib")
                         ]
-
-        # set up our private spack & make it extend the external one if any
-        if self._testDirChanged(): self._setUpRepos()
-        
-        # spackle.do("repo list")  # TESTING
         
 
     def run(self, testSpec, configSpec, workpath):
@@ -87,11 +82,12 @@ class HPCTest():
 
         debugmsg("will run tests {} on configs {} in {} with options {}"
                     .format(testSpec, configSpec, workpath, options))
-        
+                
         tests     = TestSpec(testSpec)
         configs   = ConfigSpec(configSpec)
         workspace = Workspace(workpath)
         
+        self._ensureRepos()
         status  = Iterate.doForAll(tests, configs, workspace)
         Report.printReport(workspace)
         
@@ -117,24 +113,28 @@ class HPCTest():
     def reset(self):
         
         from os import remove
-        from os.path import join
+        from os.path import exists, join
         from shutil import rmtree
         from common import homepath, own_spack_home
 
         # remove private repo directories
-        rmtree(join(homepath, "runner", "repos", "tests"))
-        rmtree(join(homepath, "runner", "repos", "build"))
+        tpath = join(homepath, "runner", "repos", "tests")
+        if exists(tpath): rmtree(tpath)
+        bpath = join(homepath, "runner", "repos", "build")
+        if exists(bpath): rmtree(bpath)
         
         # remove repo paths from Spack's repos.yaml
         with open(join(own_spack_home, "etc", "spack", "repos.yaml"), "w") as f:
             f.write("repos:\n")
         
         # remove checksum file from tests directory
-        remove(join(homepath, "tests", ".checksum"))
+        cpath = join(homepath, "tests", ".checksum")
+        if exists(cpath): remove(cpath)
     
 
-    def _testDirChanged(self):
-        
+    def _ensureRepos(self):
+        # set up our private spack & make it extend the external one if any
+
         from os.path import join, exists
         from util.checksumdir import dirhash
         from common import homepath
@@ -156,7 +156,7 @@ class HPCTest():
         # save new checksum
         with open(checksumPath, 'w') as new: new.write(newChecksum)
 
-        return newChecksum != oldChecksum
+        if newChecksum != oldChecksum: self._setUpRepos()
 
 
     def _setUpRepos(self):
@@ -205,7 +205,38 @@ class HPCTest():
 
     def _addPackageForTest(self, repoPath, testPath):
         
-        print "...adding package for test {}".format(testPath)
+        from os import mkdir
+        from os.path import basename, exists, join
+        from shutil import copy
+        from common import debugmsg
+        
+        debugmsg("adding package for test {}".format(testPath))
+
+        # make package directory for this test
+        name = basename(testPath)
+        packagePath = join(repoPath, "packages", name)
+        mkdir(packagePath)
+        
+        # copy or generate test's description files
+        hpath = join(testPath, "hpctest.yaml")
+        ppath = join(testPath, "package.py")
+        copy(hpath, packagePath)
+        if exists(ppath):
+            copy(ppath, packagePath)
+        else:
+            self._generatePackagePy(hpath, packagePath)
+
+
+    def _generatePackagePy(self, hpath, ppath):
+        
+        # hpath => hpctest.yaml file to generate from
+        # ppath => package directory to generate into
+        pass
+        
+
+
+
+
 
 
 
