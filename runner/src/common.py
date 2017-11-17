@@ -66,7 +66,11 @@ def infomsg(message):
 
 def verbosemsg(message):
     if "verbose" in options:
-        print message
+        infomsg(message)
+
+def debugmsg(message, always=False):
+    if always or "debug" in options:
+          infomsg(">>> " + message)
 
 def errormsg(message):
     global numErrors
@@ -74,13 +78,14 @@ def errormsg(message):
     infomsg("error: " + message)
 
 def fatalmsg(message):
-    global numErrors
-    numErrors = numErrors + 1
-    infomsg("FATAL ERROR:" + message)
+    infomsg("FATAL ERROR: " + message)
+    raise SystemExit
 
-def debugmsg(message, always=False):
-    if always or "debug" in options:
-          infomsg(">>> " + message)
+def notimplemented(what):
+    fatalmsg(what + " is not implemented")
+    
+def assertmsg(predicate, message):
+    if not predicate: fatalmsg(message)
 
 
 # Custom exceptions

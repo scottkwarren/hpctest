@@ -225,13 +225,15 @@ class HPCTest():
             copy(ppath, packagePath)
         else:
             self._generatePackagePy(hpath, packagePath)
+            
+        # add package to repo
 
 
     def _generatePackagePy(self, hpath, ppath):
         
         # hpath => hpctest.yaml file to generate from
         # ppath => package directory to generate into
-        pass
+        notimplemented("hpctest._generatePackagePy")
         
 
 

@@ -51,9 +51,12 @@ class Run():
     
     def __init__(self, testdir, config, workspace):
         
-        self.testdir   = testdir        # path to test case's directory
-        self.config    = config         # Spack spec for desired build configuration
-        self.workspace = workspace      # storage for collection of test job dirs
+        from os.path import basename
+        
+        self.name      = basename(testdir)  # name of test case
+        self.testdir   = testdir            # path to test case's directory
+        self.config    = config             # Spack spec for desired build configuration
+        self.workspace = workspace          # storage for collection of test job dirs
 
         # set up for per-test sub-logging
         ####self.log = xxx    # TODO
@@ -68,11 +71,11 @@ class Run():
         
         try:
             
-            testDesc = self._readTestDescription()
-            (srcdir, builddir, rundir) = self._prepareJobDir(testDesc)
-            self._buildTest(testDesc, srcdir, builddir)
-            self._runBuiltTest(testDesc, builddir, rundir)
-            self._checkTestResults(testDesc, rundir)
+            self.yaml = self._readYaml()
+            (srcdir, builddir, rundir) = self._prepareJobDir()
+            self._buildTest(srcdir, builddir)
+            self._runBuiltTest(builddir, rundir)
+            self._checkTestResults(rundir)
             
         except BadTestDescription as e:
             msg = "missing or invalid '{}' file in test {}: {}".format("hpctest.yaml", self.testdir, e.args[0])
@@ -90,24 +93,24 @@ class Run():
         if msg: errormsg(msg)
 
 
-    def _readTestDescription(self):
+    def _readYaml(self):
 
         from os.path import join
         from spackle import loadYamlFile
         from common import BadTestDescription
 
         # read yaml file
-        (desc, error) = loadYamlFile( join(self.testdir, "hpctest.yaml") )
+        (yaml, error) = loadYamlFile( join(self.testdir, "hpctest.yaml") )
         if error:
             raise BadTestDescription(error)
 
         # validate and apply defaults
         # TODO
         
-        return desc
+        return yaml
         
 
-    def _prepareJobDir(self, testDesc):
+    def _prepareJobDir(self):
 
         from os import makedirs
         from os.path import basename, join
@@ -123,19 +126,41 @@ class Run():
         return (srcdir, builddir, rundir)
 
 
-    def _buildTest(self, testDesc, srcdir, builddir):
+    def _buildTest(self, srcdir, builddir):
 
-        return          # TEMPORARY
+        import spack
+        from spack.stage import DIYStage
+        from common import assertmsg, options
+
+        # get a spec for this test in specified configuration
+        version = self.yaml["info"]["version"]
+        specString = "{}@{}{}".format(self.name, version, self.config)
+        specs = spack.cmd.parse_specs(specString)
+        print specs # DEBUG
+        assertmsg(len(specs) == 1, "'hpctest run' takes a single config spec.")
+        spec = specs[0]
+        spec.concretize()
+   
+        # build the package
+        package = spack.repo.get(spec)
+        package.stage = DIYStage(builddir)  # TODO: cf separable vs inseparable builds
+        spack.do_checksum = False   # see spack.cmd.diy lines 91-92
+        package.do_install(
+            keep_prefix=False,
+            install_deps=True,
+            verbose="verbose" in options,
+            keep_stage=True,        # don't remove source dir for DIY.
+            dirty=True)             # TODO: cf separable vs inseparable builds
 
 
-    def _runBuiltTest(self, testDesc, builddir, rundir):
+    def _runBuiltTest(self, builddir, rundir):
 
-       return          # TEMPORARY
+        pass        # TEMPORARY
 
 
-    def _checkTestResults(self, testDesc, rundir):
+    def _checkTestResults(self, rundir):
 
-        return          # TEMPORARY
+        pass        # TEMPORARY
 
         
         
