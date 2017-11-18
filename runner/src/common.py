@@ -56,6 +56,7 @@ homepath             = None     # path to this HPCTest installation
 ext_spack_home       = None     # path to external Spack's directory if any -- can be None
 own_spack_home       = None     # path to private Spack's directory
 own_spack_module_dir = None     # path to dir containing private Spack's top level module
+workpath             = None     # path to this HPCTest's arena for orkspaces
 logger               = None     # used to write test results -- TODO
 
 
@@ -88,6 +89,12 @@ def assertmsg(predicate, message):
     if not predicate: fatalmsg(message)
 
 
+# Prompted input
+
+def yesno(prompt):
+    reply = raw_input(prompt + " (y/n)?")
+    return len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
+
 # Custom exceptions
 
 class HPCTestError(Exception):
@@ -110,6 +117,21 @@ class CheckFailed(HPCTestError):
 
 class BadWorkspacePath(HPCTestError):
     pass
+
+
+# File system operations
+
+def copyGlob(pattern, destPath):
+    
+    from glob import glob
+    from os.path import isfile
+    from shutil import copy, copytree
+    
+    for path in glob(pattern):
+        if isfile(path):
+            copy(path, destPath)
+        else:
+            copytree(path, destPath)
 
 
 

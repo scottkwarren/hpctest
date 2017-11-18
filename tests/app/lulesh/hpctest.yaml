@@ -45,6 +45,8 @@ config:
 
 build:
     kind: makefile
+    separate: []
+    install: lulesh2.0
 
 run:
     cmd: ./lulesh2.0

@@ -49,6 +49,7 @@ config:
 
 build:
     kind: makefile
+    separate: []
     install: amg2013
 
 run:

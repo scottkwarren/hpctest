@@ -114,12 +114,28 @@ class Run():
 
         from os import makedirs
         from os.path import basename, join
+        from common import copyGlob
 
-        # prepare test's job directory and build & run subdirs
-        jobdir   = self.workspace.addJobDir(basename(self.testdir), self.config)
-        srcdir   = self.testdir
-        builddir = join(jobdir, "build"); makedirs(builddir)
-        rundir   = join(jobdir, "run");   makedirs(rundir)
+        # job directory
+        jobdir = self.workspace.addJobDir(basename(self.testdir), self.config)
+        
+        # src directory -- immutable so just use teste's dir
+        srcdir = self.testdir
+        
+        # build directory - make new or copy test's dir if not separable-build test
+        # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
+        builddir = join(jobdir, "build");
+        makedirs(builddir)
+        if not "build" in self.yaml["build"]["separate"]:
+            copyGlob(join(srcdir, "*"), builddir)
+            
+        # run directory - make new or use build dir if not separable-run test
+        # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
+        if "run" in self.yaml["build"]["separate"]:
+            rundir = join(jobdir, "run");
+            makedirs(rundir)
+        else:
+            rundir = builddir
         
         # ...
         
@@ -134,9 +150,9 @@ class Run():
 
         # get a spec for this test in specified configuration
         version = self.yaml["info"]["version"]
-        specString = "{}@{}{}".format(self.name, version, self.config)
+        specString = "{}@{}{}".format("tests." + self.name, version, self.config)
+        print ">>>>>>>>> ", specString
         specs = spack.cmd.parse_specs(specString)
-        print specs # DEBUG
         assertmsg(len(specs) == 1, "'hpctest run' takes a single config spec.")
         spec = specs[0]
         spec.concretize()

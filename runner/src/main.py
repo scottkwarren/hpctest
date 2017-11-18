@@ -147,13 +147,18 @@ def execute(args):
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
 
     global tester
+    from common import yesno
 
     if args.subcommand == "run":
-        return tester.run(args.tests, args.configs, args.workspace)
+        tester.run(args.tests, args.configs, args.workspace)
     elif args.subcommand == "clean":
-        return tester.clean(args.workspace)
+        tester.clean(args.workspace)
     elif args.subcommand == "reset":
-        return tester.reset()
+        really = yesno("Really delete all previously built tests and workspaces")
+        if really:
+            tester.reset()
+        else:
+            print "Ok, nothing will be deleted."
     else:
         fatalmsg("in main.execute, unexpected subcommand name")
     

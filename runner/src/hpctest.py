@@ -49,6 +49,8 @@
 
 class HPCTest():
     
+    import common
+    
     def __init__(self, extspackpath=None, homepath=None):
         
         from os import environ
@@ -62,6 +64,8 @@ class HPCTest():
         common.ext_spack_home = extspackpath  # ok to be None
         common.own_spack_home = join( common.homepath, "runner", "spack" )
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
+        common.workpath = join(common.homepath, "work")
+
         
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
@@ -71,8 +75,9 @@ class HPCTest():
                         ]
         
 
-    def run(self, testSpec, configSpec, workpath):
+    def run(self, testSpec, configSpec, workpath=None):
         
+        import common
         from common     import debugmsg, options
         from testspec   import TestSpec
         from configspec import ConfigSpec
@@ -80,6 +85,7 @@ class HPCTest():
         from iterate    import Iterate
         from report     import Report
 
+        if not workpath: workpath = common.workpath
         debugmsg("will run tests {} on configs {} in {} with options {}"
                     .format(testSpec, configSpec, workpath, options))
                 
@@ -94,14 +100,15 @@ class HPCTest():
         return status
 
 
-    def clean(self, workpath):
+    def clean(self, workpath=None):
         
         from os        import listdir
         from os.path   import join, isdir
-        from shutil    import rmtree
+        import common
         from common    import debugmsg
         from workspace import Workspace
         
+        if not workpath: workpath = common.workpath
         debugmsg("cleaning work directory {}".format(workpath))
         
         for name in listdir(workpath):
@@ -117,6 +124,8 @@ class HPCTest():
         from shutil import rmtree
         from common import homepath, own_spack_home
 
+        self.clean()
+        
         # remove private repo directories
         tpath = join(homepath, "runner", "repos", "tests")
         if exists(tpath): rmtree(tpath)
@@ -185,17 +194,19 @@ class HPCTest():
         
         from os.path import join
         from argparse import Namespace
+        from shutil import rmtree
         import spack
         from spack.repository import create_repo
         from spack.cmd.repo import repo_add, repo_remove
         from common import homepath
 
         repoPath = join(homepath, "runner", "repos", dirname)
-        namespace = "hpctest.{}".format(dirname)
+        namespace = dirname
         
         repos = spack.config.get_config('repos', "site")
         if repoPath in repos:
             repo_remove(Namespace(path_or_namespace=repoPath, scope="site"))
+            rmtree(repoPath)
             
         _ = create_repo(repoPath, namespace)
         repo_add(Namespace(path=repoPath, scope="site"))

@@ -5,7 +5,7 @@
 
 # from info.name, info.description, and build.kind
 from spack import *
-class AMG2013(HPCTestMakefilePackage):
+class Amg2013(MakefilePackage):
     """AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
        problems on unstructured grids.  The driver provided with AMG2013 builds linear 
        systems for various 3-dimensional problems.

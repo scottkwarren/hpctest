@@ -5,7 +5,7 @@
 
 # from info.name, info.description, and build.kind
 from spack import *
-class Lulesh(HPCTestMakefilePackage):
+class Lulesh(MakefilePackage):
     """Many important simulation problems of interest to DOE involve complex multi-material
     systems that undergo large deformations. LULESH is a highly simplified application
     that represents the numerical algorithms, data motion, and programming style typical
