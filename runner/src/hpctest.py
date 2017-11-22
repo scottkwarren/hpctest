@@ -204,6 +204,9 @@ class HPCTest():
         from spack.repository import create_repo
         from common import homepath
 
+        repoPath = join(homepath, "runner", "repos", dirname)
+        namespace = dirname
+
         # repo must not exist or already be added to Spack
         repos = spack.config.get_config('repos', "site")
         if repoPath in repos:
@@ -211,8 +214,6 @@ class HPCTest():
             rmtree(repoPath)
 
         # this just makes & prepares reoo directory, must be added to Spack once populated
-        repoPath = join(homepath, "runner", "repos", dirname)
-        namespace = dirname
         _ = create_repo(repoPath, namespace)
         
         return repoPath
@@ -221,14 +222,15 @@ class HPCTest():
     def _addPrivateRepo(self, repoPath):
 
         import spack
-        from spack.repository import Repo
+        from spack.repository import Repo, FastPackageChecker
 
         # adding while preserving RepoPath representation invariant is messy
         # ...no single operation for this is available in current Spack code
+        repos = spack.config.get_config('repos', "site")
+        repos.insert(0, repoPath)
+        spack.config.update_config('repos', repos, "site")
         repo = Repo(repoPath)
         spack.repo.put_first(repo)
-        repo._fast_package_checker = FastPackageChecker(repoPath)
-        spack.config.update_config('repos', repos, "site")
 
 
     def _addPackageForTest(self, repoPath, testPath):

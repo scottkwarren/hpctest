@@ -151,7 +151,6 @@ class Run():
         # get a spec for this test in specified configuration
         version = self.yaml["info"]["version"]
         specString = "{}@{}{}".format("tests." + self.name, version, self.config)
-        print ">>>>>>>>> ", specString
         specs = spack.cmd.parse_specs(specString)
         assertmsg(len(specs) == 1, "'hpctest run' takes a single config spec.")
         spec = specs[0]
@@ -166,7 +165,9 @@ class Run():
             install_deps=True,
             verbose="verbose" in options,
             keep_stage=True,        # don't remove source dir for DIY.
-            dirty=True)             # TODO: cf separable vs inseparable builds
+            explicit=True,
+            dirty=True,             # TODO: cf separable vs inseparable builds
+            force=True)             # install even if already installed, src may have changed
 
 
     def _runBuiltTest(self, builddir, rundir):
