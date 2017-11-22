@@ -175,43 +175,60 @@ class HPCTest():
         from common import homepath
 
         # create new private repo for building test cases
-        repoPath = self._newPrivateRepo("tests")
+        repoPath = self._makePrivateRepo("tests")
         
         # populate test repo with a package for each test case
         testsPath = join(homepath, "tests")
         for root, dirs, files in os.walk(testsPath, topdown=False):
             if "hpctest.yaml" in files:  # found a test-case directory
                 self._addPackageForTest(repoPath, root)
-    
+                
+        # add test repo to private Spack
+        self._addPrivateRepo(repoPath)
+
         # create private repo for building test case dependencies
-        _ = self._newPrivateRepo("build")
+        repoPath = self._makePrivateRepo("build")
+        self._addPrivateRepo(repoPath)
        
         # extend external repo
         pass
 
 
-    def _newPrivateRepo(self, dirname):
+    def _makePrivateRepo(self, dirname):
         
-        from os.path import join
         from argparse import Namespace
+        from os.path import join
         from shutil import rmtree
         import spack
+        from spack.cmd.repo import repo_remove
         from spack.repository import create_repo
-        from spack.cmd.repo import repo_add, repo_remove
         from common import homepath
 
-        repoPath = join(homepath, "runner", "repos", dirname)
-        namespace = dirname
-        
+        # repo must not exist or already be added to Spack
         repos = spack.config.get_config('repos', "site")
         if repoPath in repos:
             repo_remove(Namespace(path_or_namespace=repoPath, scope="site"))
             rmtree(repoPath)
-            
+
+        # this just makes & prepares reoo directory, must be added to Spack once populated
+        repoPath = join(homepath, "runner", "repos", dirname)
+        namespace = dirname
         _ = create_repo(repoPath, namespace)
-        repo_add(Namespace(path=repoPath, scope="site"))
         
         return repoPath
+
+
+    def _addPrivateRepo(self, repoPath):
+
+        import spack
+        from spack.repository import Repo
+
+        # adding while preserving RepoPath representation invariant is messy
+        # ...no single operation for this is available in current Spack code
+        repo = Repo(repoPath)
+        spack.repo.put_first(repo)
+        repo._fast_package_checker = FastPackageChecker(repoPath)
+        spack.config.update_config('repos', repos, "site")
 
 
     def _addPackageForTest(self, repoPath, testPath):

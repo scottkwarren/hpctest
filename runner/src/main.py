@@ -140,6 +140,7 @@ def _addOptionArgs(subparser):
     subparser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
     subparser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
     subparser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
+    subparser.add_argument("--force",     "-F",  dest="options", action="append_const", const="force",   help="do not ask for confirmation and ignore errors")
     
 
 def execute(args):
@@ -147,14 +148,14 @@ def execute(args):
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
 
     global tester
-    from common import yesno
+    from common import options, yesno
 
     if args.subcommand == "run":
         tester.run(args.tests, args.configs, args.workspace)
     elif args.subcommand == "clean":
         tester.clean(args.workspace)
     elif args.subcommand == "reset":
-        really = yesno("Really delete all previously built tests and workspaces")
+        really = "force" in options or yesno("Really delete all previously built tests and workspaces")
         if really:
             tester.reset()
         else:
