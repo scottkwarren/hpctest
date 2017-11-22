@@ -1,3 +1,2 @@
-This directory is used to hold two dynamically created Spack repositories,
-one for holding test-case packages and one for packages built as prerequisites
-for test case packages.
+This directory is used to hold dynamically created Spack repositories.
+Currently we use just one, for holding test-case packages.

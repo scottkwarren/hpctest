@@ -186,11 +186,7 @@ class HPCTest():
         # add test repo to private Spack
         self._addPrivateRepo(repoPath)
 
-        # create private repo for building test case dependencies
-        repoPath = self._makePrivateRepo("build")
-        self._addPrivateRepo(repoPath)
-       
-        # extend external repo
+        # extend external repo if one was specified
         pass
 
 
