@@ -49,7 +49,7 @@
 from os import environ
 from os.path import join
 from glob import glob
-from common import homepath
+from common import homepath, debugmsg
 
 
 
@@ -60,6 +60,11 @@ class TestSpec():
     
     def __init__(self, specString):
                 
+        debugmsg("spec = {}".format(specString))
+        debugmsg("patterns = {}".format(specString.split(',')))
+        for pattern in specString.split(','):
+            debugmsg("paths = {}".format(glob( join(homepath, "tests", pattern.strip()) )))
+        
         self.pathlist = \
             [ path
                 for pattern in specString.split(',')

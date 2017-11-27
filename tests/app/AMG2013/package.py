@@ -53,7 +53,7 @@ class Amg2013(MakefilePackage):
 ## from config[@mpi].languages
 ##    languages: [ mpicxx ]
         if '+mpi' in self.spec:
-            languages = 'CXX = {}'.format(self.spec['mpi'].mpicxx)
+            languages = 'CC = {}'.format(self.spec['mpi'].mpicc)
         
 ## from config[@mpi].flags
 ##    flags: +CXXFLAGS: "-DUSE_MPI=1"
@@ -70,14 +70,15 @@ class Amg2013(MakefilePackage):
 
 # boilerplate closing 'build_targets'
         targets.append(languages)
-        targets.append('CXXFLAGS = {0}'.format(cxxflags))
-        targets.append('LDFLAGS = {0}'.format(ldflags))
+        targets.append('INCLUDE_CFLAGS = {0}'.format(cxxflags))
+        targets.append('INCLUDE_LFLAGS = {0}'.format(ldflags))
         return targets
 
 # from build.install
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        install('amg2013', prefix.bin)
+        install('test/amg2013', prefix.bin)
+        install('test/sstruct.in.MG.FD', prefix.bin)
 
 
 

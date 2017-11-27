@@ -44,6 +44,7 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ################################################################################
+from rtslib.fabric import Qla2xxxFabricModule
 
 
 
@@ -114,6 +115,7 @@ class Run():
 
         from os import makedirs
         from os.path import basename, join
+        from shutil import copytree
         from common import copyGlob
 
         # job directory
@@ -125,9 +127,11 @@ class Run():
         # build directory - make new or copy test's dir if not separable-build test
         # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
         builddir = join(jobdir, "build");
-        makedirs(builddir)
-        if not "build" in self.yaml["build"]["separate"]:
-            copyGlob(join(srcdir, "*"), builddir)
+        if "build" in self.yaml["build"]["separate"]:
+            makedirs(builddir)
+        else:
+            ####copyGlob(join(srcdir, "*"), builddir)
+            copytree(srcdir, builddir)
             
         # run directory - make new or use build dir if not separable-run test
         # TODO: ensure relevant keys are in self.yaml, or handle missing keys here

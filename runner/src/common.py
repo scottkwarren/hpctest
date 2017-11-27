@@ -127,11 +127,15 @@ def copyGlob(pattern, destPath):
     from os.path import isfile
     from shutil import copy, copytree
     
+    ### BROKEN! Gives "File exists" error on dirs along path being copied
+    debugmsg("copyGlob begin")
     for path in glob(pattern):
+        debugmsg("copyGlob: copying {} to {}".format(path, destPath))
         if isfile(path):
             copy(path, destPath)
         else:
             copytree(path, destPath)
+    debugmsg("copyGlob end")
 
 
 
