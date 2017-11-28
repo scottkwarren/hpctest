@@ -5,22 +5,17 @@
 
 # from info.name, info.description, and build.kind
 from spack import *
-class Amg2013(MakefilePackage):
-    """AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
-       problems on unstructured grids.  The driver provided with AMG2013 builds linear 
-       systems for various 3-dimensional problems.
-       AMG2013 is written in ISO-C.  It is an SPMD code which uses MPI and OpenMP 
-       threading within MPI tasks. Parallelism is achieved by data decomposition. The 
-       driver provided with AMG2013 achieves this decomposition by simply subdividing 
-       the grid into logical P x Q x R (in 3D) chunks of equal size. 
+class Amg2006(MakefilePackage):
+    """AMG2006 is a parallel algebraic multigrid solver for linear systems arising
+    from problems on unstructured grids. 
     """
 
 # from info.homepage and info.url
-    homepage = "https://codesign.llnl.gov/amg2013.php"
+    homepage = "https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006"
     url      = "https://github.com/HPCToolkit/HPCTest"
 
 # from info.version
-    version('1.0', 'app/AMG2013')
+    version('1.0', 'app/AMG2006')
 
 # from config[@openmp].{variant,description}, and config[@base].'default variants'
     variant('openmp', description='Build with OpenMP support', default=True)
@@ -77,8 +72,8 @@ class Amg2013(MakefilePackage):
 # from build.install
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        install('test/amg2013', prefix.bin)
-        install('test/sstruct.in.MG.FD', prefix.bin)
+        install('test/amg2006', prefix.bin)
+        install('test/sstruct.in.AMG.FD', prefix.bin)
 
 
 

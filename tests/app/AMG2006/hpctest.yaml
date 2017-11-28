@@ -1,21 +1,16 @@
 #=========================================#
-# HPCTest description for AMG2013         #
+# HPCTest description for AMG2006         #
 #=========================================#
 
 
 info:
-    name:  "AMG2013"
+    name:  "AMG2006"
     version: 1.0
-    homepage: https://codesign.llnl.gov/amg2013.php
+    homepage: https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006
     url: https://github.com/HPCToolkit
     description: >
-        AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
-        problems on unstructured grids.  The driver provided with AMG2013 builds linear 
-        systems for various 3-dimensional problems.
-        AMG2013 is written in ISO-C.  It is an SPMD code which uses MPI and OpenMP 
-        threading within MPI tasks. Parallelism is achieved by data decomposition. The 
-        driver provided with AMG2013 achieves this decomposition by simply subdividing 
-        the grid into logical P x Q x R (in 3D) chunks of equal size. 
+        AMG2006 is a parallel algebraic multigrid solver for linear systems arising
+        from problems on unstructured grids. 
     
 config:
     - default variants: [ openmp mpi ]
@@ -52,11 +47,11 @@ build:
     separate: []
     install:
       - test/amg2013
-      - test/sstruct.in.MG.FD
+      - test/sstruct.in.AMG.FD
 
 run:
-    cmd: "amg2013 -r 36 36 36  -P  1 1 2"
-    mpiexec: "-n 2"
+    cmd: "amg2006 -P 2 2 1 -n 2 2 4"
+    mpiexec: "-n 4"
 
     
     
