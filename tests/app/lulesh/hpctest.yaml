@@ -38,8 +38,8 @@ config:
       description: "Build with MPI support"
       languages: [ mpicxx ]
       flags:
-        +CXXFLAGS: "-DUSE_MPI=1"
-        env:
+          env:
+            - "-DUSE_MPI=1"
             - "MPI_INC = $MPI_INC"
             - "MPI_LIB = $MPI_LIB"
 

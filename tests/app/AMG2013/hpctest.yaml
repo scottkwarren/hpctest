@@ -45,7 +45,6 @@ config:
       flags:
         env:
             - "-DTIMER_USE_MPI"
-            - shouldn't some MPI vars be set here??
 
 build:
     kind: makefile
