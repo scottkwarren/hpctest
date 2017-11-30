@@ -60,24 +60,19 @@ class TestSpec():
     
     def __init__(self, specString):
                 
+        repoPath = join(homepath, "runner", "repos", "tests", "packages")
+
         debugmsg("spec = {}".format(specString))
         debugmsg("patterns = {}".format(specString.split(',')))
         for pattern in specString.split(','):
-            debugmsg("paths = {}".format(glob( join(homepath, "tests", pattern.strip()) )))
+            debugmsg("paths = {}".format(glob( join(repoPath, pattern.strip()) )))
         
         self.pathlist = \
             [ path
                 for pattern in specString.split(',')
-                    for path in glob( join(homepath, "tests", pattern.strip()) )
-                        ### if isfile( join(path, xxx, xxx) )
+                    for path in glob( join(repoPath, pattern.strip()) )
             ]
                  
-                                
-                                
-                                
-                                ### xxxx
-                                ### homepath, "runner", "repos", "test"
-                                
                                 
     def paths(self):
             

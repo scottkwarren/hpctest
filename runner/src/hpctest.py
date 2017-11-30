@@ -66,13 +66,15 @@ class HPCTest():
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
         common.workpath = join(common.homepath, "work")
 
-        
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
         sys.path[1:0] = [ common.own_spack_module_dir,
                           join(common.own_spack_module_dir, "external"),
                           join(common.own_spack_module_dir, "external", "yaml", "lib")
                         ]
+        
+        self._ensureRepos()
+        
         
 
     def run(self, testSpec, configSpec, workpath=None):
@@ -93,7 +95,6 @@ class HPCTest():
         configs   = ConfigSpec(configSpec)
         workspace = Workspace(workpath)
         
-        self._ensureRepos()
         status  = Iterate.doForAll(tests, configs, workspace)
         Report.printReport(workspace)
         
@@ -180,8 +181,12 @@ class HPCTest():
         # populate test repo with a package for each test case
         testsPath = join(homepath, "tests")
         for root, dirs, files in os.walk(testsPath, topdown=False):
-            if "hpctest.yaml" in files:  # found a test-case directory
-                self._addPackageForTest(repoPath, root)
+            try:
+                self.yaml = readYaml(self.testdir)
+            except:
+                yaml = None
+            if yaml:  # found a test-case directory
+                self._addPackageForTest(repoPath, root, yaml)
                 
         # add test repo to private Spack
         self._addPrivateRepo(repoPath)
@@ -239,7 +244,7 @@ class HPCTest():
         debugmsg("adding package for test {}".format(testPath))
 
         # make package directory for this test
-        name = basename(testPath)
+        name = yaml["info"]["name"]
         packagePath = join(repoPath, "packages", name)
         mkdir(packagePath)
         

@@ -95,6 +95,7 @@ def yesno(prompt):
     reply = raw_input(prompt + " (y/n)?")
     return len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
 
+
 # Custom exceptions
 
 class HPCTestError(Exception):
@@ -119,23 +120,23 @@ class BadWorkspacePath(HPCTestError):
     pass
 
 
-# File system operations
+# Reading hpctest.yaml files
 
-def copyGlob(pattern, destPath):
-    
-    from glob import glob
-    from os.path import isfile
-    from shutil import copy, copytree
-    
-    ### BROKEN! Gives "File exists" error on dirs along path being copied
-    debugmsg("copyGlob begin")
-    for path in glob(pattern):
-        debugmsg("copyGlob: copying {} to {}".format(path, destPath))
-        if isfile(path):
-            copy(path, destPath)
-        else:
-            copytree(path, destPath)
-    debugmsg("copyGlob end")
+def readYaml(testPath):
+
+    from os.path import join
+    from spackle import loadYamlFile
+    from common import BadTestDescription
+
+    # read yaml file
+    (yaml, error) = loadYamlFile( join(testPath, "hpctest.yaml") )
+    if error:
+        raise BadTestDescription(error)
+
+    # validate and apply defaults
+    # TODO
+        
+    return yaml
 
 
 

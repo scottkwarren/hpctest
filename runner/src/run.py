@@ -65,14 +65,14 @@ class Run():
 
     def run(self):
         
-        from common  import infomsg, errormsg
+        from common  import infomsg, errormsg, readYaml
         from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
 
         infomsg("running test {} with config {}".format(self.testdir, self.config))
         
         try:
             
-            self.yaml = self._readYaml()
+            self.yaml = readYaml(self.testdir)
             (srcdir, builddir, rundir) = self._prepareJobDir()
             self._buildTest(srcdir, builddir)
             self._runBuiltTest(builddir, rundir)
@@ -94,29 +94,11 @@ class Run():
         if msg: errormsg(msg)
 
 
-    def _readYaml(self):
-
-        from os.path import join
-        from spackle import loadYamlFile
-        from common import BadTestDescription
-
-        # read yaml file
-        (yaml, error) = loadYamlFile( join(self.testdir, "hpctest.yaml") )
-        if error:
-            raise BadTestDescription(error)
-
-        # validate and apply defaults
-        # TODO
-        
-        return yaml
-        
-
     def _prepareJobDir(self):
 
         from os import makedirs
         from os.path import basename, join
         from shutil import copytree
-        from common import copyGlob
 
         # job directory
         jobdir = self.workspace.addJobDir(basename(self.testdir), self.config)
@@ -130,7 +112,6 @@ class Run():
         if "build" in self.yaml["build"]["separate"]:
             makedirs(builddir)
         else:
-            ####copyGlob(join(srcdir, "*"), builddir)
             copytree(srcdir, builddir)
             
         # run directory - make new or use build dir if not separable-run test
