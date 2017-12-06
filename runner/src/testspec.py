@@ -60,7 +60,7 @@ class TestSpec():
     
     def __init__(self, specString):
                 
-        repoPath = join(homepath, "runner", "repos", "tests", "packages")
+        repoPath = join(homepath, "tests")
 
         debugmsg("spec = {}".format(specString))
         debugmsg("patterns = {}".format(specString.split(',')))

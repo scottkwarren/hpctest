@@ -44,12 +44,17 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ##############################################################################
+from rtslib.fabric import Qla2xxxFabricModule
 
 
 
 class HPCTest():
     
     import common
+    
+    global checksumName
+    checksumName = ".checksum"
+
     
     def __init__(self, extspackpath=None, homepath=None):
         
@@ -72,11 +77,8 @@ class HPCTest():
                           join(common.own_spack_module_dir, "external"),
                           join(common.own_spack_module_dir, "external", "yaml", "lib")
                         ]
+                
         
-        self._ensureRepos()
-        
-        
-
     def run(self, testSpec, configSpec, workpath=None):
         
         import common
@@ -86,6 +88,8 @@ class HPCTest():
         from workspace  import Workspace
         from iterate    import Iterate
         from report     import Report
+
+        self._ensureRepos()
 
         if not workpath: workpath = common.workpath
         debugmsg("will run tests {} on configs {} in {} with options {}"
@@ -138,7 +142,7 @@ class HPCTest():
             f.write("repos:\n")
         
         # remove checksum file from tests directory
-        cpath = join(homepath, "tests", ".checksum")
+        cpath = join(homepath, "tests", checksumName)
         if exists(cpath): remove(cpath)
     
 
@@ -147,11 +151,10 @@ class HPCTest():
 
         from os.path import join, exists
         from util.checksumdir import dirhash
-        from common import homepath
+        from common import homepath, debugmsg
         global _testDirChecksum
         
         testsDir = join(homepath, "tests")
-        checksumName = ".checksum"
         checksumPath = join(testsDir, checksumName)
         
         # get old checksum
@@ -166,15 +169,18 @@ class HPCTest():
         # save new checksum
         with open(checksumPath, 'w') as new: new.write(newChecksum)
 
+        debugmsg("checking whether 'tests' directory has changed")
+        print oldChecksum, newChecksum
         if newChecksum != oldChecksum: self._setUpRepos()
 
 
     def _setUpRepos(self):
 
+        import sys
         import os
         from os.path import join
-        from common import homepath
-
+        from common import homepath, readYamlforTest
+        
         # create new private repo for building test cases
         repoPath = self._makePrivateRepo("tests")
         
@@ -182,7 +188,7 @@ class HPCTest():
         testsPath = join(homepath, "tests")
         for root, dirs, files in os.walk(testsPath, topdown=False):
             try:
-                self.yaml = readYaml(self.testdir)
+                yaml = readYamlforTest(root)
             except:
                 yaml = None
             if yaml:  # found a test-case directory
@@ -234,7 +240,7 @@ class HPCTest():
         spack.repo.put_first(repo)
 
 
-    def _addPackageForTest(self, repoPath, testPath):
+    def _addPackageForTest(self, repoPath, testPath, yaml):
         
         from os import mkdir
         from os.path import basename, exists, join

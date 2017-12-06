@@ -44,7 +44,7 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ################################################################################
-from rtslib.fabric import Qla2xxxFabricModule
+
 
 
 
@@ -52,12 +52,9 @@ class Run():
     
     def __init__(self, testdir, config, workspace):
         
-        from os.path import basename
-        
-        self.name      = basename(testdir)  # name of test case
-        self.testdir   = testdir            # path to test case's directory
-        self.config    = config             # Spack spec for desired build configuration
-        self.workspace = workspace          # storage for collection of test job dirs
+        self.testdir   = testdir                # path to test case's directory
+        self.config    = config                 # Spack spec for desired build configuration
+        self.workspace = workspace              # storage for collection of test job dirs
 
         # set up for per-test sub-logging
         ####self.log = xxx    # TODO
@@ -65,14 +62,15 @@ class Run():
 
     def run(self):
         
-        from common  import infomsg, errormsg, readYaml
+        from common  import infomsg, errormsg, readYamlforTest
         from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
 
         infomsg("running test {} with config {}".format(self.testdir, self.config))
         
         try:
             
-            self.yaml = readYaml(self.testdir)
+            self.yaml = readYamlforTest(self.testdir)
+            self.name = self.yaml["info"]["name"]                    # name of test case
             (srcdir, builddir, rundir) = self._prepareJobDir()
             self._buildTest(srcdir, builddir)
             self._runBuiltTest(builddir, rundir)
@@ -88,6 +86,8 @@ class Run():
             msg = "failed in excuting test {}: {}".format(self.testdir, e.args[0])
         except CheckFailed as e:
             msg = "failed in checking result of test {}: {}".format(self.testdir, e.args[0])
+        except Exception as e:
+            msg = "unexpected error {} ({})".format(e.message, e.args)
         else:
             msg = None
         
@@ -101,7 +101,7 @@ class Run():
         from shutil import copytree
 
         # job directory
-        jobdir = self.workspace.addJobDir(basename(self.testdir), self.config)
+        jobdir = self.workspace.addJobDir(self.name, self.config)
         
         # src directory -- immutable so just use teste's dir
         srcdir = self.testdir

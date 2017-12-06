@@ -67,13 +67,13 @@ class Nekbone(MakefilePackage):
 ## from config[@mpi].flags
 ##    flags: +CXXFLAGS: "-DUSE_MPI=1"
         if '+mpi' in self.spec:
-            targets += 'USE_MPI=1'
-        
+            targets.append('USE_MPI=1')
+
 # boilerplate closing 'build_targets'
         targets.append(languages)
-        targets.append('CFLAGS={0}'.format(cflags))
-        targets.append('FFLAGS={0}'.format(fflags))
-        targets.append('LDFLAGS={0}'.format(ldflags))
+        targets.append('CFLAGS="{0}"'.format(cflags))
+        targets.append('FFLAGS="{0}"'.format(fflags))
+        targets.append('LDFLAGS="{0}"'.format(ldflags))
         return targets
 
 # from build.kind
@@ -81,11 +81,11 @@ class Nekbone(MakefilePackage):
         """Runs sppecified command, passing :py:attr:`~.MakefilePackage.build_targets`
         as targets.
         """
-        from path import join as path_join
-        from str import join as str_join
+        import os
+        from os.path import join as path_join
         from subprocess import call
         
-        call("env {}; makenek ex1".format(str_join(self.build_targets)), shell=True,
+        call("env {}; ./makenek.hpctest ex1".format(" ".join(self.build_targets)), shell=True,
              cwd=path_join(self.build_directory, "test", "example1"))
 
 # from build.install
