@@ -48,16 +48,16 @@ class Nekbone(MakefilePackage):
         
 ## from config[@base].flags
 ##      CXXFLAGS: "-g -O3"
-        cflags  = '-g -O3'
-        fflags  = '-g -O3'
-        ldflags = '-g -O3'
+        cflags = '-g -O3'
+        fflags = '-g -O3'
+        lflags = '-g -O3'
         
 ## from config[@openmp].flags
 ##      +CXXFLAGS: $OPENMP_FLAG
 ##      +LDFLAGS:  $OPENMP_FLAG
         if '+openmp' in self.spec:
-            cflags  += ' ' + self.compiler.openmp_flag
-            ldflags += ' ' + self.compiler.openmp_flag
+            cflags += ' ' + self.compiler.openmp_flag
+            lflags += ' ' + self.compiler.openmp_flag
         
 ## from config[@mpi].languages
 ##    languages: [ mpicxx ]
@@ -73,7 +73,7 @@ class Nekbone(MakefilePackage):
         targets.append(languages)
         targets.append('CFLAGS="{0}"'.format(cflags))
         targets.append('FFLAGS="{0}"'.format(fflags))
-        targets.append('LDFLAGS="{0}"'.format(ldflags))
+        targets.append('LFLAGS="{0}"'.format(lflags))
         return targets
 
 # from build.kind
@@ -85,7 +85,7 @@ class Nekbone(MakefilePackage):
         from os.path import join as path_join
         from subprocess import call
         
-        call("env {}; ./makenek.hpctest ex1".format(" ".join(self.build_targets)), shell=True,
+        call("env {} ./makenek.hpctest ex1".format(" ".join(self.build_targets)), shell=True,
              cwd=path_join(self.build_directory, "test", "example1"))
 
 # from build.install

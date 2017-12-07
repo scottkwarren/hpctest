@@ -96,7 +96,7 @@ class Run():
 
     def _prepareJobDir(self):
 
-        from os import makedirs
+        from os import makedirs, symlink
         from os.path import basename, join
         from shutil import copytree
 
@@ -113,6 +113,7 @@ class Run():
             makedirs(builddir)
         else:
             copytree(srcdir, builddir)
+            symlink( builddir, join(jobdir, basename(srcdir)) )
             
         # run directory - make new or use build dir if not separable-run test
         # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
