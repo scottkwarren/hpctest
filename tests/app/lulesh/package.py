@@ -76,6 +76,7 @@ class Lulesh(MakefilePackage):
 
 # from build.install
     def install(self, spec, prefix):
+        import inspect
         mkdirp(prefix.bin)
         install('lulesh2.0', prefix.bin)
 

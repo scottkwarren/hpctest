@@ -250,7 +250,7 @@ class HPCTest():
         debugmsg("adding package for test {}".format(testPath))
 
         # make package directory for this test
-        name = yaml["info"]["name"]
+        name = yaml["info"]["name"]                     # TODO: ensure this is present in yaml
         packagePath = join(repoPath, "packages", name)
         mkdir(packagePath)
         

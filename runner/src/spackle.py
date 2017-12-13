@@ -86,6 +86,25 @@ def loadYamlFile(path):
     return object, msg
 
 
+# Executing a command with error checkings
+
+def execute(cmd, *args, **kwargs):
+    
+    from spack.util.executable import Executable, ExecuteFailed
+
+    oldwd = os.getcwd()
+    newwd = kwargs.get('cwd', None)
+    exe   = Executable(cmd)
+    
+    try:
+        if newwd: os.chdir(newwd)
+        exe(self, args, kwargs)
+    except:
+        errormsg("{} command failed: {}", exe.name(), sys.exc_info()[0])
+    finally:
+        if newwd: os.chdir(oldwd)
+
+
 
 
 

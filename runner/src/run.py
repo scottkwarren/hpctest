@@ -71,7 +71,7 @@ class Run():
             
             self.yaml = readYamlforTest(self.testdir)
             self.name = self.yaml["info"]["name"]                    # name of test case
-            (srcdir, builddir, rundir) = self._prepareJobDir()
+            (srcdir, builddir, rundir) = self._prepareJobDirs()
             self._buildTest(srcdir, builddir)
             self._runBuiltTest(builddir, rundir)
             self._checkTestResults(rundir)
@@ -81,9 +81,9 @@ class Run():
         except PrepareFailed as e:
             msg = "failed in setting up for building test {}: {}".format(self.testdir, e.args[0])
         except BuildFailed as e:
-            msg = "failed in building test {}: {}".format(self.testdir, e.args[0])
+            msg = "failed to build test {}".format(self.testdir)
         except ExecuteFailed as e:
-            msg = "failed in excuting test {}: {}".format(self.testdir, e.args[0])
+            msg = "failed to execute test {}: {}".format(self.testdir, e.args[0])
         except CheckFailed as e:
             msg = "failed in checking result of test {}: {}".format(self.testdir, e.args[0])
         except Exception as e:
@@ -94,7 +94,7 @@ class Run():
         if msg: errormsg(msg)
 
 
-    def _prepareJobDir(self):
+    def _prepareJobDirs(self):
 
         from os import makedirs, symlink
         from os.path import basename, join
@@ -130,9 +130,12 @@ class Run():
 
     def _buildTest(self, srcdir, builddir):
 
+        import shutil
         import spack
         from spack.stage import DIYStage
-        from common import assertmsg, options
+        from spack.package import InstallError
+
+        from common import assertmsg, options, BuildFailed
 
         # get a spec for this test in specified configuration
         version = self.yaml["info"]["version"]
@@ -143,27 +146,61 @@ class Run():
         spec.concretize()
    
         # build the package
-        package = spack.repo.get(spec)
-        package.stage = DIYStage(builddir)  # TODO: cf separable vs inseparable builds
+        self.package = spack.repo.get(spec)
+        self.package.stage = DIYStage(builddir)  # TODO: cf separable vs inseparable builds
         spack.do_checksum = False   # see spack.cmd.diy lines 91-92
-        package.do_install(
-            keep_prefix=False,
-            install_deps=True,
-            verbose="verbose" in options,
-            keep_stage=True,        # don't remove source dir for DIY.
-            explicit=True,
-            dirty=True,             # TODO: cf separable vs inseparable builds
-            force=True)             # install even if already installed, src may have changed
-
+        try:
+            
+            self.package.do_install(
+                keep_prefix=False,
+                install_deps=True,
+                verbose="verbose" in options,
+                keep_stage=True,        # don't remove source dir for DIY.
+                explicit=True,
+                dirty=True,             # TODO: cf separable vs inseparable builds
+                force=True)             # install even if already installed, src may have changed
+            
+        except InstallError as e:
+            errormsg(str(e))
+            if not os.path.exists(e.pkg.build_log_path):
+                errormsg("...building produced no log.")
+            else:
+                errormsg("...full build log written to stderr")
+                with open(e.pkg.build_log_path) as log:
+                    shutil.copyfileobj(log, sys.stderr)
+        except Exception as e:
+            errormsg("during install, unexpected error {} ({})".format(e.message, e.args))
+        else:
+            raise BuildFailed
+        
 
     def _runBuiltTest(self, builddir, rundir):
 
-        pass        # TEMPORARY
+        from spackle import execute
+        from common import errormsg, ExecuteFailed
+        
+        try:
+            
+            pass
+            ### execute(cmd, cwd=rundir)
+            ### execute(cmd, cwd=rundir)
+            ### execute(cmd, cwd=rundir)
+            ### execute(cmd, cwd=rundir)
+
+        except Exception as e:
+            msg = "unexpected error {} ({})".format(e.message, e.args)
+        else:
+            msg = None
+        
+        if msg:
+            errormsg(msg)
+            raise ExecuteFailed
 
 
     def _checkTestResults(self, rundir):
 
         pass        # TEMPORARY
+    
+    
 
-        
-        
+
