@@ -58,13 +58,18 @@ class Iterate():
         from common import debugmsg
         from run import Run
 
-        debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
-                    .format(tests.paths(), configs.specs(), workspace, common.options))
+        if not tests.paths():
+            infomsg("test spec matches no tests, so nothing will be run")
+        else:
             
-        for c in configs.specs():
-            for t in tests.paths():
-                run = Run(t, c, workspace)
-                status = run.run()
+            debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
+                    .   format(tests.paths(), configs.specs(), workspace, common.options))
+            
+            for c in configs.specs():
+                for t in tests.paths():
+                    run = Run(t, c, workspace)
+                    status = run.run()
+                    
 
 
 

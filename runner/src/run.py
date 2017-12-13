@@ -168,9 +168,9 @@ class Run():
                 errormsg("...full build log written to stderr")
                 with open(e.pkg.build_log_path) as log:
                     shutil.copyfileobj(log, sys.stderr)
+            raise BuildFailed
         except Exception as e:
             errormsg("during install, unexpected error {} ({})".format(e.message, e.args))
-        else:
             raise BuildFailed
         
 

@@ -79,7 +79,7 @@ class HPCTest():
                         ]
                 
         
-    def run(self, testSpec, configSpec, workpath=None):
+    def run(self, testSpecString, configSpecString, workpath=None):
         
         import common
         from common     import debugmsg, options
@@ -93,10 +93,10 @@ class HPCTest():
 
         if not workpath: workpath = common.workpath
         debugmsg("will run tests {} on configs {} in {} with options {}"
-                    .format(testSpec, configSpec, workpath, options))
+                    .format(testSpecString, configSpecString, workpath, options))
                 
-        tests     = TestSpec(testSpec)
-        configs   = ConfigSpec(configSpec)
+        tests     = TestSpec(testSpecString)
+        configs   = ConfigSpec(configSpecString)
         workspace = Workspace(workpath)
         
         status  = Iterate.doForAll(tests, configs, workspace)
@@ -127,7 +127,8 @@ class HPCTest():
         from os import remove
         from os.path import exists, join
         from shutil import rmtree
-        from common import homepath, own_spack_home
+        from common import homepath, own_spack_home, errormsg
+        import spackle
 
         self.clean()
         
@@ -144,7 +145,15 @@ class HPCTest():
         # remove checksum file from tests directory
         cpath = join(homepath, "tests", checksumName)
         if exists(cpath): remove(cpath)
-    
+        
+        # remove all installed packages, leftover build stages, and downloaded tarballs
+        try:
+            spackle.do("clean --all")
+            rmtree(join(own_spack_home, "opt"))
+            spackle.do("reindex")
+        except Exception as e:
+            errormsg( "error removing installed packages and their build byproducts ({})".format(str(e)) )
+
 
     def _ensureRepos(self):
         # set up our private spack & make it extend the external one if any
