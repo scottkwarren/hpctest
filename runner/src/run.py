@@ -62,6 +62,7 @@ class Run():
 
     def run(self):
         
+        import traceback
         from common  import infomsg, errormsg, readYamlforTest
         from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
 
@@ -77,15 +78,15 @@ class Run():
             self._checkTestResults(rundir)
             
         except BadTestDescription as e:
-            msg = "missing or invalid '{}' file in test {}: {}".format("hpctest.yaml", self.testdir, e.args[0])
+            msg = "missing or invalid '{}' file in test {}".format("hpctest.yaml", self.testdir)
         except PrepareFailed as e:
-            msg = "failed in setting up for building test {}: {}".format(self.testdir, e.args[0])
+            msg = "failed in setting up for building test {}".format(self.testdir)
         except BuildFailed as e:
             msg = "failed to build test {}".format(self.testdir)
         except ExecuteFailed as e:
-            msg = "failed to execute test {}: {}".format(self.testdir, e.args[0])
+            msg = "failed to execute test {}".format(self.testdir)
         except CheckFailed as e:
-            msg = "failed in checking result of test {}: {}".format(self.testdir, e.args[0])
+            msg = "failed in checking result of test {}".format(self.testdir)
         except Exception as e:
             msg = "unexpected error {} ({})".format(e.message, e.args)
         else:
@@ -158,7 +159,7 @@ class Run():
                 keep_stage=True,        # don't remove source dir for DIY.
                 explicit=True,
                 dirty=True,             # TODO: cf separable vs inseparable builds
-                force=True)             # install even if already installed, src may have changed
+                force=False)             # don't install if already installed -- TODO: deal with possibility that src may have changed
             
         except InstallError as e:
             errormsg(str(e))
@@ -181,14 +182,14 @@ class Run():
         
         try:
             
-            pass
-            ### execute(cmd, cwd=rundir)
+            execute("/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun -e REALTIME@10000 {}"
+                    .format(self.yaml["run"]["cmd"]), "", cwd=rundir)
             ### execute(cmd, cwd=rundir)
             ### execute(cmd, cwd=rundir)
             ### execute(cmd, cwd=rundir)
 
         except Exception as e:
-            msg = "unexpected error {} ({})".format(e.message, e.args)
+            msg = "unexpected error {}".format(e.message)
         else:
             msg = None
         

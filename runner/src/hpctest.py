@@ -146,9 +146,9 @@ class HPCTest():
         cpath = join(homepath, "tests", checksumName)
         if exists(cpath): remove(cpath)
         
-        # remove all installed packages, leftover build stages, and downloaded tarballs
+        # remove all installed packages and leftover build stages
         try:
-            spackle.do("clean --all")
+            spackle.do("clean --stage --misc-cache")
             rmtree(join(own_spack_home, "opt"))
             spackle.do("reindex")
         except Exception as e:
@@ -178,9 +178,9 @@ class HPCTest():
         # save new checksum
         with open(checksumPath, 'w') as new: new.write(newChecksum)
 
-        debugmsg("checking whether 'tests' directory has changed")
-        print oldChecksum, newChecksum
-        if newChecksum != oldChecksum: self._setUpRepos()
+        if newChecksum != oldChecksum:
+            debugmsg("recreating test packages since 'tests' directory has changed")
+            self._setUpRepos()
 
 
     def _setUpRepos(self):
