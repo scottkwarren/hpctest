@@ -102,11 +102,11 @@ def execute(cmd, *args, **kwargs):
         if newwd: os.chdir(newwd)
         exe(*args, **kwargs)
     except Exception as e:
-        errormsg("command {} failed: {}", exe.name(), e.message)
+        errormsg("command '{}' failed: {}".format(exe.name, e.message))
         raise
     finally:
         if newwd: os.chdir(oldwd)
-    
+   
 
 
 

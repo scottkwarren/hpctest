@@ -137,7 +137,7 @@ class HPCTest():
         if exists(tpath): rmtree(tpath)
         bpath = join(homepath, "runner", "repos", "build")
         if exists(bpath): rmtree(bpath)
-        
+
         # remove repo paths from Spack's repos.yaml
         with open(join(own_spack_home, "etc", "spack", "repos.yaml"), "w") as f:
             f.write("repos:\n")
@@ -166,21 +166,24 @@ class HPCTest():
         testsDir = join(homepath, "tests")
         checksumPath = join(testsDir, checksumName)
         
-        # get old checksum
+        # get old and new checksums
         if exists(checksumPath):
             with open(checksumPath) as old: oldChecksum = old.read()
         else:
             oldChecksum = "no checksum yet"
-        
-        # compute new checksum
         newChecksum = dirhash(testsDir, hashfunc='md5', excluded_files=[checksumName])
         
-        # save new checksum
-        with open(checksumPath, 'w') as new: new.write(newChecksum)
-
+        # check if tests have changed
         if newChecksum != oldChecksum:
+
+            # set up repos anew
             debugmsg("recreating test packages since 'tests' directory has changed")
+            debugmsg("... old = {}, new = {}".format(oldChecksum, newChecksum))
             self._setUpRepos()
+                        
+            # save new checksum -- must follow '_setUpRepos' b/c it deletes this checksum file
+            with open(checksumPath, 'w') as new:
+                new.write(newChecksum)
 
 
     def _setUpRepos(self):
@@ -190,12 +193,16 @@ class HPCTest():
         from os.path import join
         from common import homepath, readYamlforTest
         
+        # must start with a clean slate to avoid Spack errrors
+        self.reset()
+        
         # create new private repo for building test cases
         repoPath = self._makePrivateRepo("tests")
         
         # populate test repo with a package for each test case
         testsPath = join(homepath, "tests")
         for root, dirs, files in os.walk(testsPath, topdown=False):
+            
             try:
                 yaml = readYamlforTest(root)
             except:

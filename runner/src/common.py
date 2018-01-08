@@ -74,9 +74,12 @@ def debugmsg(message, always=False):
           infomsg(">>> " + message)
 
 def errormsg(message):
+    import traceback
     global numErrors
     numErrors = numErrors + 1
     infomsg("error: " + message)
+    if "traceback" in options or "debug" in options:
+        traceback.print_exc()
 
 def fatalmsg(message):
     infomsg("FATAL ERROR: " + message)
@@ -87,6 +90,13 @@ def notimplemented(what):
     
 def assertmsg(predicate, message):
     if not predicate: fatalmsg(message)
+
+
+# stack traceback
+
+def traceback():
+    import traceback
+    traceback.print_exc(limit=1000)
 
 
 # Prompted input

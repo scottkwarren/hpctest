@@ -63,15 +63,14 @@ class Run():
     def run(self):
         
         import traceback
-        from common  import infomsg, errormsg, readYamlforTest
+        from common  import infomsg, errormsg
         from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
 
         infomsg("running test {} with config {}".format(self.testdir, self.config))
         
         try:
             
-            self.yaml = readYamlforTest(self.testdir)
-            self.name = self.yaml["info"]["name"]                    # name of test case
+            self._readYaml()
             (srcdir, builddir, rundir) = self._prepareJobDirs()
             self._buildTest(srcdir, builddir)
             self._runBuiltTest(builddir, rundir)
@@ -88,11 +87,28 @@ class Run():
         except CheckFailed as e:
             msg = "failed in checking result of test {}".format(self.testdir)
         except Exception as e:
-            msg = "unexpected error {} ({})".format(e.message, e.args)
+            msg = "unexpected error {}".format(e.message)
         else:
             msg = None
         
         if msg: errormsg(msg)
+
+
+    def _readYaml(self):
+
+        import spack
+        from common  import readYamlforTest, assertmsg
+
+        self.yaml = readYamlforTest(self.testdir)
+        self.name = self.yaml["info"]["name"]                    # name of test case
+
+        # get a spec for this test in specified configuration
+        version = self.yaml["info"]["version"]
+        specString = "{}@{}{}".format("tests." + self.name, version, self.config)
+        specs = spack.cmd.parse_specs(specString)
+        assertmsg(len(specs) == 1, "'hpctest run' takes a single config spec.")     # TODO: check this earlier, once instead of per test
+        self.spec = specs[0]
+        self.spec.concretize()     # TODO: check that this succeeds
 
 
     def _prepareJobDirs(self):
@@ -136,54 +152,55 @@ class Run():
         from spack.stage import DIYStage
         from spack.package import InstallError
 
-        from common import assertmsg, options, BuildFailed
+        from common import options, BuildFailed
 
-        # get a spec for this test in specified configuration
-        version = self.yaml["info"]["version"]
-        specString = "{}@{}{}".format("tests." + self.name, version, self.config)
-        specs = spack.cmd.parse_specs(specString)
-        assertmsg(len(specs) == 1, "'hpctest run' takes a single config spec.")
-        spec = specs[0]
-        spec.concretize()
-   
-        # build the package
-        self.package = spack.repo.get(spec)
-        self.package.stage = DIYStage(builddir)  # TODO: cf separable vs inseparable builds
-        spack.do_checksum = False   # see spack.cmd.diy lines 91-92
-        try:
-            
-            self.package.do_install(
-                keep_prefix=False,
-                install_deps=True,
-                verbose="verbose" in options,
-                keep_stage=True,        # don't remove source dir for DIY.
-                explicit=True,
-                dirty=True,             # TODO: cf separable vs inseparable builds
-                force=False)             # don't install if already installed -- TODO: deal with possibility that src may have changed
-            
-        except InstallError as e:
-            errormsg(str(e))
-            if not os.path.exists(e.pkg.build_log_path):
-                errormsg("...building produced no log.")
-            else:
-                errormsg("...full build log written to stderr")
-                with open(e.pkg.build_log_path) as log:
-                    shutil.copyfileobj(log, sys.stderr)
-            raise BuildFailed
-        except Exception as e:
-            errormsg("during install, unexpected error {} ({})".format(e.message, e.args))
-            raise BuildFailed
+        # build the package if necessary
+        self.package = spack.repo.get(self.spec)
+        if not self.package.installed:
+            self.package.stage = DIYStage(builddir)  # TODO: cf separable vs inseparable builds
+            spack.do_checksum = False   # see spack.cmd.diy lines 91-92
+            try:
+                
+                self.package.do_install(
+                    keep_prefix=False,
+                    install_deps=True,
+                    verbose="verbose" in options,
+                    keep_stage=True,        # don't remove source dir for DIY.
+                    explicit=True,
+                    dirty=True,             # TODO: cf separable vs inseparable builds
+                    force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
+                
+            except InstallError as e:
+                errormsg(str(e))
+                if not os.path.exists(e.pkg.build_log_path):
+                    errormsg("...building produced no log.")
+                else:
+                    errormsg("...full build log written to stderr")
+                    with open(e.pkg.build_log_path) as log:
+                        shutil.copyfileobj(log, sys.stderr)
+                raise BuildFailed
+            except Exception as e:
+                errormsg("during install, unexpected error {} ({})".format(e.message, e.args))
+                raise BuildFailed
         
 
     def _runBuiltTest(self, builddir, rundir):
 
         from spackle import execute
-        from common import errormsg, ExecuteFailed
+        from common import infomsg, errormsg, ExecuteFailed
         
+        # command to be executed, with profiling and launcher if needed
+        # TODO: figure out what to do from options & package info
+        if True:
+            fullCmd = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun -e REALTIME@10000 /projects/pkgs/mpich/bin/mpiexec -n 2 {}".format(self.yaml["run"]["cmd"])
+        else:
+            fullCmd = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun -e REALTIME@10000 {}".format(self.yaml["run"]["cmd"])
+
+        # execute the command
         try:
             
-            execute("/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun -e REALTIME@10000 {}"
-                    .format(self.yaml["run"]["cmd"]), "", cwd=rundir)
+            infomsg("Executing test command:\n{}".format(fullCmd))
+            execute(fullCmd, "", cwd=rundir, env={"OMP_NUM_THREADS":"2"} )
             ### execute(cmd, cwd=rundir)
             ### execute(cmd, cwd=rundir)
             ### execute(cmd, cwd=rundir)

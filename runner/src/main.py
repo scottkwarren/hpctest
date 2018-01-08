@@ -137,10 +137,11 @@ def parseCommandLine():
 
 def _addOptionArgs(subparser):
     
-    subparser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",   help="run silently")
-    subparser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose", help="print additional details as testing is performed")
-    subparser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",   help="print debugging information as testing is performed")
-    subparser.add_argument("--force",     "-F",  dest="options", action="append_const", const="force",   help="do not ask for confirmation and ignore errors")
+    subparser.add_argument("--quiet",     "-q",  dest="options", action="append_const", const="quiet",     help="run silently")
+    subparser.add_argument("--verbose",   "-v",  dest="options", action="append_const", const="verbose",   help="print additional details as testing is performed")
+    subparser.add_argument("--debug",     "-D",  dest="options", action="append_const", const="debug",     help="print debugging information as testing is performed")
+    subparser.add_argument("--force",     "-F",  dest="options", action="append_const", const="force",     help="do not ask for confirmation and ignore errors")
+    subparser.add_argument("--traceback", "-T",  dest="options", action="append_const", const="traceback", help="print stack traces with error messages")
     
 
 def execute(args):
