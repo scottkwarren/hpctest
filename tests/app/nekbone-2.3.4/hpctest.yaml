@@ -58,7 +58,8 @@ build:
 
 run:
     cmd: ./nekbone ex1 4
-    numthreads: 4                       # TODO
+    ranks: 1                            # TODO
+    numthreads: 4
 
     
     

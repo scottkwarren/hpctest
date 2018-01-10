@@ -44,6 +44,7 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ################################################################################
+from rtslib.fabric import Qla2xxxFabricModule
 
 
 
@@ -105,9 +106,13 @@ class Run():
         # get a spec for this test in specified configuration
         version = self.yaml["info"]["version"]
         specString = "{}@{}{}".format("tests." + self.name, version, self.config)
-        specs = spack.cmd.parse_specs(specString)
-        assertmsg(len(specs) == 1, "'hpctest run' takes a single config spec.")     # TODO: check this earlier, once instead of per test
-        self.spec = specs[0]
+        self.spec = spack.cmd.parse_specs(specString)[0]                # TODO: deal better with possibility that returned list length != 1
+        if "+mpi" in self.spec:
+            specString += " +mpi"
+            self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
+        if "+openmp" in self.spec:
+            specString += " +openmp"
+            self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
         self.spec.concretize()     # TODO: check that this succeeds
 
 
@@ -186,21 +191,46 @@ class Run():
 
     def _runBuiltTest(self, builddir, rundir):
 
+        import os
+        from os.path import join
         from spackle import execute
         from common import infomsg, errormsg, ExecuteFailed
         
-        # command to be executed, with profiling and launcher if needed
-        # TODO: figure out what to do from options & package info
-        if True:
-            fullCmd = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun -e REALTIME@10000 /projects/pkgs/mpich/bin/mpiexec -n 2 {}".format(self.yaml["run"]["cmd"])
-        else:
-            fullCmd = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun -e REALTIME@10000 {}".format(self.yaml["run"]["cmd"])
+        # compute command to be executed: start with test's run command
+        cmd = self.yaml["run"]["cmd"]
+        env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
+        env.update( {"PATH" : self.package.prefix + "/bin" + ":" + env["PATH"]} )
+        
+        # ... add profiling code if wanted
+        wantProfile = True      # TODO: figure out from options & package info
+        if wantProfile:
+            toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
+            toolkitRunParams = "-e REALTIME@10000"
+            cmd = "{}/hpcrun {} {}".format(toolkitBinPath, toolkitRunParams, cmd)
 
+        # ... add mpi launching code if wanted
+        wantMPI = '+mpi' in self.spec
+        if wantMPI:
+            mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
+            mpiNumRanks = str( self.yaml["run"]["ranks"] )
+            cmd = "{}/mpiexec -n {} {}".format(mpiBinPath, mpiNumRanks, cmd)
+        
+        # ... add batch scheduling code if wanted
+        wantOpenMP = '+openmp' in self.spec
+        if wantOpenMP:
+            openMPNumThreads = str( self.yaml["run"]["threads"] )
+            env.update( {"OMP_NUM_THREADS" : openMPNumThreads} )
+        
+        wantBatch = False               # TODO: figure out from options & package info
+        if wantBatch:
+            pass                        # TODO: implement this
+        
         # execute the command
         try:
             
-            infomsg("Executing test command:\n{}".format(fullCmd))
-            execute(fullCmd, "", cwd=rundir, env={"OMP_NUM_THREADS":"2"} )
+            infomsg("Executing test command:\n{}".format(cmd))
+            execute(cmd, cwd=rundir, env=env)
+            
             ### execute(cmd, cwd=rundir)
             ### execute(cmd, cwd=rundir)
             ### execute(cmd, cwd=rundir)

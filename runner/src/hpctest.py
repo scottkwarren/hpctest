@@ -160,11 +160,15 @@ class HPCTest():
 
         from os.path import join, exists
         from util.checksumdir import dirhash
-        from common import homepath, debugmsg
+        from common import options, homepath, infomsg, debugmsg
         global _testDirChecksum
         
         testsDir = join(homepath, "tests")
         checksumPath = join(testsDir, checksumName)
+        
+        if exists(checksumPath) and "nochecksum" in options:     # 'nochecksum' notwithstanding, need to set up repos if checksum file is missing (ie first run)
+            infomsg("Skipping check for changes in 'tests' directory because '--nochecksum' option given")
+            return
         
         # get old and new checksums
         if exists(checksumPath):

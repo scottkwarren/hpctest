@@ -49,7 +49,9 @@ build:
     install: lulesh2.0
 
 run:
-    cmd: ./lulesh2.0
+    cmd: lulesh2.0
+    ranks: 8
+    threads: 4
 
     
     

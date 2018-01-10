@@ -55,7 +55,8 @@ build:
 
 run:
     cmd: "amg2013 -r 36 36 36  -P  1 1 2"
-    mpiexec: "-n 2"
+    ranks: 2
+    threads: 4
 
     
     
