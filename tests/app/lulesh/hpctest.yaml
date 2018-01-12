@@ -49,7 +49,7 @@ build:
     install: lulesh2.0
 
 run:
-    cmd: lulesh2.0
+    cmd: lulesh2.0 -s 30    # default size is 30 taking 32 cpu minutes, 20 takes < 7 on les
     ranks: 8
     threads: 4
 

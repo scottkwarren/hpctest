@@ -191,50 +191,70 @@ class Run():
 
     def _runBuiltTest(self, builddir, rundir):
 
+        from common import infomsg
+
+
+        # execute test case with and without profiling (to measure overhead)
+        cmd         = self.yaml["run"]["cmd"]
+        wantProfile = True      # TODO: figure out from options & package info
+        wantMPI     = '+mpi' in self.spec
+        wantOpenMP  = '+openmp' in self.spec
+        wantBatch   = False               # TODO: figure out from options & package info
+        self._executeWithMods(cmd, "profiled", rundir, wantMPI, wantOpenMP, wantProfile, wantBatch)
+        infomsg("------------------------------")
+        self._executeWithMods(cmd, "normal",   rundir, False,   False,     False,        False)
+        
+        # compute overhead for profiling
+        profiledTime = self._readTotalCpuTime(rundir, "profiled")
+        normalTime   = self._readTotalCpuTime(rundir, "normal")
+        overheadPercent = 100.0 * (profiledTime/normalTime)
+        infomsg("...hpcrun overhead = {} %".format(overheadPercent))
+
+
+    def _executeWithMods(self, cmd, label, rundir, wantMPI, wantOpenMP, wantProfile, wantBatch):
+
         import os
         from os.path import join
         from spackle import execute
         from common import infomsg, errormsg, ExecuteFailed
         
-        # compute command to be executed: start with test's run command
-        cmd = self.yaml["run"]["cmd"]
+        # compute command to be executed
+        # ... start with test's run command
         env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
-        env.update( {"PATH" : self.package.prefix + "/bin" + ":" + env["PATH"]} )
+        env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
         
         # ... add profiling code if wanted
-        wantProfile = True      # TODO: figure out from options & package info
         if wantProfile:
             toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
             toolkitRunParams = "-e REALTIME@10000"
             cmd = "{}/hpcrun {} {}".format(toolkitBinPath, toolkitRunParams, cmd)
 
-        # ... add mpi launching code if wanted
-        wantMPI = '+mpi' in self.spec
+        # ... add MPI launching code if wanted
         if wantMPI:
             mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
             mpiNumRanks = str( self.yaml["run"]["ranks"] )
             cmd = "{}/mpiexec -n {} {}".format(mpiBinPath, mpiNumRanks, cmd)
         
-        # ... add batch scheduling code if wanted
-        wantOpenMP = '+openmp' in self.spec
+        # ... add OpenMP parameters if wanted
         if wantOpenMP:
             openMPNumThreads = str( self.yaml["run"]["threads"] )
-            env.update( {"OMP_NUM_THREADS" : openMPNumThreads} )
+            env["OMP_NUM_THREADS"] = openMPNumThreads
         
-        wantBatch = False               # TODO: figure out from options & package info
+        # ... add batch scheduling code if wanted
         if wantBatch:
             pass                        # TODO: implement this
         
+        # ... always add timing code
+        timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o {}-time.txt {}".format(label, cmd)
+        
         # execute the command
+#       infomsg("Executing test command:\n{}".format(cmd))
+        infomsg("Executing test command:\n{}".format(timedCmd))
         try:
             
-            infomsg("Executing test command:\n{}".format(cmd))
-            execute(cmd, cwd=rundir, env=env)
+            with open("{}-output.txt".format(label), "w") as outf:
+                execute(timedCmd, cwd=rundir, env=env, output=outf)
             
-            ### execute(cmd, cwd=rundir)
-            ### execute(cmd, cwd=rundir)
-            ### execute(cmd, cwd=rundir)
-
         except Exception as e:
             msg = "unexpected error {}".format(e.message)
         else:
@@ -243,6 +263,21 @@ class Run():
         if msg:
             errormsg(msg)
             raise ExecuteFailed
+
+        # send command's output to stdout
+        with open("{}-output.txt".format(label), "r") as f:
+            print f.read()
+     
+
+    def _readTotalCpuTime(self, rundir, label):
+        
+        import csv
+        from os.path import join
+        
+        path = join(rundir, "{}-time.txt".format(label))
+        with open(path, "r") as f:
+            times = csv.reader(f, delimiter="\t").next()
+        return float(times[1]) + float(times[2])
 
 
     def _checkTestResults(self, rundir):
