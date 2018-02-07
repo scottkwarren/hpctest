@@ -49,7 +49,7 @@ build:
       - test/sstruct.in.AMG.FD
 
 run:
-    cmd: "amg2006 -P 2 2 1 -n 2 2 4"
+    cmd: amg2006 -P 2 2 1 -n 2 2 4
     ranks: 4
     threads: 4
 

@@ -191,8 +191,10 @@ class Run():
 
     def _runBuiltTest(self, builddir, rundir):
 
-        from common import infomsg
-
+        from os import listdir
+        from os.path import join, isfile, basename, splitext
+        import re, string, textwrap
+        from common import infomsg, errormsg
 
         # execute test case with and without profiling (to measure overhead)
         cmd         = self.yaml["run"]["cmd"]
@@ -200,16 +202,51 @@ class Run():
         wantMPI     = '+mpi' in self.spec
         wantOpenMP  = '+openmp' in self.spec
         wantBatch   = False               # TODO: figure out from options & package info
+        infomsg("------------------------------")
         self._executeWithMods(cmd, "profiled", rundir, wantMPI, wantOpenMP, wantProfile, wantBatch)
         infomsg("------------------------------")
         self._executeWithMods(cmd, "normal",   rundir, False,   False,     False,        False)
+        infomsg("------------------------------")
         
         # compute overhead for profiling
         profiledTime = self._readTotalCpuTime(rundir, "profiled")
         normalTime   = self._readTotalCpuTime(rundir, "normal")
         overheadPercent = 100.0 * (profiledTime/normalTime)
         infomsg("...hpcrun overhead = {} %".format(overheadPercent))
+        
+        # summarize hpcprof log
+        exeName = cmd.split()[0]
+        measurementsPath = join(rundir, "hpctoolkit-{}-measurements".format(exeName))
 
+        pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
+                    "         frames: D (trolled: D)\n"
+                    "         intervals: D (suspicious: D)\n"
+                  )
+        fieldNames = [ "samples", "recorded", "blocked", "errant", "trolled", "yielded", "frames", "trolled", "intervals", "suspicious" ]
+        pattern = string.replace(pattern, r"(", r"\(")
+        pattern = string.replace(pattern, r")", r"\)")
+        pattern = string.replace(pattern, r"D", r"(\d+)")
+        rex = re.compile(pattern)
+
+        for item in listdir(measurementsPath):
+            itemPath = join(measurementsPath, item)
+            if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
+                with open(itemPath, "r") as f:
+                    
+                    last3lines  = f.readlines()[-3:]
+                    summaryLine = "".join(last3lines)
+                    match = rex.match(summaryLine)
+
+                    if match:
+                        matchDict = dict(zip(fieldNames, match.groups()))
+                        print "MATCHED! scraped log results = ", matchDict  ## DEBUG
+                        # TODO: deal with this result
+                    else:
+                        errormsg("hpcrun log '{}' has summary with unexpected format:\n{}".format(item, summaryLine))
+
+                
+                
+                
 
     def _executeWithMods(self, cmd, label, rundir, wantMPI, wantOpenMP, wantProfile, wantBatch):
 
@@ -276,7 +313,8 @@ class Run():
         
         path = join(rundir, "{}-time.txt".format(label))
         with open(path, "r") as f:
-            times = csv.reader(f, delimiter="\t").next()
+            trimmedLine = f.read()[1:-2]    # remove initial and final "'"s
+            times = csv.reader([trimmedLine], delimiter="\t").next()
         return float(times[1]) + float(times[2])
 
 
