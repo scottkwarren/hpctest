@@ -73,10 +73,10 @@ class Run():
         try:
             
             self._readYaml()
-            (srcdir, builddir, rundir) = self._prepareJobDirs()
-            self._buildTest(srcdir, builddir)
-            self._runBuiltTest(builddir, rundir)
-            self._checkTestResults(rundir)
+            self._prepareJobDirs()
+            self._buildTest()
+            self._runBuiltTest()
+            self._checkTestResults()
             
         except BadTestDescription as e:
             msg = "missing or invalid '{}' file in test {}".format("hpctest.yaml", self.testdir)
@@ -149,10 +149,8 @@ class Run():
         # initialize for dynamic creation of OUT file names
         self.numOutfiles = 0
         
-        return (self.srcdir, self.builddir, self.rundir)
 
-
-    def _buildTest(self, srcdir, builddir):
+    def _buildTest(self):
 
         import shutil
         import spack
@@ -164,7 +162,7 @@ class Run():
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
         if not self.package.installed:
-            self.package.stage = DIYStage(builddir)  # TODO: cf separable vs inseparable builds
+            self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
             spack.do_checksum = False   # see spack.cmd.diy lines 91-92
             try:
                 
@@ -191,7 +189,7 @@ class Run():
                 raise BuildFailed
         
 
-    def _runBuiltTest(self, builddir, rundir):
+    def _runBuiltTest(self):
 
         from os import mkdir, listdir
         from os.path import join, isdir, isfile, basename, splitext
@@ -199,7 +197,8 @@ class Run():
         from common import infomsg, debugmsg, errormsg, sepmsg
         from spackle import writeYamlFile
 
-        path = join(rundir, "OUT")
+        # prepare directory for hpctest outputs
+        path = join(self.rundir, "OUT")
         if not isdir(path):  mkdir(path)
         
         # execute test case with and without profiling (to measure overhead)
@@ -208,10 +207,15 @@ class Run():
         wantMPI     = '+mpi' in self.spec
         wantOpenMP  = '+openmp' in self.spec
         wantBatch   = False     # TODO: figure out from options & package info
-        profiledTime = self._executeWithMods(cmd, "profiled", rundir, wantMPI, wantOpenMP, wantProfile, wantBatch)
+
+        exeName = cmd.split()[0]
+#       self.measurementsPath = join(self.rundir, "hpctoolkit-{}-measurements".format(exeName))
+        self.measurementsPath = self._makeOutfilePath("hpctoolkit-{}-measurements".format(exeName))
+        
+        profiledTime = self._executeWithMods(cmd, "profiled", wantMPI, wantOpenMP, wantProfile, wantBatch)
         infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
         sepmsg()
-        normalTime = self._executeWithMods(cmd, "normal",   rundir, wantMPI, wantOpenMP, False, False)
+        normalTime = self._executeWithMods(cmd, "normal", wantMPI, wantOpenMP, False, False)
         infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
         
         # compute overhead for profiling
@@ -229,12 +233,10 @@ class Run():
         pattern = string.replace(pattern, r"D", r"(\d+)")
         rex = re.compile(pattern)
 
-        exeName = cmd.split()[0]
-        measurementsPath = join(rundir, "hpctoolkit-{}-measurements".format(exeName))
         scrapedResultTupleList = []
         
-        for item in listdir(measurementsPath):
-            itemPath = join(measurementsPath, item)
+        for item in listdir(self.measurementsPath):
+            itemPath = join(self.measurementsPath, item)
             if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
                 with open(itemPath, "r") as f:
                     
@@ -254,7 +256,7 @@ class Run():
         debugmsg("hpcrun summary = {}".format(summedResultDict))
 
 
-    def _executeWithMods(self, cmd, label, rundir, wantMPI, wantOpenMP, wantProfile, wantBatch):
+    def _executeWithMods(self, cmd, label, wantMPI, wantOpenMP, wantProfile, wantBatch):
 
         import os
         from os.path import join
@@ -273,7 +275,7 @@ class Run():
         if wantProfile:
             toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
             toolkitRunParams = "-e REALTIME@10000"
-            cmd = "{}/hpcrun {} {}".format(toolkitBinPath, toolkitRunParams, cmd)
+            cmd = "{}/hpcrun -o {} {} {}".format(toolkitBinPath, self.measurementsPath, toolkitRunParams, cmd)
 
         # ... add MPI launching code if wanted
         if wantMPI:
@@ -299,7 +301,7 @@ class Run():
         try:
             
             with open(outPath, "w") as outf:
-                execute(timedCmd, cwd=rundir, env=env, output=outf)
+                execute(timedCmd, cwd=self.rundir, env=env, output=outf)
             
         except Exception as e:
             msg = "command produced error {}".format(e.message)
@@ -331,7 +333,7 @@ class Run():
         return float(times[1]) + float(times[2])
 
 
-    def _checkTestResults(self, rundir):
+    def _checkTestResults(self):
 
         pass        # TEMPORARY
     
