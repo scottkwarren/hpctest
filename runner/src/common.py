@@ -84,12 +84,15 @@ def errormsg(message):
 def fatalmsg(message):
     infomsg("FATAL ERROR: " + message)
     raise SystemExit
-
-def notimplemented(what):
-    fatalmsg(what + " is not implemented")
     
 def assertmsg(predicate, message):
     if not predicate: fatalmsg(message)
+
+def notimplemented(what):
+    fatalmsg(what + " is not implemented")
+
+def sepmsg(long=False):
+    infomsg("-----------------------------------" * (2 if long else 1))
 
 
 # stack traceback
@@ -135,12 +138,12 @@ class BadWorkspacePath(HPCTestError):
 def readYamlforTest(testDir):
 
     from os.path import join, basename
-    from spackle import loadYamlFile
+    from spackle import readYamlFile
     from common import BadTestDescription
         
 
     # read yaml file
-    (yaml, error) = loadYamlFile( join(testDir, "hpctest.yaml") )
+    yaml, error = readYamlFile( join(testDir, "hpctest.yaml") )
     if error:
         raise BadTestDescription(error)
 

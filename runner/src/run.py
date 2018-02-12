@@ -44,7 +44,6 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ################################################################################
-from rtslib.fabric import Qla2xxxFabricModule
 
 
 
@@ -64,10 +63,12 @@ class Run():
     def run(self):
         
         import traceback
-        from common  import infomsg, errormsg
+        from common  import infomsg, errormsg, sepmsg
         from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
 
+        sepmsg(True)
         infomsg("running test {} with config {}".format(self.testdir, self.config))
+        sepmsg(True)
         
         try:
             
@@ -123,31 +124,32 @@ class Run():
         from shutil import copytree
 
         # job directory
-        jobdir = self.workspace.addJobDir(self.name, self.config)
+        self.jobdir = self.workspace.addJobDir(self.name, self.config)
         
         # src directory -- immutable so just use teste's dir
-        srcdir = self.testdir
+        self.srcdir = self.testdir
         
         # build directory - make new or copy test's dir if not separable-build test
         # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
-        builddir = join(jobdir, "build");
+        self.builddir = join(self.jobdir, "build");
         if "build" in self.yaml["build"]["separate"]:
-            makedirs(builddir)
+            makedirs(self.builddir)
         else:
-            copytree(srcdir, builddir)
-            symlink( builddir, join(jobdir, basename(srcdir)) )
+            copytree(self.srcdir, self.builddir)
+            symlink( self.builddir, join(self.jobdir, basename(self.srcdir)) )
             
         # run directory - make new or use build dir if not separable-run test
         # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
         if "run" in self.yaml["build"]["separate"]:
-            rundir = join(jobdir, "run");
-            makedirs(rundir)
+            self.rundir = join(self.jobdir, "run");
+            makedirs(self.rundir)
         else:
-            rundir = builddir
+            self.rundir = self.builddir
         
-        # ...
+        # initialize for dynamic creation of OUT file names
+        self.numOutfiles = 0
         
-        return (srcdir, builddir, rundir)
+        return (self.srcdir, self.builddir, self.rundir)
 
 
     def _buildTest(self, srcdir, builddir):
@@ -191,33 +193,32 @@ class Run():
 
     def _runBuiltTest(self, builddir, rundir):
 
-        from os import listdir
-        from os.path import join, isfile, basename, splitext
+        from os import mkdir, listdir
+        from os.path import join, isdir, isfile, basename, splitext
         import re, string, textwrap
-        from common import infomsg, errormsg
+        from common import infomsg, debugmsg, errormsg, sepmsg
+        from spackle import writeYamlFile
 
+        path = join(rundir, "OUT")
+        if not isdir(path):  mkdir(path)
+        
         # execute test case with and without profiling (to measure overhead)
         cmd         = self.yaml["run"]["cmd"]
         wantProfile = True      # TODO: figure out from options & package info
         wantMPI     = '+mpi' in self.spec
         wantOpenMP  = '+openmp' in self.spec
-        wantBatch   = False               # TODO: figure out from options & package info
-        infomsg("------------------------------")
-        self._executeWithMods(cmd, "profiled", rundir, wantMPI, wantOpenMP, wantProfile, wantBatch)
-        infomsg("------------------------------")
-        self._executeWithMods(cmd, "normal",   rundir, False,   False,     False,        False)
-        infomsg("------------------------------")
+        wantBatch   = False     # TODO: figure out from options & package info
+        profiledTime = self._executeWithMods(cmd, "profiled", rundir, wantMPI, wantOpenMP, wantProfile, wantBatch)
+        infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
+        sepmsg()
+        normalTime = self._executeWithMods(cmd, "normal",   rundir, wantMPI, wantOpenMP, False, False)
+        infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
         
         # compute overhead for profiling
-        profiledTime = self._readTotalCpuTime(rundir, "profiled")
-        normalTime   = self._readTotalCpuTime(rundir, "normal")
-        overheadPercent = 100.0 * (profiledTime/normalTime)
-        infomsg("...hpcrun overhead = {} %".format(overheadPercent))
-        
-        # summarize hpcprof log
-        exeName = cmd.split()[0]
-        measurementsPath = join(rundir, "hpctoolkit-{}-measurements".format(exeName))
+        overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
+        sepmsg()
 
+        # summarize hpcprof log
         pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
                     "         frames: D (trolled: D)\n"
                     "         intervals: D (suspicious: D)\n"
@@ -228,6 +229,10 @@ class Run():
         pattern = string.replace(pattern, r"D", r"(\d+)")
         rex = re.compile(pattern)
 
+        exeName = cmd.split()[0]
+        measurementsPath = join(rundir, "hpctoolkit-{}-measurements".format(exeName))
+        scrapedResultTupleList = []
+        
         for item in listdir(measurementsPath):
             itemPath = join(measurementsPath, item)
             if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
@@ -236,29 +241,33 @@ class Run():
                     last3lines  = f.readlines()[-3:]
                     summaryLine = "".join(last3lines)
                     match = rex.match(summaryLine)
-
                     if match:
-                        matchDict = dict(zip(fieldNames, match.groups()))
-                        print "MATCHED! scraped log results = ", matchDict  ## DEBUG
-                        # TODO: deal with this result
+                        scrapedResultTuple = map(int, match.groups())   # convert matched strings to ints
+                        scrapedResultTupleList.append(scrapedResultTuple)
                     else:
                         errormsg("hpcrun log '{}' has summary with unexpected format:\n{}".format(item, summaryLine))
+                        
+        summedResultTuple = map(sum, zip(*scrapedResultTupleList))
+        summedResultDict  = dict(zip(fieldNames, summedResultTuple))
+        sumPath = self._makeOutfilePath("hpcrun-summary.yaml")
+        writeYamlFile(sumPath, summedResultDict)
+        debugmsg("hpcrun summary = {}".format(summedResultDict))
 
-                
-                
-                
 
     def _executeWithMods(self, cmd, label, rundir, wantMPI, wantOpenMP, wantProfile, wantBatch):
 
         import os
         from os.path import join
+        import sys
         from spackle import execute
-        from common import infomsg, errormsg, ExecuteFailed
+        from common import options, infomsg, errormsg, sepmsg, ExecuteFailed
         
         # compute command to be executed
         # ... start with test's run command
         env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
         env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
+        outPath  = self._makeOutfilePath("{}-output.txt", label)
+        timePath = self._makeOutfilePath("{}-time.txt", label)
         
         # ... add profiling code if wanted
         if wantProfile:
@@ -279,21 +288,23 @@ class Run():
         
         # ... add batch scheduling code if wanted
         if wantBatch:
-            pass                        # TODO: implement this
+            notimplemented("batch scheduling")   # TODO: implement this
         
         # ... always add timing code
-        timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o {}-time.txt {}".format(label, cmd)
+        #### timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o '{}/{}-time.txt' {}".format("OUT", label, cmd)
+        timedCmd = "/usr/bin/time -f %e\\t%S\\t%U -o {} {}".format(timePath, cmd)
         
         # execute the command
-#       infomsg("Executing test command:\n{}".format(cmd))
-        infomsg("Executing test command:\n{}".format(timedCmd))
+        infomsg("Executing {} command:\n{}".format(label, timedCmd))
         try:
             
-            with open("{}-output.txt".format(label), "w") as outf:
+            with open(outPath, "w") as outf:
                 execute(timedCmd, cwd=rundir, env=env, output=outf)
             
         except Exception as e:
-            msg = "unexpected error {}".format(e.message)
+            msg = "command produced error {}".format(e.message)
+        except Exception as e:
+            msg = "unexpected error {} ({})".format(e.message, type(e))
         else:
             msg = None
         
@@ -301,26 +312,38 @@ class Run():
             errormsg(msg)
             raise ExecuteFailed
 
-        # send command's output to stdout
-        with open("{}-output.txt".format(label), "r") as f:
-            print f.read()
-     
-
-    def _readTotalCpuTime(self, rundir, label):
-        
+        # send command's output to stdout if verbose
+        if "verbose" in options:
+            with open(outPath, "r") as f:
+                print f.read()
+            
+        return self._readTotalCpuTime(timePath)
+    
+    
+    def _readTotalCpuTime(self, timePath):
+            
         import csv
         from os.path import join
         
-        path = join(rundir, "{}-time.txt".format(label))
-        with open(path, "r") as f:
-            trimmedLine = f.read()[1:-2]    # remove initial and final "'"s
-            times = csv.reader([trimmedLine], delimiter="\t").next()
+        with open(timePath, "r") as f:
+            line = f.read()
+            times = csv.reader([line], delimiter="\t").next()
         return float(times[1]) + float(times[2])
 
 
     def _checkTestResults(self, rundir):
 
         pass        # TEMPORARY
+    
+
+
+    def _makeOutfilePath(self, nameFmt, label=None):
+
+        from os.path import join
+
+        self.numOutfiles += 1
+        path = join(self.rundir, "OUT", ("{}-" + nameFmt).format(self.numOutfiles, label))
+        return path
     
     
 

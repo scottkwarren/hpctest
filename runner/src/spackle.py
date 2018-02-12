@@ -48,6 +48,8 @@
 
 
 
+# Executing a Spack command
+
 def do(cmdstring):
     
     import os, common
@@ -60,33 +62,8 @@ def extDo(cmdstring):
     os.system(common.ext_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
 
 
-def loadYamlFile(path):
-    
-    import os, spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
-    from common import infomsg, debugmsg, errormsg
 
-    debugmsg("loading yaml file at {}".format(path))
-        
-    try:
-        
-        with open(path, 'r') as f:
-            try:
-                object, msg = yaml.load(f), None
-            except:
-                object, msg = None, "file has syntax errors and cannot be used"
-            
-    except Exception as e:
-        if isinstance(e, OSError) and e.errno == errno.EEXIST:
-            object, msg = None, "file is missing"
-        else:
-            object, msg = None, "file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
-    
-    debugmsg("...finished loading yaml file with result object {} and msg {}".format(object, repr(msg)))
-    
-    return object, msg
-
-
-# Executing a command with error checkings
+# Executing a program with error checking
 
 def execute(cmd, *args, **kwargs):
     
@@ -106,6 +83,57 @@ def execute(cmd, *args, **kwargs):
         raise
     finally:
         if newwd: os.chdir(oldwd)
+
+
+
+# Transputting a YAML file
+
+def readYamlFile(path):
+    
+    import spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
+    from common import debugmsg
+
+    debugmsg("reading yaml file at {}".format(path))
+        
+    try:
+        
+        with open(path, 'r') as f:
+            try:
+                object, msg = yaml.load(f), None
+            except:
+                object, msg = None, "file has syntax errors and cannot be used"
+            
+    except Exception as e:
+        if isinstance(e, OSError) and e.errno == errno.EEXIST:
+            object, msg = None, "file is missing"
+        else:
+            object, msg = None, "file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
+    
+    debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
+    
+    return object, msg
+
+
+def writeYamlFile(path, object):
+    
+    import spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
+    from common import debugmsg, fatalmsg
+
+    debugmsg("writing yaml file at {}".format(path))
+    msg = None
+    
+    try:
+        
+        with open(path, 'w') as f:
+            try:
+                yaml.dump(object, f)
+            except Exception as e:
+                fatalmsg("can't write given object as YAML (error {}, {})\nobject: {}".format(e.errno, e.strerror, object))
+            
+    except Exception as e:
+        msg = "file cannot be written: (error {})".format(e)
+    
+    debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
    
 
 
