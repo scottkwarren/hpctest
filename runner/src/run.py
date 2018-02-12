@@ -209,7 +209,6 @@ class Run():
         wantBatch   = False     # TODO: figure out from options & package info
 
         exeName = cmd.split()[0]
-#       self.measurementsPath = join(self.rundir, "hpctoolkit-{}-measurements".format(exeName))
         self.measurementsPath = self._makeOutfilePath("hpctoolkit-{}-measurements".format(exeName))
         
         profiledTime = self._executeWithMods(cmd, "profiled", wantMPI, wantOpenMP, wantProfile, wantBatch)
