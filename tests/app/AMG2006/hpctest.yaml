@@ -4,7 +4,7 @@
 
 
 info:
-    name:  "AMG2006"
+    name:  AMG2006
     version: 1.0
     homepage: https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006
     url: https://github.com/HPCToolkit
@@ -49,11 +49,19 @@ build:
       - test/sstruct.in.AMG.FD
 
 run:
-    cmd: amg2006 -P 2 2 1 -n 2 2 4
+    cmd: amg2006 -P 2 2 1 -b time ./hpctest run "app/AMG2006" -c %gcc --debug -C | tee run.log
+
+    dir: test
     ranks: 4
     threads: 4
 
-    
-    
+
+# Times on les (elapsed / cpu):
+#
+# -P 2 2 1 -b  8  8  8 on 4x4 =   1   /   7 min,   73K samples
+# -P 2 2 1 -b 10 10 10 on 4x4 =   3.5 /  26 min,  256K samples
+# -P 2 2 1 -b 12 12 12 on 4x4 =   9.5 /  73 min,  680K samples
+# -P 2 2 1 -b 14 14 14 on 4x4 =  24   / 182 min, 1700K samples
+# -P 2 2 1 -b 16 16 16 on 4x4 =  51   / 390 min, 3000K samples
     
     

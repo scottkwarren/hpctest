@@ -47,6 +47,7 @@ class Amg2013(MakefilePackage):
 ##      +CXXFLAGS: $OPENMP_FLAG
 ##      +LDFLAGS:  $OPENMP_FLAG
         if '+openmp' in self.spec:
+            cxxflags += ' ' + '-DHYPRE_USING_OPENMP'
             cxxflags += ' ' + self.compiler.openmp_flag
             ldflags  += ' ' + self.compiler.openmp_flag
         

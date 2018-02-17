@@ -191,37 +191,129 @@ class Run():
 
     def _runBuiltTest(self):
 
-        from os import mkdir, listdir
-        from os.path import join, isdir, isfile, basename, splitext
-        import re, string, textwrap
-        from common import infomsg, debugmsg, errormsg, sepmsg
-        from spackle import writeYamlFile
+        from os import mkdir
+        from os.path import join, isdir
+        from common import infomsg, sepmsg
 
         # prepare directory for hpctest outputs
         path = join(self.rundir, "OUT")
         if not isdir(path):  mkdir(path)
         
         # execute test case with and without profiling (to measure overhead)
+        cmd = self.yaml["run"]["cmd"]
+        exeName = cmd.split()[0]
+        self.measurementsPath = self._makeOutfilePath("hpctoolkit-{}-measurements".format(exeName))
+        
+        profiledTime = self._executeWithMods("profiled", True)
+        infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
+        
+        sepmsg()
+        
+        normalTime = self._executeWithMods("normal", False)
+        infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
+        
+        sepmsg()
+        
+        # compute profiling overhead
+        overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
+        infomsg("...hpcrun overhead = {} %".format(overheadPercent))
+
+        # summarize hpcrun log
+        self._summarizeHpcrunLog()
+
+
+    def _executeWithMods(self, label, wantProfile):
+
+        import os
+        from os.path import join
+        import sys
+        from spackle import execute
+        from common import options, infomsg, verbosemsg, errormsg, sepmsg, ExecuteFailed
+        
         cmd         = self.yaml["run"]["cmd"]
-        wantProfile = True      # TODO: figure out from options & package info
         wantMPI     = '+mpi' in self.spec
         wantOpenMP  = '+openmp' in self.spec
         wantBatch   = False     # TODO: figure out from options & package info
 
-        exeName = cmd.split()[0]
-        self.measurementsPath = self._makeOutfilePath("hpctoolkit-{}-measurements".format(exeName))
+        # compute command to be executed
+        # ... start with test's run command
+        env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
+        env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
+        runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
+        outPath  = self._makeOutfilePath("{}-output.txt", label)
+        timePath = self._makeOutfilePath("{}-time.txt", label)
         
-        profiledTime = self._executeWithMods(cmd, "profiled", wantMPI, wantOpenMP, wantProfile, wantBatch)
-        infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
-        sepmsg()
-        normalTime = self._executeWithMods(cmd, "normal", wantMPI, wantOpenMP, False, False)
-        infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
-        
-        # compute overhead for profiling
-        overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-        sepmsg()
+        # ... add profiling code if wanted
+        if wantProfile:
+            toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
+            toolkitRunParams = "-e REALTIME@10000"
+            cmd = "{}/hpcrun -o {} {} {}".format(toolkitBinPath, self.measurementsPath, toolkitRunParams, cmd)
 
-        # summarize hpcprof log
+        # ... add OpenMP parameters if wanted
+        if wantOpenMP:
+            openMPNumThreads = str( self.yaml["run"]["threads"] )
+            env["OMP_NUM_THREADS"] = openMPNumThreads
+        
+        # ... add MPI launching code if wanted
+        if wantMPI:
+            mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
+            mpiNumRanks = str( self.yaml["run"]["ranks"] )
+            cmd = "{}/mpiexec -np {} {}".format(mpiBinPath, mpiNumRanks, cmd)
+        
+        # ... add batch scheduling code if wanted
+        if wantBatch:
+            notimplemented("batch scheduling")   # TODO: implement this
+        
+        # ... always add timing code
+        #### timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o '{}/{}-time.txt' {}".format("OUT", label, cmd)
+        timedCmd = "/usr/bin/time -f %e\\t%S\\t%U -o {} {}".format(timePath, cmd)
+        
+        # execute the command
+        infomsg("Executing {} command:\n{}".format(label, timedCmd))
+        verbosemsg("... with env:\n{}".format(env))
+        try:
+            
+            with open(outPath, "w") as outf:
+                execute(timedCmd, cwd=runPath, env=env, output=outf, error=outf)
+            
+        except Exception as e:
+            msg = "command produced error {}".format(e.message)
+        except Exception as e:
+            msg = "unexpected error {} ({})".format(e.message, type(e))
+        else:
+            msg = None
+
+        # send command's output to stdout if verbose
+        if "verbose" in options:
+            with open(outPath, "r") as f:
+                print f.read()
+        
+        if msg:
+            errormsg(msg)
+            raise ExecuteFailed
+            
+        return self._readTotalCpuTime(timePath)
+    
+    
+    def _readTotalCpuTime(self, timePath):
+            
+        import csv
+        from os.path import join
+        
+        with open(timePath, "r") as f:
+            line = f.read()
+            times = csv.reader([line], delimiter="\t").next()
+        return float(times[1]) + float(times[2])
+
+
+    def _summarizeHpcrunLog(self):
+        
+        from os import listdir
+        from os.path import join, isfile, basename, splitext
+        import re, string
+        from common import debugmsg, errormsg
+        from spackle import writeYamlFile
+
         pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
                     "         frames: D (trolled: D)\n"
                     "         intervals: D (suspicious: D)\n"
@@ -253,83 +345,6 @@ class Run():
         sumPath = self._makeOutfilePath("hpcrun-summary.yaml")
         writeYamlFile(sumPath, summedResultDict)
         debugmsg("hpcrun summary = {}".format(summedResultDict))
-
-
-    def _executeWithMods(self, cmd, label, wantMPI, wantOpenMP, wantProfile, wantBatch):
-
-        import os
-        from os.path import join
-        import sys
-        from spackle import execute
-        from common import options, infomsg, errormsg, sepmsg, ExecuteFailed
-        
-        # compute command to be executed
-        # ... start with test's run command
-        env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
-        env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
-        outPath  = self._makeOutfilePath("{}-output.txt", label)
-        timePath = self._makeOutfilePath("{}-time.txt", label)
-        
-        # ... add profiling code if wanted
-        if wantProfile:
-            toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
-            toolkitRunParams = "-e REALTIME@10000"
-            cmd = "{}/hpcrun -o {} {} {}".format(toolkitBinPath, self.measurementsPath, toolkitRunParams, cmd)
-
-        # ... add MPI launching code if wanted
-        if wantMPI:
-            mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
-            mpiNumRanks = str( self.yaml["run"]["ranks"] )
-            cmd = "{}/mpiexec -n {} {}".format(mpiBinPath, mpiNumRanks, cmd)
-        
-        # ... add OpenMP parameters if wanted
-        if wantOpenMP:
-            openMPNumThreads = str( self.yaml["run"]["threads"] )
-            env["OMP_NUM_THREADS"] = openMPNumThreads
-        
-        # ... add batch scheduling code if wanted
-        if wantBatch:
-            notimplemented("batch scheduling")   # TODO: implement this
-        
-        # ... always add timing code
-        #### timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o '{}/{}-time.txt' {}".format("OUT", label, cmd)
-        timedCmd = "/usr/bin/time -f %e\\t%S\\t%U -o {} {}".format(timePath, cmd)
-        
-        # execute the command
-        infomsg("Executing {} command:\n{}".format(label, timedCmd))
-        try:
-            
-            with open(outPath, "w") as outf:
-                execute(timedCmd, cwd=self.rundir, env=env, output=outf)
-            
-        except Exception as e:
-            msg = "command produced error {}".format(e.message)
-        except Exception as e:
-            msg = "unexpected error {} ({})".format(e.message, type(e))
-        else:
-            msg = None
-        
-        if msg:
-            errormsg(msg)
-            raise ExecuteFailed
-
-        # send command's output to stdout if verbose
-        if "verbose" in options:
-            with open(outPath, "r") as f:
-                print f.read()
-            
-        return self._readTotalCpuTime(timePath)
-    
-    
-    def _readTotalCpuTime(self, timePath):
-            
-        import csv
-        from os.path import join
-        
-        with open(timePath, "r") as f:
-            line = f.read()
-            times = csv.reader([line], delimiter="\t").next()
-        return float(times[1]) + float(times[2])
 
 
     def _checkTestResults(self):

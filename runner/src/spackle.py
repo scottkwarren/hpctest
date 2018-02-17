@@ -76,8 +76,10 @@ def execute(cmd, *args, **kwargs):
     exe   = Executable(cmd)
     
     try:
+        
         if newwd: os.chdir(newwd)
         exe(*args, **kwargs)
+        
     except Exception as e:
         errormsg("command '{}' failed: {}".format(exe.name, e.message))
         raise

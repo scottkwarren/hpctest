@@ -54,7 +54,11 @@ class Report():
     
     @classmethod
     def printReport(myclass, workspace):
+
+        from common import sepmsg
         
+        sepmsg(True)
+        sepmsg(True)
         debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options),
                  always=True)  # TEMPORARY
 
