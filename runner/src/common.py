@@ -63,41 +63,59 @@ logger               = None     # used to write test results -- TODO
 # Message output
 
 def infomsg(message):
+    
     print message
 
+
 def verbosemsg(message):
+    
     if "verbose" in options:
         infomsg(message)
 
+
 def debugmsg(message, always=False):
+    
     if always or "debug" in options:
           infomsg(">>> " + message)
 
+
 def errormsg(message):
-    import traceback
+    
     global numErrors
     numErrors = numErrors + 1
+    
     infomsg("error: " + message)
     if "traceback" in options or "debug" in options:
         traceback.print_exc()
 
 def fatalmsg(message):
-    infomsg("FATAL ERROR: " + message)
+    
+    import inspect, traceback
+
+    info = inspect.getframeinfo( inspect.currentframe().f_back )
+    infomsg("FATAL ERROR: at {}:{}, ".format(info.filename, info.lineno) + message)
     raise SystemExit
     
+    
 def assertmsg(predicate, message):
+    
     if not predicate: fatalmsg(message)
 
+
 def notimplemented(what):
+    
     fatalmsg(what + " is not implemented")
 
+
 def sepmsg(long=False):
+    
     infomsg("-----------------------------------" * (2 if long else 1))
 
 
 # stack traceback
 
 def traceback():
+    
     import traceback
     traceback.print_exc(limit=1000)
 
@@ -105,6 +123,7 @@ def traceback():
 # Prompted input
 
 def yesno(prompt):
+    
     reply = raw_input(prompt + " (y/n)?")
     return len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
 

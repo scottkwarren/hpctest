@@ -75,7 +75,8 @@ class HPCTest():
         environ["HPCTEST_HOME"] = common.homepath
         sys.path[1:0] = [ common.own_spack_module_dir,
                           join(common.own_spack_module_dir, "external"),
-                          join(common.own_spack_module_dir, "external", "yaml", "lib")
+                          join(common.own_spack_module_dir, "external", "yaml", "lib"),
+                          join(common.own_spack_module_dir, "llnl"),
                         ]
                 
         

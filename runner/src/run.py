@@ -62,10 +62,9 @@ class Run():
 
     def run(self):
         
-        import traceback
-        from common  import infomsg, errormsg, sepmsg
-        from common  import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
-
+        from common import infomsg, errormsg, sepmsg
+        from common import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
+        
         sepmsg(True)
         infomsg("running test {} with config {}".format(self.testdir, self.config))
         sepmsg(True)
@@ -89,11 +88,13 @@ class Run():
         except CheckFailed as e:
             msg = "failed in checking result of test {}".format(self.testdir)
         except Exception as e:
-            msg = "unexpected error {}".format(e.message)
+            msg = "unexpected error in test {} - {} ({})".format(self.testdir, type(e).__name__, e.message)
         else:
             msg = None
         
         if msg: errormsg(msg)
+        self.output.save()
+
 
 
     def _readYaml(self):
@@ -122,10 +123,17 @@ class Run():
         from os import makedirs, symlink
         from os.path import basename, join
         from shutil import copytree
+        from output import Output
 
         # job directory
         self.jobdir = self.workspace.addJobDir(self.name, self.config)
         
+         # storage for hpctest inputs and outputs
+        self.inputdir = join(self.jobdir, "_IN")
+        makedirs(self.inputdir)
+        self._writeInputs()
+        self.output = Output(self.jobdir)
+
         # src directory -- immutable so just use teste's dir
         self.srcdir = self.testdir
         
@@ -146,9 +154,6 @@ class Run():
         else:
             self.rundir = self.builddir
         
-        # initialize for dynamic creation of OUT file names
-        self.numOutfiles = 0
-        
 
     def _buildTest(self):
 
@@ -156,38 +161,56 @@ class Run():
         import spack
         from spack.stage import DIYStage
         from spack.package import InstallError
+        from llnl.util.tty.log import log_output
 
-        from common import options, BuildFailed
+        from common import options, infomsg, errormsg, BuildFailed
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
-        if not self.package.installed:
+        if self.package.installed:
+            if "verbose" in options: infomsg("Skipping build, test already built")
+            status, msg = "OK", "already built"
+        else:
             self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
             spack.do_checksum = False   # see spack.cmd.diy lines 91-92
-            try:
-                
-                self.package.do_install(
-                    keep_prefix=False,
-                    install_deps=True,
-                    verbose="verbose" in options,
-                    keep_stage=True,        # don't remove source dir for DIY.
-                    explicit=True,
-                    dirty=True,             # TODO: cf separable vs inseparable builds
-                    force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
-                
-            except InstallError as e:
-                errormsg(str(e))
-                if not os.path.exists(e.pkg.build_log_path):
-                    errormsg("...building produced no log.")
+            
+            outputPath = self.output.makePath("{}-output.txt", "build")
+            with log_output(outputPath, echo="verbose" in options):
+                try:
+                    
+                    self.package.do_install(
+                        keep_prefix=False,
+                        install_deps=True,
+                        verbose="verbose" in options,
+                        keep_stage=True,        # don't remove source dir for DIY.
+                        explicit=True,
+                        dirty=True,             # TODO: cf separable vs inseparable builds
+                        force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
+                    status, msg = "OK", None
+
+                except InstallError as e:
+                    status, msg =  "FAILED", str(e)
+                except Exception as e:
+                    status, msg = "FATAL", "{} ({})".format(e.message, e.args)
+
+            # save results
+            self.output.add("build", "status", status)
+            self.output.add("build", "status msg", msg)
+
+            if status != "OK":
+                if status == "FATAL":
+                    fatalmsg(msg)
                 else:
-                    errormsg("...full build log written to stderr")
-                    with open(e.pkg.build_log_path) as log:
-                        shutil.copyfileobj(log, sys.stderr)
-                raise BuildFailed
-            except Exception as e:
-                errormsg("during install, unexpected error {} ({})".format(e.message, e.args))
-                raise BuildFailed
-        
+                    errormsg("build failed, " + msg)
+                    if "verbose" in options:
+                        if not os.path.exists(e.pkg.build_log_path):
+                            infomsg("...build produced no log.")
+                        else:
+                                infomsg("...build log:")
+                                with open(e.pkg.build_log_path) as log:
+                                    shutil.copyfileobj(log, sys.stdout)
+                    raise BuildFailed
+
 
     def _runBuiltTest(self):
 
@@ -195,23 +218,32 @@ class Run():
         from os.path import join, isdir
         from common import infomsg, sepmsg
 
-        # prepare directory for hpctest outputs
-        path = join(self.rundir, "OUT")
-        if not isdir(path):  mkdir(path)
-        
         # execute test case with and without profiling (to measure overhead)
         cmd = self.yaml["run"]["cmd"]
         exeName = cmd.split()[0]
-        self.measurementsPath = self._makeOutfilePath("hpctoolkit-{}-measurements".format(exeName))
+        self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
         
-        profiledTime = self._executeWithMods("profiled", True)
-        infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
-        
-        sepmsg()
-        
-        normalTime = self._executeWithMods("normal", False)
-        infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
-        
+        try:
+            normalTime = self._executeWithMods("normal", False)
+        except ExecuteFailed:
+            self.outout.add("run", "normal", "status",  "FAILED")
+            infomsg("... normal execution failed: {}".format(xxx))
+            raise
+        else:
+            infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
+            self.output.add("run", "normal", "status", "OK")
+            self.output.add("run", "normal", "cpu time",  normalTime)
+            
+        try:
+            profiledTime = self._executeWithMods("profiled", True)
+        except ExecuteFailed:
+            infomsg("... profiled execution failed: {}".format(xxx))
+            self.output.add("run", "profiled", "status",  "FAILED")
+            raise
+        else:
+            infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
+            self.output.add("run", "profiled", "status",  "OK")
+            self.output.add("run", "profiled", "cpu time", profiledTime)
         sepmsg()
         
         # compute profiling overhead
@@ -219,7 +251,13 @@ class Run():
         infomsg("...hpcrun overhead = {} %".format(overheadPercent))
 
         # summarize hpcrun log
-        self._summarizeHpcrunLog()
+        summaryDict = self._summarizeHpcrunLog()
+        
+        # save results
+        self.output.add("run", "profiled", "status",            "OK")
+        self.output.add("run", "profiled", "cpu time",          profiledTime)
+        self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent)
+        self.output.add("run", "profiled", "hpcrun summary",    summaryDict)
 
 
     def _executeWithMods(self, label, wantProfile):
@@ -240,8 +278,8 @@ class Run():
         env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
         env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
         runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
-        outPath  = self._makeOutfilePath("{}-output.txt", label)
-        timePath = self._makeOutfilePath("{}-time.txt", label)
+        outPath  = self.output.makePath("{}-output.txt", label)
+        timePath = self.output.makePath("{}-time.txt", label)
         
         # ... add profiling code if wanted
         if wantProfile:
@@ -279,7 +317,7 @@ class Run():
         except Exception as e:
             msg = "command produced error {}".format(e.message)
         except Exception as e:
-            msg = "unexpected error {} ({})".format(e.message, type(e))
+            fatalmsg("unexpected error {} ({})".format(e.message, type(e)))
         else:
             msg = None
 
@@ -289,6 +327,7 @@ class Run():
                 print f.read()
         
         if msg:
+####        self.output.add("run", label, "xxx", xxx)
             errormsg(msg)
             raise ExecuteFailed
             
@@ -342,25 +381,23 @@ class Run():
                         
         summedResultTuple = map(sum, zip(*scrapedResultTupleList))
         summedResultDict  = dict(zip(fieldNames, summedResultTuple))
-        sumPath = self._makeOutfilePath("hpcrun-summary.yaml")
+        sumPath = self.output.makePath("hpcrun-summary.yaml")
         writeYamlFile(sumPath, summedResultDict)
         debugmsg("hpcrun summary = {}".format(summedResultDict))
+        
+        return summedResultDict
 
 
     def _checkTestResults(self):
 
-        pass        # TEMPORARY
+        pass        # TODO
     
 
+    def _writeInputs(self):
 
-    def _makeOutfilePath(self, nameFmt, label=None):
+        pass
 
-        from os.path import join
 
-        self.numOutfiles += 1
-        path = join(self.rundir, "OUT", ("{}-" + nameFmt).format(self.numOutfiles, label))
-        return path
-    
     
 
 

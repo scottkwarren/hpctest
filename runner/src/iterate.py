@@ -55,7 +55,7 @@ class Iterate():
     def doForAll(myClass, tests, configs, workspace):
         
         import common   # 'from common import options' fails b/c 'options = ...' is treated as local assignment, even with 'global options'
-        from common import debugmsg
+        from common import infomsg, debugmsg
         from run import Run
 
         if not tests.paths():
