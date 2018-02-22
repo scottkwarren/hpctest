@@ -192,23 +192,24 @@ class Run():
                 except Exception as e:
                     status, msg = "FATAL", "{} ({})".format(e.message, e.args)
 
-            # save results
-            self.output.add("build", "status", status)
-            self.output.add("build", "status msg", msg)
+        # save results
+        self.output.add("build", "status", status)
+        self.output.add("build", "status msg", msg)
 
-            if status != "OK":
-                if status == "FATAL":
-                    fatalmsg(msg)
-                else:
-                    errormsg("build failed, " + msg)
-                    if "verbose" in options:
-                        if not os.path.exists(e.pkg.build_log_path):
-                            infomsg("...build produced no log.")
-                        else:
-                                infomsg("...build log:")
-                                with open(e.pkg.build_log_path) as log:
-                                    shutil.copyfileobj(log, sys.stdout)
-                    raise BuildFailed
+        # handle error if any
+        if status != "OK":
+            if status == "FATAL":
+                fatalmsg(msg)
+            else:
+                errormsg("build failed, " + msg)
+                if "verbose" in options:
+                    if not os.path.exists(e.pkg.build_log_path):
+                        infomsg("...build produced no log.")
+                    else:
+                            infomsg("...build log:")
+                            with open(e.pkg.build_log_path) as log:
+                                shutil.copyfileobj(log, sys.stdout)
+                raise BuildFailed
 
 
     def _runBuiltTest(self):
@@ -223,39 +224,40 @@ class Run():
         self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
         
         try:
-            normalTime = self._executeWithMods("normal", False)
+            normalTime, msg = self._executeWithMods("normal", False)
         except ExecuteFailed:
-            self.outout.add("run", "normal", "status",  "FAILED")
-            infomsg("... normal execution failed: {}".format(xxx))
-            raise
+            infomsg("... normal execution failed: {}".format(msg))
+            status, msg = "FAILED", msg
         else:
             infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
-            self.output.add("run", "normal", "status", "OK")
-            self.output.add("run", "normal", "cpu time",  normalTime)
+            status, msg = "OK", None
+        self.output.add("run", "normal", "status",     status)
+        self.output.add("run", "normal", "status msg", msg)
+        self.output.add("run", "normal", "cpu time",   normalTime)
+        if msg: raise ExecuteFailed
             
         try:
-            profiledTime = self._executeWithMods("profiled", True)
+            profiledTime, msg = self._executeWithMods("profiled", True)
         except ExecuteFailed:
-            infomsg("... profiled execution failed: {}".format(xxx))
-            self.output.add("run", "profiled", "status",  "FAILED")
-            raise
+            infomsg("... profiled execution failed: {}".format(msg))
+            status, msg = "FAILED", msg
         else:
             infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
-            self.output.add("run", "profiled", "status",  "OK")
-            self.output.add("run", "profiled", "cpu time", profiledTime)
+            status, msg = "OK", None
+        self.output.add("run", "profiled", "status",     status)
+        self.output.add("run", "profiled", "status msg", msg)
+        self.output.add("run", "profiled", "cpu time",   normalTime)
+        if msg: raise ExecuteFailed
+
         if "verbose" in options: sepmsg()
         
         # compute profiling overhead
         overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
         infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
+        self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
 
         # summarize hpcrun log
         summaryDict = self._summarizeHpcrunLog()
-        
-        # save results
-        self.output.add("run", "profiled", "status",          "OK")
-        self.output.add("run", "profiled", "cpu time",        profiledTime)
-        self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
         self.output.add("run", "profiled", "hpcrun summary",  summaryDict)
 
 
@@ -330,7 +332,7 @@ class Run():
             errormsg(msg)
             raise ExecuteFailed
             
-        return self._readTotalCpuTime(timePath)
+        return (self._readTotalCpuTime(timePath), msg)
     
     
     def _readTotalCpuTime(self, timePath):

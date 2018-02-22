@@ -57,7 +57,8 @@ class ResultDir():
         from os import makedirs
         from os.path import join
 
-        self.dir = join(parentdir, name)
+        self.name = name
+        self.dir = join(parentdir, "_" + self.name)
         makedirs(self.dir)
         self.outdict = dict()
         self.numOutfiles = 0
@@ -93,7 +94,7 @@ class ResultDir():
         from os.path import join
         from spackle import writeYamlFile
         
-        writeYamlFile(join(self.dir, "OUT.yaml"), self.outdict)
+        writeYamlFile(join(self.dir, "{}.yaml".format(self.name)), self.outdict)
 
 
 
