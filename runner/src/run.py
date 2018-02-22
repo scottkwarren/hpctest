@@ -93,7 +93,7 @@ class Run():
             msg = None
         
         if msg: errormsg(msg)
-        self.output.save()
+        self.output.write()
 
 
 
@@ -123,16 +123,15 @@ class Run():
         from os import makedirs, symlink
         from os.path import basename, join
         from shutil import copytree
-        from output import Output
+        from resultdir import ResultDir
 
         # job directory
         self.jobdir = self.workspace.addJobDir(self.name, self.config)
         
          # storage for hpctest inputs and outputs
-        self.inputdir = join(self.jobdir, "_IN")
-        makedirs(self.inputdir)
+        self.input = ResultDir(self.jobdir, "IN")
         self._writeInputs()
-        self.output = Output(self.jobdir)
+        self.output = ResultDir(self.jobdir, "OUT")
 
         # src directory -- immutable so just use teste's dir
         self.srcdir = self.testdir
@@ -395,7 +394,13 @@ class Run():
 
     def _writeInputs(self):
 
-        pass
+        import datetime
+
+        now = datetime.datetime.now()
+        self.input.add("date", now.strftime("%Y-%m-%d %H:%M"))
+        self.input.add("test", self.testdir)
+        self.input.add("spec", str(self.spec))
+        self.input.write()
 
 
     
