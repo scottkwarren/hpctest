@@ -216,7 +216,7 @@ class Run():
 
         from os import mkdir
         from os.path import join, isdir
-        from common import infomsg, sepmsg
+        from common import options, infomsg, verbosemsg, sepmsg
 
         # execute test case with and without profiling (to measure overhead)
         cmd = self.yaml["run"]["cmd"]
@@ -244,20 +244,20 @@ class Run():
             infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
             self.output.add("run", "profiled", "status",  "OK")
             self.output.add("run", "profiled", "cpu time", profiledTime)
-        sepmsg()
+        if "verbose" in options: sepmsg()
         
         # compute profiling overhead
         overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-        infomsg("...hpcrun overhead = {} %".format(overheadPercent))
+        infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
 
         # summarize hpcrun log
         summaryDict = self._summarizeHpcrunLog()
         
         # save results
-        self.output.add("run", "profiled", "status",            "OK")
-        self.output.add("run", "profiled", "cpu time",          profiledTime)
-        self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent)
-        self.output.add("run", "profiled", "hpcrun summary",    summaryDict)
+        self.output.add("run", "profiled", "status",          "OK")
+        self.output.add("run", "profiled", "cpu time",        profiledTime)
+        self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
+        self.output.add("run", "profiled", "hpcrun summary",  summaryDict)
 
 
     def _executeWithMods(self, label, wantProfile):
@@ -266,7 +266,7 @@ class Run():
         from os.path import join
         import sys
         from spackle import execute
-        from common import options, infomsg, verbosemsg, errormsg, sepmsg, ExecuteFailed
+        from common import options, infomsg, verbosemsg, debugmsg, errormsg, sepmsg, ExecuteFailed
         
         cmd         = self.yaml["run"]["cmd"]
         wantMPI     = '+mpi' in self.spec
@@ -305,9 +305,10 @@ class Run():
         # ... always add timing code
         #### timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o '{}/{}-time.txt' {}".format("OUT", label, cmd)
         timedCmd = "/usr/bin/time -f %e\\t%S\\t%U -o {} {}".format(timePath, cmd)
+        self.output.add("run", label, "command", timedCmd)
         
         # execute the command
-        infomsg("Executing {} command:\n{}".format(label, timedCmd))
+        verbosemsg("Executing {} command:\n{}".format(label, timedCmd))
         verbosemsg("... with env:\n{}".format(env))
         try:
             
@@ -327,7 +328,6 @@ class Run():
                 print f.read()
         
         if msg:
-####        self.output.add("run", label, "xxx", xxx)
             errormsg(msg)
             raise ExecuteFailed
             

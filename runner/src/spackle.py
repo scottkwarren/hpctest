@@ -128,7 +128,7 @@ def writeYamlFile(path, object):
         
         with open(path, 'w') as f:
             try:
-                yaml.dump(object, f)
+                yaml.dump(object, f, default_flow_style=False)
             except Exception as e:
                 fatalmsg("can't write given object as YAML (error {}, {})\nobject: {}".format(e.errno, e.strerror, object))
             
