@@ -62,7 +62,7 @@ class Run():
 
     def run(self):
         
-        from common import infomsg, errormsg, sepmsg
+        from common import infomsg, sepmsg
         from common import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         
         sepmsg(True)
@@ -92,7 +92,7 @@ class Run():
         else:
             msg = None
         
-        if msg: errormsg(msg)
+        if msg: infomsg(msg)
         self.output.write()
 
 
@@ -223,20 +223,9 @@ class Run():
         exeName = cmd.split()[0]
         self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
         
-        try:
-            normalTime = self._execute("normal", False)
-            normalFailed = False
-        except ExecuteFailed as e:
-            normalTime = e.args[0]
-            normalFailed = True
-            
-        try:
-            profiledTime = self._execute("profiled", True)
-            profiledFailed = False
-        except ExecuteFailed as e:
-            profiledTime = e.args[0]
-            profiledFailed = True
-
+        normalTime,   normalFailed   = self._execute("normal",   profile=False)
+        profiledTime, profiledFailed = self._execute("profiled", profile=True)
+        
         if "verbose" in options: sepmsg()
         
         # compute profiling overhead
@@ -259,7 +248,7 @@ class Run():
         if normalFailed or profiledFailed: raise ExecuteFailed
 
 
-    def _execute(self, label, wantProfile):
+    def _execute(self, label, profile=False):
 
         import os
         from os.path import join
@@ -269,6 +258,7 @@ class Run():
         from common import options, infomsg, verbosemsg, debugmsg, errormsg, sepmsg, ExecuteFailed
         
         cmd         = self.yaml["run"]["cmd"]
+        wantProfile = profile
         wantMPI     = '+mpi' in self.spec
         wantOpenMP  = '+openmp' in self.spec
         wantBatch   = False     # TODO: figure out from options & package info
@@ -282,7 +272,7 @@ class Run():
         timePath = self.output.makePath("{}-time.txt", label)
         
         # ... add profiling code if wanted
-        if wantProfile:
+        if profile:
             toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
             toolkitRunParams = "-e REALTIME@10000"
             cmd = "{}/hpcrun -o {} {} {}".format(toolkitBinPath, self.measurementsPath, toolkitRunParams, cmd)
@@ -332,11 +322,7 @@ class Run():
         self.output.add("run", label, "status",     "FAILED" if failed else "OK")
         self.output.add("run", label, "status msg", msg)
         
-        # exit appropriatelly
-        if failed:
-            raise ExecuteFailed(cputime)
-        else:
-            return cputime
+        return cputime, failed
     
     
     def _readTotalCpuTime(self, timePath):
