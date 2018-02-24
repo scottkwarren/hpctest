@@ -81,12 +81,15 @@ def debugmsg(message, always=False):
 
 def errormsg(message):
     
+    import traceback
+    
     global numErrors
     numErrors = numErrors + 1
     
     infomsg("error: " + message)
     if "traceback" in options or "debug" in options:
         traceback.print_exc()
+
 
 def fatalmsg(message):
     

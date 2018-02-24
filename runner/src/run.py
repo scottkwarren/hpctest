@@ -84,7 +84,7 @@ class Run():
         except BuildFailed as e:
             msg = "failed to build test {}".format(self.testdir)
         except ExecuteFailed as e:
-            msg = "failed to execute test {}".format(self.testdir)
+            msg = "failed to run test {}".format(self.testdir)
         except CheckFailed as e:
             msg = "failed in checking result of test {}".format(self.testdir)
         except Exception as e:
@@ -216,7 +216,7 @@ class Run():
 
         from os import mkdir
         from os.path import join, isdir
-        from common import options, infomsg, verbosemsg, sepmsg
+        from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
 
         # execute test case with and without profiling (to measure overhead)
         cmd = self.yaml["run"]["cmd"]
@@ -224,48 +224,47 @@ class Run():
         self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
         
         try:
-            normalTime, msg = self._executeWithMods("normal", False)
-        except ExecuteFailed:
-            infomsg("... normal execution failed: {}".format(msg))
-            status, msg = "FAILED", msg
-        else:
-            infomsg("... normal cpu time = {:<0.2f} seconds".format(normalTime))
-            status, msg = "OK", None
-        self.output.add("run", "normal", "status",     status)
-        self.output.add("run", "normal", "status msg", msg)
-        self.output.add("run", "normal", "cpu time",   normalTime)
-        if msg: raise ExecuteFailed
+            normalTime = self._execute("normal", False)
+            normalFailed = False
+        except ExecuteFailed as e:
+            normalTime = e.args[0]
+            normalFailed = True
             
         try:
-            profiledTime, msg = self._executeWithMods("profiled", True)
-        except ExecuteFailed:
-            infomsg("... profiled execution failed: {}".format(msg))
-            status, msg = "FAILED", msg
-        else:
-            infomsg("... profiled cpu time = {:<0.2f} seconds".format(profiledTime))
-            status, msg = "OK", None
-        self.output.add("run", "profiled", "status",     status)
-        self.output.add("run", "profiled", "status msg", msg)
-        self.output.add("run", "profiled", "cpu time",   normalTime)
-        if msg: raise ExecuteFailed
+            profiledTime = self._execute("profiled", True)
+            profiledFailed = False
+        except ExecuteFailed as e:
+            profiledTime = e.args[0]
+            profiledFailed = True
 
         if "verbose" in options: sepmsg()
         
         # compute profiling overhead
-        overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-        infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
-        self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
+        if normalFailed or profiledFailed:
+            infomsg("... hpcrun overhead not computed due to execution failure")
+            self.output.add("run", "profiled", "hpcrun overhead", "NA")
+        else:
+            overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
+            infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
+            self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
 
         # summarize hpcrun log
-        summaryDict = self._summarizeHpcrunLog()
-        self.output.add("run", "profiled", "hpcrun summary",  summaryDict)
+        if profiledFailed:
+            infomsg("... hpcrun log not summarized due to execution failure")
+            self.output.add("run", "profiled", "hpcrun summary",  "NA")
+        else:
+            summaryDict = self._summarizeHpcrunLog()
+            self.output.add("run", "profiled", "hpcrun summary", summaryDict)
+
+        if normalFailed or profiledFailed: raise ExecuteFailed
 
 
-    def _executeWithMods(self, label, wantProfile):
+    def _execute(self, label, wantProfile):
 
         import os
         from os.path import join
         import sys
+        from spack.util.executable import ProcessError
         from spackle import execute
         from common import options, infomsg, verbosemsg, debugmsg, errormsg, sepmsg, ExecuteFailed
         
@@ -309,30 +308,35 @@ class Run():
         self.output.add("run", label, "command", timedCmd)
         
         # execute the command
-        verbosemsg("Executing {} command:\n{}".format(label, timedCmd))
-        verbosemsg("... with env:\n{}".format(env))
+        verbosemsg("Executing {} test:\n{}".format(label, timedCmd))
         try:
-            
             with open(outPath, "w") as outf:
                 execute(timedCmd, cwd=runPath, env=env, output=outf, error=outf)
-            
+        except ProcessError as e:
+            failed, msg = True, e.message
+            infomsg("... {} execution failed: {}".format(label, msg))
         except Exception as e:
-            msg = "command produced error {}".format(e.message)
-        except Exception as e:
-            fatalmsg("unexpected error {} ({})".format(e.message, type(e)))
+            fatalmsg("unexpected error attempting {} execution, {} ({})".format(label, e.message, type(e)))
+            # does not return
         else:
-            msg = None
-
-        # send command's output to stdout if verbose
-        if "verbose" in options:
-            with open(outPath, "r") as f:
-                print f.read()
+            failed, msg = False, None
         
-        if msg:
-            errormsg(msg)
-            raise ExecuteFailed
-            
-        return (self._readTotalCpuTime(timePath), msg)
+        # print test's output and cpu time
+        if "verbose" in options:
+            with open(outPath, "r") as f: print f.read()
+        cputime = self._readTotalCpuTime(timePath)
+        infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
+        
+        # save results
+        self.output.add("run", label, "cpu time",   cputime)
+        self.output.add("run", label, "status",     "FAILED" if failed else "OK")
+        self.output.add("run", label, "status msg", msg)
+        
+        # exit appropriatelly
+        if failed:
+            raise ExecuteFailed(cputime)
+        else:
+            return cputime
     
     
     def _readTotalCpuTime(self, timePath):
