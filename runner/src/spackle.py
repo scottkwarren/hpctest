@@ -90,25 +90,25 @@ def execute(cmd, *args, **kwargs):
 def readYamlFile(path):
     
     import spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
-    from common import debugmsg
+    from common import options, debugmsg
 
-    debugmsg("reading yaml file at {}".format(path))
+    if "verbose" in options:
+        debugmsg("reading yaml file at {}".format(path))
         
     try:
-        
         with open(path, 'r') as f:
             try:
                 object, msg = yaml.load(f), None
             except:
                 object, msg = None, "file has syntax errors and cannot be used"
-            
     except Exception as e:
         if isinstance(e, OSError) and e.errno == errno.EEXIST:
-            object, msg = None, "file is missing"
+            object, msg = None, "yaml file to be read is missing"
         else:
-            object, msg = None, "file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
+            object, msg = None, "yaml file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
     
-    debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
+    if "verbose" in options:
+        debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
     
     return object, msg
 
@@ -127,7 +127,7 @@ def writeYamlFile(path, object):
             try:
                 yaml.dump(object, f, default_flow_style=False)
             except Exception as e:
-                fatalmsg("can't write given object as YAML (error {}, {})\nobject: {}".format(e.errno, e.strerror, object))
+                fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
             
     except Exception as e:
         msg = "file cannot be written: (error {})".format(e)

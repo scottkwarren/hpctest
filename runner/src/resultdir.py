@@ -73,19 +73,24 @@ class ResultDir():
         return path
 
 
-    def add(self, *keysOrValues):
+    def add(self, *keysOrValues, **kwargs):
         
         from common import assertmsg
         
         assertmsg(len(keysOrValues) >= 2, "Output.add must receive at least 2 arguments")
         
+        # decompose arguments
+        keyPath = kwargs.get("subroot", []) + list(keysOrValues[:-2])
+        lastKey = keysOrValues[-2]
+        value   = keysOrValues[-1]
+
+        # find dictionary at which to insert the value
         dict = self.outdict
-        for key in keysOrValues[:-2]:
+        for key in keyPath:
             if key not in dict: dict[key] = {}
             dict = dict[key]
-        
-        lastKey = keysOrValues[-2]
-        value = keysOrValues[-1]
+            
+        # perform insertion
         dict[lastKey] = value
         
 

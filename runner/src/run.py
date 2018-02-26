@@ -56,6 +56,10 @@ class Run():
         self.config    = config                 # Spack spec for desired build configuration
         self.workspace = workspace              # storage for collection of test job dirs
 
+        # hpctoolkit paths -- TODO: get from setup or environment
+        self.hpctoolkitBinPath = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
+        self.hpcrunParams      = "-e REALTIME@10000"
+
         # set up for per-test sub-logging
         ####self.log = xxx    # TODO
 
@@ -193,10 +197,12 @@ class Run():
                     status, msg = "FATAL", "{} ({})".format(e.message, e.args)
 
         # save results
-        self.output.add("build", "status", status)
+        self.prefix = self.package.prefix   # prefix path is valid even if package failed to install
+        self.output.add("build", "prefix",     str(self.prefix))
+        self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
 
-        # handle error if any
+        # finish up
         if status != "OK":
             if status == "FATAL":
                 fatalmsg(msg)
@@ -216,39 +222,41 @@ class Run():
 
         from os import mkdir
         from os.path import join, isdir
+        from string import split
         from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
 
-        # execute test case with and without profiling (to measure overhead)
+        # set up for test case execution
         cmd = self.yaml["run"]["cmd"]
         exeName = cmd.split()[0]
         self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
         
-        normalTime,   normalFailed   = self._execute("normal",   profile=False)
-        profiledTime, profiledFailed = self._execute("profiled", profile=True)
+        # execute test case with and without profiling (to measure overhead)
+        cmd = self.yaml["run"]["cmd"]
+        normalTime,   normalFailed   = self._execute(cmd, ["run"], "normal")
+        profiledTime, profiledFailed = self._execute(cmd, ["run"], "profiled", profile=True)
+        self._checkProfiledExecution(normalTime, normalFailed, profiledTime, profiledFailed)
         
         if "verbose" in options: sepmsg()
         
-        # compute profiling overhead
-        if normalFailed or profiledFailed:
-            infomsg("... hpcrun overhead not computed due to execution failure")
-            self.output.add("run", "profiled", "hpcrun overhead", "NA")
-        else:
-            overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-            infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
-            self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
+        # run hpcstruct on test executable
+        structPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
+        cmd = "{}/hpcstruct -o {} {}".format(self.hpctoolkitBinPath, structPath, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
+        structTime, structFailed = self._execute(cmd, [], "hpcstruct", mpi=False, openmp=False)
+        self._checkHpcstructExecution(structTime, structFailed, structPath)
+    
+        # run hpcprof on test measurements
+#         if profiledFailed or structFailed:
+#             infomsg("Skipping hpcprof execution because of previous failure")
+#         else:
+#             cmd = "hpcprof -S {}.hpcstruct -I {} hpctoolkit-{}p-measurements".format(xxx)
+#             profTime, profFailed = self._execute(cmd, "hpcprof")
+#             self._checkHpcprofExecution(self, cmd, profTime, profFailed)
+    
+        # let caller know if test case failed
+        if normalFailed or profiledFailed or structFailed: raise ExecuteFailed
+    
 
-        # summarize hpcrun log
-        if profiledFailed:
-            infomsg("... hpcrun log not summarized due to execution failure")
-            self.output.add("run", "profiled", "hpcrun summary",  "NA")
-        else:
-            summaryDict = self._summarizeHpcrunLog()
-            self.output.add("run", "profiled", "hpcrun summary", summaryDict)
-
-        if normalFailed or profiledFailed: raise ExecuteFailed
-
-
-    def _execute(self, label, profile=False):
+    def _execute(self, cmd, keylist, label, profile=None, mpi=None, openmp=None, batch=None):
 
         import os
         from os.path import join
@@ -257,11 +265,10 @@ class Run():
         from spackle import execute
         from common import options, infomsg, verbosemsg, debugmsg, errormsg, sepmsg, ExecuteFailed
         
-        cmd         = self.yaml["run"]["cmd"]
-        wantProfile = profile
-        wantMPI     = '+mpi' in self.spec
-        wantOpenMP  = '+openmp' in self.spec
-        wantBatch   = False     # TODO: figure out from options & package info
+        wantProfile = profile if profile else False
+        wantMPI     = mpi     if mpi    is not None else '+mpi' in self.spec
+        wantOpenMP  = openmp  if openmp is not None else '+openmp' in self.spec
+        wantBatch   = batch   if batch  is not None else False     # TODO: figure out from options & package info
 
         # compute command to be executed
         # ... start with test's run command
@@ -273,9 +280,7 @@ class Run():
         
         # ... add profiling code if wanted
         if profile:
-            toolkitBinPath   = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
-            toolkitRunParams = "-e REALTIME@10000"
-            cmd = "{}/hpcrun -o {} {} {}".format(toolkitBinPath, self.measurementsPath, toolkitRunParams, cmd)
+            cmd = "{}/hpcrun -o {} {} {}".format(self.hpctoolkitBinPath, self.measurementsPath, self.hpcrunParams, cmd)
 
         # ... add OpenMP parameters if wanted
         if wantOpenMP:
@@ -295,7 +300,7 @@ class Run():
         # ... always add timing code
         #### timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o '{}/{}-time.txt' {}".format("OUT", label, cmd)
         timedCmd = "/usr/bin/time -f %e\\t%S\\t%U -o {} {}".format(timePath, cmd)
-        self.output.add("run", label, "command", timedCmd)
+        self.output.add(label, "command", timedCmd, subroot=keylist)
         
         # execute the command
         verbosemsg("Executing {} test:\n{}".format(label, timedCmd))
@@ -318,9 +323,9 @@ class Run():
         infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
         
         # save results
-        self.output.add("run", label, "cpu time",   cputime)
-        self.output.add("run", label, "status",     "FAILED" if failed else "OK")
-        self.output.add("run", label, "status msg", msg)
+        self.output.add(label, "cpu time", cputime, subroot=keylist)
+        self.output.add(label, "status", "FAILED" if failed else "OK", subroot=keylist)
+        self.output.add(label, "status msg", msg, subroot=keylist)
         
         return cputime, failed
     
@@ -334,6 +339,45 @@ class Run():
             line = f.read()
             times = csv.reader([line], delimiter="\t").next()
         return float(times[1]) + float(times[2])
+
+
+    def _checkTestResults(self):
+
+        pass        # TODO
+    
+
+    def _writeInputs(self):
+
+        import datetime
+
+        now = datetime.datetime.now()
+        self.input.add("date", now.strftime("%Y-%m-%d %H:%M"))
+        self.input.add("test", self.testdir)
+        self.input.add("spec", str(self.spec))
+        self.input.add("workspace", self.workspace.path)
+        self.input.write()
+
+
+    def _checkProfiledExecution(self, normalTime, normalFailed, profiledTime, profiledFailed):
+        
+        from common import infomsg
+
+        # compute profiling overhead
+        if normalFailed or profiledFailed:
+            infomsg("... hpcrun overhead not computed due to execution failure")
+            self.output.add("run", "profiled", "hpcrun overhead", "NA")
+        else:
+            overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
+            infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
+            self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
+
+        # summarize hpcrun log
+        if profiledFailed:
+            infomsg("... hpcrun log not summarized due to execution failure")
+            self.output.add("run", "profiled", "hpcrun summary",  "NA")
+        else:
+            summaryDict = self._summarizeHpcrunLog()
+            self.output.add("run", "profiled", "hpcrun summary", summaryDict)
 
 
     def _summarizeHpcrunLog(self):
@@ -379,21 +423,18 @@ class Run():
         return summedResultDict
 
 
-    def _checkTestResults(self):
+    def _checkHpcstructExecution(self, structTime, structFailed, structPath):
+        
+        from common import infomsg
 
-        pass        # TODO
-    
+        pass
 
-    def _writeInputs(self):
 
-        import datetime
+    def _checkHpcprofExecution(self, profTime, profFailed):
+        
+        from common import infomsg
 
-        now = datetime.datetime.now()
-        self.input.add("date", now.strftime("%Y-%m-%d %H:%M"))
-        self.input.add("test", self.testdir)
-        self.input.add("spec", str(self.spec))
-        self.input.write()
-
+        pass
 
     
 
