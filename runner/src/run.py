@@ -239,7 +239,7 @@ class Run():
         if "verbose" in options: sepmsg()
         
         # run hpcstruct on test executable
-        structPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
+        structPath = self.output.makePath("{}.hpcstruct".format(exeName))
         cmd = "{}/hpcstruct -o {} {}".format(self.hpctoolkitBinPath, structPath, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
         structTime, structFailed = self._execute(cmd, [], "hpcstruct", mpi=False, openmp=False)
         self._checkHpcstructExecution(structTime, structFailed, structPath)
@@ -425,9 +425,23 @@ class Run():
 
     def _checkHpcstructExecution(self, structTime, structFailed, structPath):
         
+        from os.path import isfile
         from common import infomsg
 
-        pass
+        structMsg = None
+        
+        if not isfile(structPath):
+            structMsg = "no struct file was produced"
+            
+        with open(structPath, "r") as f:
+            lines = f.readlines()
+            if len(lines) < 66:                           structMsg = "struct file is too short"
+            elif lines[ 0] != '<?xml version="1.0"?>\n':  structMsg = "struct file's first line is invalid"
+            elif lines[-1] != "</HPCToolkitStructure>\n": structMsg = "struct file's last lines are invalid"
+            else: pass
+
+        self.output.add("hpcstruct", "output checks", "FAILED" if structMsg else "OK")
+        self.output.add("hpcstruct", "output msg",    structMsg)
 
 
     def _checkHpcprofExecution(self, profTime, profFailed):
