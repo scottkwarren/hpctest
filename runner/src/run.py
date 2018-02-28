@@ -52,13 +52,16 @@ class Run():
     
     def __init__(self, testdir, config, workspace):
         
-        self.testdir   = testdir                # path to test case's directory
-        self.config    = config                 # Spack spec for desired build configuration
-        self.workspace = workspace              # storage for collection of test job dirs
+        self.testdir   = testdir                        # path to test case's directory
+        self.config    = config                         # Spack spec for desired build configuration
+        self.workspace = workspace                      # storage for collection of test job dirs
 
         # hpctoolkit paths -- TODO: get from setup or environment
         self.hpctoolkitBinPath = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
         self.hpcrunParams      = "-e REALTIME@10000"
+        self.hpcstructParams   = ""
+        self.hpcprofParams     = ""
+        self.testIncs          = "./+"
 
         # set up for per-test sub-logging
         ####self.log = xxx    # TODO
@@ -234,23 +237,26 @@ class Run():
         cmd = self.yaml["run"]["cmd"]
         normalTime,   normalFailed   = self._execute(cmd, ["run"], "normal")
         profiledTime, profiledFailed = self._execute(cmd, ["run"], "profiled", profile=True)
-        self._checkProfiledExecution(normalTime, normalFailed, profiledTime, profiledFailed)
+        self._checkHpcrunExecution(normalTime, normalFailed, profiledTime, profiledFailed)
         
         if "verbose" in options: sepmsg()
         
         # run hpcstruct on test executable
         structPath = self.output.makePath("{}.hpcstruct".format(exeName))
-        cmd = "{}/hpcstruct -o {} {}".format(self.hpctoolkitBinPath, structPath, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
+        cmd = "{}/hpcstruct -o {} {} -I {} {}" \
+            .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
         structTime, structFailed = self._execute(cmd, [], "hpcstruct", mpi=False, openmp=False)
         self._checkHpcstructExecution(structTime, structFailed, structPath)
     
         # run hpcprof on test measurements
-#         if profiledFailed or structFailed:
-#             infomsg("Skipping hpcprof execution because of previous failure")
-#         else:
-#             cmd = "hpcprof -S {}.hpcstruct -I {} hpctoolkit-{}p-measurements".format(xxx)
-#             profTime, profFailed = self._execute(cmd, "hpcprof")
-#             self._checkHpcprofExecution(self, cmd, profTime, profFailed)
+        if profiledFailed or structFailed:
+            infomsg("Skipping hpcprof execution because of previous failure")
+        else:
+            profPath = self.output.makePath("hpctoolkit-{}-database".format(exeName))
+            cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
+                .format(self.hpctoolkitBinPath, profPath, structPath, self.hpcprofParams, self.testIncs, self.measurementsPath)
+            profTime, profFailed = self._execute(cmd, [], "hpcprof", mpi=False, openmp=False)
+            self._checkHpcprofExecution(profTime, profFailed, profPath)
     
         # let caller know if test case failed
         if normalFailed or profiledFailed or structFailed: raise ExecuteFailed
@@ -358,7 +364,7 @@ class Run():
         self.input.write()
 
 
-    def _checkProfiledExecution(self, normalTime, normalFailed, profiledTime, profiledFailed):
+    def _checkHpcrunExecution(self, normalTime, normalFailed, profiledTime, profiledFailed):
         
         from common import infomsg
 
@@ -425,31 +431,39 @@ class Run():
 
     def _checkHpcstructExecution(self, structTime, structFailed, structPath):
         
-        from os.path import isfile
-        from common import infomsg
-
-        structMsg = None
-        
-        if not isfile(structPath):
-            structMsg = "no struct file was produced"
-            
-        with open(structPath, "r") as f:
-            lines = f.readlines()
-            if len(lines) < 66:                           structMsg = "struct file is too short"
-            elif lines[ 0] != '<?xml version="1.0"?>\n':  structMsg = "struct file's first line is invalid"
-            elif lines[-1] != "</HPCToolkitStructure>\n": structMsg = "struct file's last lines are invalid"
-            else: pass
-
+        structMsg = self._checkTextFile("structure file", structPath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
         self.output.add("hpcstruct", "output checks", "FAILED" if structMsg else "OK")
         self.output.add("hpcstruct", "output msg",    structMsg)
 
 
-    def _checkHpcprofExecution(self, profTime, profFailed):
+    def _checkHpcprofExecution(self, profTime, profFailed, profPath):
         
         from common import infomsg
 
-        pass
+        structMsg = self._checkTextFile("performance db", profPath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
+        self.output.add("hpcstruct", "output checks", "FAILED" if structMsg else "OK")
+        self.output.add("hpcstruct", "output msg",    structMsg)
 
-    
+
+    def _checkTextFile(self, fileblurb, path, minLen, goodFirstLines, goodLastLines):
+
+        from os.path import isfile
+
+        if isfile(path):
+            
+            with open(path, "r") as f:
+                
+                lines = f.readlines()
+                if type(goodFirstLines) is not list: goodFirstLines = [ goodFirstLines ]
+                if type(goodLastLines)  is not list: goodLastLines  = [ goodLastLines  ]
+                
+                if len(lines) < 66:                                   msg = "{} is too short".format(fileblurb)
+                elif lines[-len(goodFirstLines):] != goodFirstLines:  msg = "{}'s first line is invalid".format(fileblurb)
+                elif lines[-len(goodLastLines): ] != goodLastLines:   msg = "{}'s first line is invalid".format(fileblurb)
+                else:                                                 msg = None
+                
+        else:
+            msg = "no {} was produced".format(fileblurb)
+
 
 
