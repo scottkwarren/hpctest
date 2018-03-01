@@ -76,6 +76,7 @@ class ResultDir():
 
     def add(self, *keysOrValues, **kwargs):
         
+        from collections import OrderedDict
         from common import assertmsg
         
         assertmsg(len(keysOrValues) >= 2, "Output.add must receive at least 2 arguments")
@@ -88,7 +89,7 @@ class ResultDir():
         # find dictionary at which to insert the value
         dict = self.outdict
         for key in keyPath:
-            if key not in dict: dict[key] = {}
+            if key not in dict: dict[key] = OrderedDict()
             dict = dict[key]
             
         # perform insertion

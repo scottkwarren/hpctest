@@ -154,9 +154,8 @@ class Run():
             self.jobdir = self.workspace.addJobDir(self.name, self.config)
             
              # storage for hpctest inputs and outputs
-            self.input = ResultDir(self.jobdir, "IN")
-            self._writeInputs()
             self.output = ResultDir(self.jobdir, "OUT")
+            self._writeInputs()
     
             # src directory -- immutable so just use teste's dir
             self.srcdir = self.testdir
@@ -389,12 +388,11 @@ class Run():
         import datetime
 
         now = datetime.datetime.now()
-        self.input.add("date", now.strftime("%Y-%m-%d %H:%M"))
-        self.input.add("test", self.testdir)
-        self.input.add("config spec", str(self.config))
-        self.input.add("spack spec", str(self.spec))
-        self.input.add("workspace", self.workspace.path)
-        self.input.write()
+        self.output.add("input", "date", now.strftime("%Y-%m-%d %H:%M"))
+        self.output.add("input", "test", self.testdir)
+        self.output.add("input", "config spec", str(self.config))
+        self.output.add("input", "spack spec", str(self.spec))
+        self.output.add("input", "workspace", self.workspace.path)
 
 
     def _checkHpcrunExecution(self, normalTime, normalFailed, profiledTime, profiledFailed):
