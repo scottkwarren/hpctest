@@ -119,7 +119,7 @@ def writeYamlFile(path, object):
     
     from collections import OrderedDict     # to make output text file will have fields in order of insertion
     import spack, yaml
-    from common import debugmsg, fatalmsg
+    from common import options, debugmsg, fatalmsg
 
     def ordered_dump(data, stream=None, Dumper=yaml.Dumper, **kwds):    # adaptor to let PyYAML use OrderedDict
         class OrderedDumper(Dumper):

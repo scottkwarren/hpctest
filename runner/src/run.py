@@ -178,7 +178,7 @@ class Run():
             else:
                 self.rundir = self.builddir
                 
-        except:
+        except Exception as e:
             self.output.add("summary", "status", "TEST INIT FAILED")
             raise PrepareFailed
         
@@ -404,11 +404,11 @@ class Run():
         # compute profiling overhead
         if normalFailed or profiledFailed:
             infomsg("... hpcrun overhead not computed due to execution failure")
-            self.output.add("run", "profiled", "hpcrun overhead", "NA")
+            self.output.add("run", "profiled", "hpcrun overhead %", "NA")
         else:
             overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
             infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
-            self.output.add("run", "profiled", "hpcrun overhead", overheadPercent)
+            self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent)
 
         # summarize hpcrun log
         if profiledFailed:
