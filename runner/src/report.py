@@ -46,8 +46,6 @@
 ################################################################################
 
 
-from common import options, debugmsg
-
 
 
 class Report():
@@ -55,13 +53,36 @@ class Report():
     @classmethod
     def printReport(myclass, workspace):
 
-        from common import sepmsg
+        from os.path import isfile, isdir, join 
+        from common import options, debugmsg, sepmsg
+        from spackle import readYamlFile
         
         sepmsg(True)
         sepmsg(True)
-        debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options),
-                 always=True)  # TEMPORARY
+        debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options), always=True)  # TEMPORARY
 
+        return
+    
+        reportAll = True    # TODO: get from command line
+        
+        # collect the results from all the jobs
+        results =  set()
+        for workname in listdir(workspace.path):
+            workPath = join(workspace.path, workname)
+            if isdir(workPath) and workname.startswith("workspace-"):
+                for jobname in listdir(workspace.path):
+                    jobPath = join(workspace.path, jobname)
+                    outPath = join(jobPath, "_OUT", "OUT.yaml")
+                    if isfile(outPath):
+                        resultdict, error = readYamlFile(outPath)   # HANDLE 'error' !!!
+                        if reportAll or resultdict["summary"]["status"] != "OK":
+                            results.add(resultdict)
+                    else:
+                        fatalmsg("Test results file OUT.yaml not found for job {}".format(jobPath))
+                        
+        # xxx
+            
+                
 
 
 

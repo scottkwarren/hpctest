@@ -155,28 +155,4 @@ class BadWorkspacePath(HPCTestError):
     pass
 
 
-# Reading hpctest.yaml files
-
-def readYamlforTest(testDir):
-
-    from os.path import join, basename
-    from spackle import readYamlFile
-    from common import BadTestDescription
-        
-
-    # read yaml file
-    yaml, error = readYamlFile( join(testDir, "hpctest.yaml") )
-    if error:
-        raise BadTestDescription(error)
-
-    # validate and apply defaults
-    if not yaml.get("info"):
-        yaml["info"] = {}
-    if not yaml.get("info").get("name"):
-        yaml["info"]["name"] = basename(testDir)
-    # TODO...
-
-    return yaml
-
-
 

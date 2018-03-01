@@ -63,15 +63,14 @@ class Run():
         self.hpcprofParams     = ""
         self.testIncs          = "./+"
 
-        # set up for per-test sub-logging
-        ####self.log = xxx    # TODO
-
 
     def run(self):
         
+        import time
         from common import infomsg, sepmsg
         from common import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         
+        startTime = time.time()
         sepmsg(True)
         infomsg("running test {} with config {}".format(self.testdir, self.config))
         sepmsg(True)
@@ -83,36 +82,53 @@ class Run():
             self._buildTest()
             self._runBuiltTest()
             self._checkTestResults()
+            self.output.add("summary", "status", "OK")
             
         except BadTestDescription as e:
             msg = "missing or invalid '{}' file in test {}".format("hpctest.yaml", self.testdir)
         except PrepareFailed as e:
-            msg = "failed in setting up for building test {}".format(self.testdir)
+            msg = "failed while setting up for building test {}".format(self.testdir)
         except BuildFailed as e:
             msg = "failed to build test {}".format(self.testdir)
         except ExecuteFailed as e:
-            msg = "failed to run test {}".format(self.testdir)
+            msg = "failed while running test {}".format(self.testdir)
         except CheckFailed as e:
-            msg = "failed in checking result of test {}".format(self.testdir)
+            msg = "failed while checking test results {}".format(self.testdir)
         except Exception as e:
             msg = "unexpected error in test {} - {} ({})".format(self.testdir, type(e).__name__, e.message)
         else:
             msg = None
-        
         if msg: infomsg(msg)
+        
+        # finish writing results
+        elapsedTime = time.time() - startTime
+        self.output.add("summary", "elapsed time", elapsedTime)
         self.output.write()
 
 
 
     def _readYaml(self):
 
+        from os.path import join, basename
         import spack
-        from common  import readYamlforTest, assertmsg
-
-        self.yaml = readYamlforTest(self.testdir)
-        self.name = self.yaml["info"]["name"]                    # name of test case
+        from spackle import readYamlFile
+        from common import BadTestDescription
+        
+        # read yaml file
+        self.yaml, error = readYamlFile( join(self.testdir, "hpctest.yaml") )
+        if error:
+            self.output.add("summary", "status", "READ TEST INFO FAILED")
+            raise BadTestDescription(error)
+    
+        # validate and apply defaults
+        if not self.yaml.get("info"):
+            self.yaml["info"] = {}
+        if not self.yaml.get("info").get("name"):
+            self.yaml["info"]["name"] = basename(testDir)
+        # ... TODO more of this
 
         # get a spec for this test in specified configuration
+        self.name = self.yaml["info"]["name"]                           # name of test case
         version = self.yaml["info"]["version"]
         specString = "{}@{}{}".format("tests." + self.name, version, self.config)
         self.spec = spack.cmd.parse_specs(specString)[0]                # TODO: deal better with possibility that returned list length != 1
@@ -132,33 +148,39 @@ class Run():
         from shutil import copytree
         from resultdir import ResultDir
 
-        # job directory
-        self.jobdir = self.workspace.addJobDir(self.name, self.config)
-        
-         # storage for hpctest inputs and outputs
-        self.input = ResultDir(self.jobdir, "IN")
-        self._writeInputs()
-        self.output = ResultDir(self.jobdir, "OUT")
-
-        # src directory -- immutable so just use teste's dir
-        self.srcdir = self.testdir
-        
-        # build directory - make new or copy test's dir if not separable-build test
-        # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
-        self.builddir = join(self.jobdir, "build");
-        if "build" in self.yaml["build"]["separate"]:
-            makedirs(self.builddir)
-        else:
-            copytree(self.srcdir, self.builddir)
-            symlink( self.builddir, join(self.jobdir, basename(self.srcdir)) )
+        try:
             
-        # run directory - make new or use build dir if not separable-run test
-        # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
-        if "run" in self.yaml["build"]["separate"]:
-            self.rundir = join(self.jobdir, "run");
-            makedirs(self.rundir)
-        else:
-            self.rundir = self.builddir
+            # job directory
+            self.jobdir = self.workspace.addJobDir(self.name, self.config)
+            
+             # storage for hpctest inputs and outputs
+            self.input = ResultDir(self.jobdir, "IN")
+            self._writeInputs()
+            self.output = ResultDir(self.jobdir, "OUT")
+    
+            # src directory -- immutable so just use teste's dir
+            self.srcdir = self.testdir
+            
+            # build directory - make new or copy test's dir if not separable-build test
+            # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
+            self.builddir = join(self.jobdir, "build");
+            if "build" in self.yaml["build"]["separate"]:
+                makedirs(self.builddir)
+            else:
+                copytree(self.srcdir, self.builddir)
+                symlink( self.builddir, join(self.jobdir, basename(self.srcdir)) )
+                
+            # run directory - make new or use build dir if not separable-run test
+            # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
+            if "run" in self.yaml["build"]["separate"]:
+                self.rundir = join(self.jobdir, "run");
+                makedirs(self.rundir)
+            else:
+                self.rundir = self.builddir
+                
+        except:
+            self.output.add("summary", "status", "TEST INIT FAILED")
+            raise PrepareFailed
         
 
     def _buildTest(self):
@@ -200,7 +222,7 @@ class Run():
                     status, msg = "FATAL", "{} ({})".format(e.message, e.args)
 
         # save results
-        self.prefix = self.package.prefix   # prefix path is valid even if package failed to install
+        self.prefix = self.package.prefix       # prefix path is valid even if package failed to install
         self.output.add("build", "prefix",     str(self.prefix))
         self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
@@ -218,7 +240,8 @@ class Run():
                             infomsg("...build log:")
                             with open(e.pkg.build_log_path) as log:
                                 shutil.copyfileobj(log, sys.stdout)
-                raise BuildFailed
+            self.output.add("summary", "status", "BUILD FAILED")
+            raise BuildFailed
 
 
     def _runBuiltTest(self):
@@ -259,9 +282,17 @@ class Run():
             self._checkHpcprofExecution(profTime, profFailed, profPath)
     
         # let caller know if test case failed
-        if normalFailed or profiledFailed or structFailed: raise ExecuteFailed
+        failed = normalFailed or profiledFailed or structFailed or profFailed
+        if normalFailed:        failure  = "NORMAL RUN FAILED"
+        elif profiledFailed:    failure  = "HPCRUN FAILED"
+        elif structFailed:      failure  = "HPCSTRUCT FAILED"
+        elif profFailed:        failure  = "HPCPROF FAILED"
+        else:                   failure = None
+        if failure:
+            self.output.add("summary", "status", failure)
+            raise ExecuteFailed
+            
     
-
     def _execute(self, cmd, keylist, label, profile=None, mpi=None, openmp=None, batch=None):
 
         import os
@@ -278,7 +309,7 @@ class Run():
 
         # compute command to be executed
         # ... start with test's run command
-        env = os.environ.copy()         # necessary b/c execute's (subprocess.Popen's) 'env' arg, if given, discards existing os environment
+        env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
         env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
         runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
         outPath  = self.output.makePath("{}-output.txt", label)
@@ -350,6 +381,7 @@ class Run():
     def _checkTestResults(self):
 
         pass        # TODO
+#       ... self.output.add("summary", "status", "CHECK FAILED")
     
 
     def _writeInputs(self):
@@ -359,7 +391,8 @@ class Run():
         now = datetime.datetime.now()
         self.input.add("date", now.strftime("%Y-%m-%d %H:%M"))
         self.input.add("test", self.testdir)
-        self.input.add("spec", str(self.spec))
+        self.input.add("config spec", str(self.config))
+        self.input.add("spack spec", str(self.spec))
         self.input.add("workspace", self.workspace.path)
         self.input.write()
 

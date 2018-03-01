@@ -54,13 +54,14 @@ class ResultDir():
     
     def __init__(self, parentdir, name):
 
+        from collections import OrderedDict
         from os import makedirs
         from os.path import join
 
         self.name = name
         self.dir = join(parentdir, "_" + self.name)
         makedirs(self.dir)
-        self.outdict = dict()
+        self.outdict = OrderedDict() 
         self.numOutfiles = 0
     
     
@@ -69,7 +70,7 @@ class ResultDir():
         from os.path import join
 
         self.numOutfiles += 1
-        path = join(self.dir, ("{}-" + nameFmt).format(self.numOutfiles, label))
+        path = join(self.dir, ("{:02d}-" + nameFmt).format(self.numOutfiles, label))
         return path
 
 
@@ -98,8 +99,9 @@ class ResultDir():
 
         from os.path import join
         from spackle import writeYamlFile
-        
+
         writeYamlFile(join(self.dir, "{}.yaml".format(self.name)), self.outdict)
+
 
 
 

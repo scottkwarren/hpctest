@@ -87,9 +87,11 @@ def execute(cmd, *args, **kwargs):
 
 # Transputting a YAML file
 
+# ... using 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
+
 def readYamlFile(path):
     
-    import spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
+    import spack, yaml
     from common import options, debugmsg
 
     if "verbose" in options:
@@ -115,24 +117,32 @@ def readYamlFile(path):
 
 def writeYamlFile(path, object):
     
-    import spack, yaml                                          # 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
+    from collections import OrderedDict     # to make output text file will have fields in order of insertion
+    import spack, yaml
     from common import debugmsg, fatalmsg
 
-    debugmsg("writing yaml file at {}".format(path))
+    def ordered_dump(data, stream=None, Dumper=yaml.Dumper, **kwds):    # adaptor to let PyYAML use OrderedDict
+        class OrderedDumper(Dumper):
+            pass
+        def _dict_representer(dumper, data):
+            return dumper.represent_mapping(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, data.items())
+        OrderedDumper.add_representer(OrderedDict, _dict_representer)
+        return yaml.dump(data, stream, OrderedDumper, **kwds)
+        
+
+    if "verbose" in options: debugmsg("writing yaml file at {}".format(path))
     msg = None
-    
     try:
         
         with open(path, 'w') as f:
             try:
-                yaml.dump(object, f, default_flow_style=False)
+                ordered_dump(object, stream=f, Dumper=yaml.SafeDumper, default_flow_style=False)
             except Exception as e:
                 fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
             
     except Exception as e:
         msg = "file cannot be written: (error {})".format(e)
-    
-    debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
+    if "verbose" in options: debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
    
 
 
