@@ -118,6 +118,7 @@ def readYamlFile(path):
 def writeYamlFile(path, object):
     
     from collections import OrderedDict     # to make output text file will have fields in order of insertion
+    import sys
     import spack, yaml
     from common import options, debugmsg, fatalmsg
 
@@ -134,14 +135,20 @@ def writeYamlFile(path, object):
     msg = None
     try:
         
-        with open(path, 'w') as f:
+        if path:
+            with open(path, 'w') as f:
+                try:
+                    ordered_dump(object, stream=f, Dumper=yaml.SafeDumper, default_flow_style=False)
+                except Exception as e:
+                    fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
+        else:
             try:
-                ordered_dump(object, stream=f, Dumper=yaml.SafeDumper, default_flow_style=False)
+                ordered_dump(object, stream=sys.stdout, Dumper=yaml.SafeDumper, default_flow_style=False)
             except Exception as e:
                 fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
             
     except Exception as e:
-        msg = "file cannot be written: (error {})".format(e)
+        msg = "file cannot be opened for writing: (error {})".format(e)
     if "verbose" in options: debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
    
 

@@ -112,7 +112,11 @@ def notimplemented(what):
 
 def sepmsg(long=False):
     
-    infomsg("-----------------------------------" * (2 if long else 1))
+    if type(long) is int:
+        num = long
+    else:
+        num = (2 if long else 1) * 35
+    infomsg("-" * num)
 
 
 # stack traceback
