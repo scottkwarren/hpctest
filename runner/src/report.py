@@ -98,15 +98,15 @@ class Report():
                 trolled    = hpcrun["trolled"]
                 yielded    = hpcrun["yielded"]
             else:
-                blocked    = "----"
-                errant     = "----"
-                frames     = "----"
-                intervals  = "----"
-                recorded   = "----"
-                samples    = "----"
-                suspicious = "----"
-                trolled    = "----"
-                yielded    = "----"
+                blocked    = None
+                errant     = None
+                frames     = None
+                intervals  = None
+                recorded   = None
+                samples    = None
+                suspicious = None
+                trolled    = None
+                yielded    = None
             
             # format for display           
             line1 = "| {} with {}:  {}{}".format(test, config, status, (", " + msg) if msg != "" else "")
@@ -124,11 +124,11 @@ class Report():
 
 def _pct(s, d):
     
-    if type(s) is str:
-        formatted = "{:>5}".format(s)
+    if s is None:
+        formatted = "------"
     else:
-        percent = (float(s) / float(d)) * 100.0
-        formatted = "    0" if s == 0 else (" < 1%" if percent < 1.0 else "{:>5.1f} %".format(percent))
+        percent   = (float(s) / float(d)) * 100.0
+        formatted = "  0   " if s == 0 else "< 0.1%" if percent < 0.1  else "< 1  %" if percent < 1.0 else "{:>5.1f}%".format(percent)
         
     return formatted
 

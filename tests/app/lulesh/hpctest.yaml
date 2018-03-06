@@ -4,7 +4,7 @@
 
 
 info:
-    name:  "lulesh"
+    name:  lulesh
     version: 1.0
     homepage: https://codesign.llnl.gov/lulesh.php
     url: https://github.com/HPCToolkit
@@ -22,26 +22,26 @@ config:
     - default variants: [ openmp mpi ]
     
     - base: serial
-      description: "Build as a serial program"
+      description: Build as a serial program
       languages: [ cxx ]
       flags:
-        CXXFLAGS: "-g -O3"
-        LDFLAGS:  "-g -O3"
+        CXXFLAGS: -g -O3
+        LDFLAGS:  -g -O3
         
     - variant: openmp
-      description: "Build with OpenMP support"
+      description: Build with OpenMP support
       flags:
         +CXXFLAGS: $OPENMP_FLAG
         +LDFLAGS:  $OPENMP_FLAG
             
     - variant: mpi
-      description: "Build with MPI support"
+      description: Build with MPI support
       languages: [ mpicxx ]
       flags:
           env:
-            - "-DUSE_MPI=1"
-            - "MPI_INC = $MPI_INC"
-            - "MPI_LIB = $MPI_LIB"
+            - -DUSE_MPI=1
+            - MPI_INC = $MPI_INC
+            - MPI_LIB = $MPI_LIB
 
 build:
     kind: makefile

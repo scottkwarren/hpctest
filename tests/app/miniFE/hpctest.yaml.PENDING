@@ -1,0 +1,54 @@
+#=============================================#
+# HPCTest description for test miniFE 2.0-rc3 #
+#=============================================#
+
+
+info:
+    name:  miniFE
+    version: 2.0-rc3
+    homepage: xxx
+    url: https://github.com/HPCToolkit
+    description: >
+        xxxx 
+    
+config:
+    - default variants: [ openmp mpi ]
+    
+    - base: serial
+      description: Build as a serial program
+      languages: [ cxx ]
+      flags:
+        CXXFLAGS: -g -O3
+        LDFLAGS:  -g -O3
+        
+    - variant: openmp
+      description: Build with OpenMP support
+      flags:
+        +CXXFLAGS: $OPENMP_FLAG
+        +LDFLAGS:  $OPENMP_FLAG
+            
+    - variant: mpi
+      description: Build with MPI support
+      languages: [ mpicxx ]
+      flags:
+          env:
+            - -DUSE_MPI=1"
+            - MPI_INC = $MPI_INC
+            - MPI_LIB = $MPI_LIB
+
+build:
+    kind: makefile
+    separate: []
+    dir: src
+    install: miniFE.x
+
+run:
+    cmd: miniFE.x nx=280 ny=280 nz=280  # on les: ~100cpu minute, 3.5 minutes elapsed
+    dir: src
+    ranks: 8
+    threads:  "" # 16?
+
+    
+    
+    
+    

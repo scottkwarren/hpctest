@@ -94,6 +94,12 @@ class ResultDir():
             
         # perform insertion
         dict[lastKey] = value
+
+
+    def addSummaryStatus(self, status, msg):
+        
+        self.add("summary", "status",     status)
+        self.add("summary", "status msg", msg)
         
 
     def write(self):

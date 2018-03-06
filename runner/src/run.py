@@ -82,8 +82,7 @@ class Run():
             self._buildTest()
             self._runBuiltTest()
             self._checkTestResults()
-            self.output.add("summary", "status", "OK")
-            self.output.add("summary", "status msg", None)
+            self.output.addSummaryStatus("OK", None)
             
         except BadTestDescription as e:
             msg = "missing or invalid '{}' file in test {}".format("hpctest.yaml", self.testdir)
@@ -118,8 +117,7 @@ class Run():
         # read yaml file
         self.yaml, msg = readYamlFile( join(self.testdir, "hpctest.yaml") )
         if msg:
-            self.output.add("summary", "status", "READ TEST INFO FAILED")
-            self.output.add("summary", "status msg", msg)
+            self.output.addSummaryStatus("READ TEST INFO FAILED", msg)
             raise BadTestDescription(error)
     
         # validate and apply defaults
@@ -180,8 +178,7 @@ class Run():
                 self.rundir = self.builddir
                 
         except Exception as e:
-            self.output.add("summary", "status", "TEST INIT FAILED")
-            self.output.add("summary", "status msg", e.message)
+            self.output.addSummaryStatus("TEST INIT FAILED", e.message)
             raise PrepareFailed
         
 
@@ -242,8 +239,7 @@ class Run():
                             infomsg("...build log:")
                             with open(e.pkg.build_log_path) as log:
                                 shutil.copyfileobj(log, sys.stdout)
-            self.output.add("summary", "status", "BUILD FAILED")
-            self.output.add("summary", "status msg", msg)
+            self.output.addSummaryStatus("BUILD FAILED", msg)
             raise BuildFailed
 
 
@@ -294,8 +290,7 @@ class Run():
         else:                   failure, msg  = None, None
         
         if failure:
-            self.output.add("summary", "status", failure)
-            self.output.add("summary", "status msg", msg)
+            self.output.addSummaryStatus(failure, msg)
             raise ExecuteFailed
             
     
@@ -387,8 +382,7 @@ class Run():
     def _checkTestResults(self):
 
         pass        # TODO
-#       ... self.output.add("summary", "status", "CHECK FAILED")
-#           self.output.add("summary", "status msg", xxx)
+#       self.output.addSummaryStatus("CHECK FAILED", xxx)
     
 
     def _writeInputs(self):

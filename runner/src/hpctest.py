@@ -147,14 +147,15 @@ class HPCTest():
         cpath = join(homepath, "tests", checksumName)
         if exists(cpath): remove(cpath)
         
-        # remove all installed packages and leftover build stages
+        # remove all installed packages and leftover build byproducts
         try:
-            spackle.do("clean --stage --misc-cache")
+            spackle.do("clean --all")
             rmtree(join(own_spack_home, "opt"))
             spackle.do("reindex")
+            spackle.do("module refresh")    # could add a package's spec to limit the refresh
         except Exception as e:
             errormsg( "error removing installed packages and their build byproducts ({})".format(str(e)) )
-
+        
 
     def _ensureRepos(self):
         # set up our private spack & make it extend the external one if any
@@ -196,7 +197,7 @@ class HPCTest():
         import sys
         import os
         from os.path import join
-        from common import homepath, readYamlforTest
+        from common import homepath
         
         # must start with a clean slate to avoid Spack errrors
         self.reset()
@@ -209,7 +210,7 @@ class HPCTest():
         for root, dirs, files in os.walk(testsPath, topdown=False):
             
             try:
-                yaml = readYamlforTest(root)
+                yaml = self._readYamlforTest(root)
             except:
                 yaml = None
             if yaml:  # found a test-case directory
@@ -220,6 +221,27 @@ class HPCTest():
 
         # extend external repo if one was specified
         pass
+
+
+    def _readYamlforTest(self, testDir):
+     
+         from os.path import join, basename
+         from spackle import readYamlFile
+         from common import BadTestDescription
+             
+         # read yaml file
+         yaml, error = readYamlFile(join(testDir, "hpctest.yaml"))
+         if error:
+             raise BadTestDescription(error)
+     
+         # validate and apply defaults
+         if not yaml.get("info"):
+             yaml["info"] = {}
+         if not yaml.get("info").get("name"):
+             yaml["info"]["name"] = basename(testDir)
+         # TODO...
+     
+         return yaml
 
 
     def _makePrivateRepo(self, dirname):
