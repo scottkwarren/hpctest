@@ -1,6 +1,7 @@
 HPCTEST TO DO
 
-- run/repo/repo.yaml needs a unique namespace name for each install
+- arrange to automagically set 'verify_ssl: false' in spack/etc/spack/defaults/config.yaml
+  to avoid download prblems caused by out of date OpenSSL implementations of hosts.
 
 - Spack team is working on support for iterating through concretizations of specs
   (of use in combinatorial testing) "for @tgamblin's planned package build testing".
@@ -13,4 +14,30 @@ HPCTEST TO DO
  - "The test-suite file" ??
  
  
-  
+ 
+MINI-APPS FROM SPACK BUILTINS
+ 
+clamr
+cleverleaf
+cloverleaf
+cloverleaf3d
+ebms
+hpccg
+laghos
+mfem
+miniaero
+minighost
+minimd
+minismac2d
+minixyce
+pathfinder
+pennant
+rsbench
+simplemoc
+tealeaf
+tycho2
+xsbench
+
+
+
+

@@ -44,7 +44,7 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ##############################################################################
-from rtslib.fabric import Qla2xxxFabricModule
+
 
 
 
@@ -152,7 +152,7 @@ class HPCTest():
             spackle.do("clean --all")
             rmtree(join(own_spack_home, "opt"))
             spackle.do("reindex")
-            spackle.do("module refresh")    # could add a package's spec to limit the refresh
+#           spackle.do("module refresh")    # CONTRARY TO DOCS, 'constraint' arg is mandatory    # could add a package's spec to limit the refresh
         except Exception as e:
             errormsg( "error removing installed packages and their build byproducts ({})".format(str(e)) )
         
@@ -214,7 +214,11 @@ class HPCTest():
             except:
                 yaml = None
             if yaml:  # found a test-case directory
-                self._addPackageForTest(repoPath, root, yaml)
+                if yaml["build"]["kind"] == "builtin":
+                    # existing Spack builtin package will be used for this test
+                    pass
+                else:
+                    self._addPackageForTest(repoPath, root, yaml)
                 
         # add test repo to private Spack
         self._addPrivateRepo(repoPath)

@@ -127,10 +127,14 @@ class Run():
             self.yaml["info"]["name"] = basename(testDir)
         # ... TODO more of this
 
-        # get a spec for this test in specified configuration
+        # extract important vaalues for easy reference
         self.name = self.yaml["info"]["name"]                           # name of test case
-        version = self.yaml["info"]["version"]
-        specString = "{}@{}{}".format("tests." + self.name, version, self.config)
+        self.version = self.yaml["info"]["version"]
+        self.builtin = (self.yaml["build"]["kind"] == "builtin")
+
+        # get a spec for this test in specified configuration
+        namespace = "" if self.builtin else "tests."
+        specString = "{}@{}{}".format(namespace + self.name, self.version, self.config)
         self.spec = spack.cmd.parse_specs(specString)[0]                # TODO: deal better with possibility that returned list length != 1
         if "+mpi" in self.spec:
             specString += " +mpi"
@@ -138,7 +142,7 @@ class Run():
         if "+openmp" in self.spec:
             specString += " +openmp"
             self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
-        self.spec.concretize()     # TODO: check that this succeeds
+        self.spec.concretize()                                          # TODO: check that this succeeds
 
 
     def _prepareJobDirs(self):
@@ -190,7 +194,7 @@ class Run():
         from spack.package import InstallError
         from llnl.util.tty.log import log_output
 
-        from common import options, infomsg, errormsg, BuildFailed
+        from common import options, infomsg, errormsg, fatalmsg, BuildFailed
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
@@ -198,7 +202,8 @@ class Run():
             if "verbose" in options: infomsg("Skipping build, test already built")
             status, msg = "OK", "already built"
         else:
-            self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
+            if self.yaml["build"]["kind"] != "builtin":
+                self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
             spack.do_checksum = False   # see spack.cmd.diy lines 91-92
             
             outputPath = self.output.makePath("{}-output.txt", "build")
