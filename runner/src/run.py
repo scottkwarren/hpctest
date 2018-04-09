@@ -50,19 +50,28 @@
 
 class Run():
     
-    def __init__(self, testdir, config, workspace):
+    def __init__(self, testdir, config, hpctoolkit, hpctoolkitparams, workspace):
+        
+        from os.path import basename
+        from resultdir import ResultDir
         
         self.testdir   = testdir                        # path to test case's directory
         self.config    = config                         # Spack spec for desired build configuration
         self.workspace = workspace                      # storage for collection of test job dirs
+        self.name      = basename(self.testdir)
 
         # hpctoolkit paths -- TODO: get from setup or environment
-        self.hpctoolkitBinPath = "/home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin"
-        self.hpcrunParams      = "-e REALTIME@10000"
-        self.hpcstructParams   = ""
-        self.hpcprofParams     = ""
+        self.hpctoolkitBinPath = hpctoolkit
+        self.hpcrunParams, self.hpcstructParams, self.hpcprofParams = hpctoolkitparams.split(";")
         self.testIncs          = "./+"
 
+        # job directory
+        self.jobdir = self.workspace.addJobDir(self.name, self.config)
+        
+         # storage for hpctest inputs and outputs
+        self.output = ResultDir(self.jobdir, "OUT")
+        self._writeInputs()
+    
 
     def run(self):
         
@@ -85,23 +94,24 @@ class Run():
             self.output.addSummaryStatus("OK", None)
             
         except BadTestDescription as e:
-            msg = "missing or invalid '{}' file in test {}".format("hpctest.yaml", self.testdir)
+            msg = "can't run test (missing or invalid '{}' file)".format("hpctest.yaml")
         except PrepareFailed as e:
-            msg = "failed while setting up for building test {}".format(self.testdir)
+            msg = "failed to set up for building test"
         except BuildFailed as e:
-            msg = "failed to build test {}".format(self.testdir)
+            msg = "failed to build test"
         except ExecuteFailed as e:
-            msg = "failed while running test {}".format(self.testdir)
+            msg = "failed to run test"
         except CheckFailed as e:
-            msg = "failed while checking test results {}".format(self.testdir)
+            msg = "failed to check test results"
         except Exception as e:
-            msg = "unexpected error in test {} - {} ({})".format(self.testdir, type(e).__name__, e.message)
+            msg = "unexpected error {} ({})".format(type(e).__name__, e.message)
         else:
             msg = None
         if msg: infomsg(msg)
         
         # finish writing results
         elapsedTime = time.time() - startTime
+        self._addMissingOutputs()
         self.output.add("summary", "elapsed time", elapsedTime)
         self.output.write()
 
@@ -111,38 +121,34 @@ class Run():
 
         from os.path import join, basename
         import spack
-        from spackle import readYamlFile
-        from common import BadTestDescription
+        from common import readYamlforTest, BadTestDescription
         
-        # read yaml file
-        self.yaml, msg = readYamlFile( join(self.testdir, "hpctest.yaml") )
+        self.yaml, msg = readYamlforTest(self.testdir)
         if msg:
-            self.output.addSummaryStatus("READ TEST INFO FAILED", msg)
-            raise BadTestDescription(error)
-    
-        # validate and apply defaults
-        if not self.yaml.get("info"):
-            self.yaml["info"] = {}
-        if not self.yaml.get("info").get("name"):
-            self.yaml["info"]["name"] = basename(testDir)
-        # ... TODO more of this
+            self.output.addSummaryStatus("TEST YAML FAILED", msg)
+            raise BadTestDescription(msg)
 
-        # extract important vaalues for easy reference
-        self.name = self.yaml["info"]["name"]                           # name of test case
-        self.version = self.yaml["info"]["version"]
-        self.builtin = (self.yaml["build"]["kind"] == "builtin")
+        # extract important values for easy reference
+        self.name = self.yaml["info"]["name"]                               # name of test case
+        self.version = self.yaml["info"]["version"]                         # TODO: let 'info.version' be missing, and use package default in such cases
+        self.builtin = (self.yaml["config"] == "spack-builtin")
 
         # get a spec for this test in specified configuration
-        namespace = "" if self.builtin else "tests."
-        specString = "{}@{}{}".format(namespace + self.name, self.version, self.config)
-        self.spec = spack.cmd.parse_specs(specString)[0]                # TODO: deal better with possibility that returned list length != 1
-        if "+mpi" in self.spec:
-            specString += " +mpi"
-            self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
-        if "+openmp" in self.spec:
-            specString += " +openmp"
-            self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
-        self.spec.concretize()                                          # TODO: check that this succeeds
+        namespace = "builtin" if self.builtin else "tests"
+        specString = "{}@{}{}".format(namespace + "." + self.name, self.version, self.config)
+        try:
+            self.spec = spack.cmd.parse_specs(specString)[0]                # TODO: deal better with possibility that returned list length != 1
+            self.output.add("input", "spack spec", str(self.spec))
+            if "+mpi" in self.spec:
+                specString += " +mpi"
+                self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
+            if "+openmp" in self.spec:
+                specString += " +openmp"
+                self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
+            self.spec.concretize()                                          # TODO: check that this succeeds
+        except Exception as e:
+            self.output.addSummaryStatus("TEST CONFIG INVALID", e.message)
+            raise BadTestDescription(error)
 
 
     def _prepareJobDirs(self):
@@ -150,17 +156,10 @@ class Run():
         from os import makedirs, symlink
         from os.path import basename, join
         from shutil import copytree
-        from resultdir import ResultDir
+        from common import PrepareFailed
 
         try:
             
-            # job directory
-            self.jobdir = self.workspace.addJobDir(self.name, self.config)
-            
-             # storage for hpctest inputs and outputs
-            self.output = ResultDir(self.jobdir, "OUT")
-            self._writeInputs()
-    
             # src directory -- immutable so just use teste's dir
             self.srcdir = self.testdir
             
@@ -190,44 +189,47 @@ class Run():
 
         import shutil
         import spack
+        from spack.build_environment import ChildError
         from spack.stage import DIYStage
         from spack.package import InstallError
         from llnl.util.tty.log import log_output
 
-        from common import options, infomsg, errormsg, fatalmsg, BuildFailed
+        from common import options, infomsg, errormsg, fatalmsg, BuildFailed, CpuTimer
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
         if self.package.installed:
-            if "verbose" in options: infomsg("Skipping build, test already built")
+            if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
+            cpuTime = "NA"
         else:
-            if self.yaml["build"]["kind"] != "builtin":
+            if not self.builtin:
                 self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
             spack.do_checksum = False   # see spack.cmd.diy lines 91-92
             
             outputPath = self.output.makePath("{}-output.txt", "build")
             with log_output(outputPath, echo="verbose" in options):
-                try:
+                with CpuTimer() as t:
                     
-                    self.package.do_install(
-                        keep_prefix=False,
-                        install_deps=True,
-                        verbose="verbose" in options,
-                        keep_stage=True,        # don't remove source dir for DIY.
-                        explicit=True,
-                        dirty=True,             # TODO: cf separable vs inseparable builds
-                        force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
-                    status, msg = "OK", None
-
-                except InstallError as e:
-                    status, msg =  "FAILED", str(e)
-                except Exception as e:
-                    status, msg = "FATAL", "{} ({})".format(e.message, e.args)
+                    try:
+                        self.package.do_install(
+                            keep_prefix=False,
+                            install_deps=True,
+                            verbose="verbose" in options,
+                            keep_stage=True,        # don't remove source dir for DIY.
+                            explicit=True,
+                            dirty=True,             # TODO: cf separable vs inseparable builds
+                            force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
+                        status, msg = "OK", None
+                    except Exception as e:
+                        status, msg =  "FAILED", str(e)
+                        
+                cpuTime = t.cpu_secs
 
         # save results
         self.prefix = self.package.prefix       # prefix path is valid even if package failed to install
         self.output.add("build", "prefix",     str(self.prefix))
+        self.output.add("build", "cpu time",   cpuTime)
         self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
 
@@ -241,9 +243,9 @@ class Run():
                     if not os.path.exists(e.pkg.build_log_path):
                         infomsg("...build produced no log.")
                     else:
-                            infomsg("...build log:")
-                            with open(e.pkg.build_log_path) as log:
-                                shutil.copyfileobj(log, sys.stdout)
+                        infomsg("...build log:")
+                        with open(e.pkg.build_log_path) as log:
+                            shutil.copyfileobj(log, sys.stdout)
             self.output.addSummaryStatus("BUILD FAILED", msg)
             raise BuildFailed
 
@@ -257,11 +259,9 @@ class Run():
 
         # set up for test case execution
         cmd = self.yaml["run"]["cmd"]
-        exeName = cmd.split()[0]
-        self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(exeName))
+        self.exeName = cmd.split()[0]
         
         # execute test case with and without profiling (to measure overhead)
-        cmd = self.yaml["run"]["cmd"]
         normalTime,   normalFailMsg   = self._execute(cmd, ["run"], "normal")
         profiledTime, profiledFailMsg = self._execute(cmd, ["run"], "profiled", profile=True)
         self._checkHpcrunExecution(normalTime, normalFailMsg, profiledTime, profiledFailMsg)
@@ -269,7 +269,7 @@ class Run():
         if "verbose" in options: sepmsg()
         
         # run hpcstruct on test executable
-        structPath = self.output.makePath("{}.hpcstruct".format(exeName))
+        structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
         cmd = "{}/hpcstruct -o {} {} -I {} {}" \
             .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
         structTime, structFailMsg = self._execute(cmd, [], "hpcstruct", mpi=False, openmp=False)
@@ -277,18 +277,16 @@ class Run():
     
         # run hpcprof on test measurements
         if profiledFailMsg or structFailMsg:
-            infomsg("Skipping hpcprof execution because of previous failure")
+            infomsg("skipping hpcprof execution because of previous failure")
         else:
-            profPath = self.output.makePath("hpctoolkit-{}-database".format(exeName))
+            profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
             cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
                 .format(self.hpctoolkitBinPath, profPath, structPath, self.hpcprofParams, self.testIncs, self.measurementsPath)
             profTime, profFailMsg = self._execute(cmd, [], "hpcprof", mpi=False, openmp=False)
             self._checkHpcprofExecution(profTime, profFailMsg, profPath)
     
         # let caller know if test case failed
-        failed = normalFailMsg or profiledFailMsg or structFailMsg or profFailMsg
-        
-        if normalFailMsg:       failure, msg  = "NORMAL RUN FAILED", normalFailMsg
+        if   normalFailMsg:     failure, msg  = "NORMAL RUN FAILED", normalFailMsg
         elif profiledFailMsg:   failure, msg  = "HPCRUN FAILED",     profiledFailMsg
         elif structFailMsg:     failure, msg  = "HPCSTRUCT FAILED",  structFailMsg
         elif profFailMsg:       failure, msg  = "HPCPROF FAILED",    profFailMsg
@@ -306,7 +304,7 @@ class Run():
         import sys
         from spack.util.executable import ProcessError
         from spackle import execute
-        from common import options, infomsg, verbosemsg, debugmsg, errormsg, sepmsg, ExecuteFailed
+        from common import options, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg, ExecuteFailed
         
         wantProfile = profile if profile else False
         wantMPI     = mpi     if mpi    is not None else '+mpi' in self.spec
@@ -323,12 +321,14 @@ class Run():
         
         # ... add profiling code if wanted
         if profile:
+            self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
             cmd = "{}/hpcrun -o {} {} {}".format(self.hpctoolkitBinPath, self.measurementsPath, self.hpcrunParams, cmd)
 
         # ... add OpenMP parameters if wanted
         if wantOpenMP:
-            openMPNumThreads = str( self.yaml["run"]["threads"] )
-            env["OMP_NUM_THREADS"] = openMPNumThreads
+            if "threads" in self.yaml["run"]:
+                openMPNumThreads = str( self.yaml["run"]["threads"] )
+                env["OMP_NUM_THREADS"] = openMPNumThreads
         
         # ... add MPI launching code if wanted
         if wantMPI:
@@ -348,21 +348,20 @@ class Run():
         # execute the command
         verbosemsg("Executing {} test:\n{}".format(label, timedCmd))
         try:
+            
             with open(outPath, "w") as outf:
                 execute(timedCmd, cwd=runPath, env=env, output=outf, error=outf)
-        except ProcessError as e:
-            failed, msg = True, e.message
-            infomsg("... {} execution failed: {}".format(label, msg))
+                
         except Exception as e:
-            fatalmsg("unexpected error attempting {} execution, {} ({})".format(label, e.message, type(e)))
-            # does not return
+            failed, msg = True, "{} execution failed: {} ({})".format(label, type(e).__name__, e.message)
+            infomsg(msg)
         else:
             failed, msg = False, None
-        
+                    
         # print test's output and cpu time
         if "verbose" in options:
             with open(outPath, "r") as f: print f.read()
-        cputime = self._readTotalCpuTime(timePath)
+        cputime = self._readTotalCpuTime(timePath)                              ## <<<<<<<<<< IN miniAMR, CAUSES FAILURE
         infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
         
         # save results
@@ -398,8 +397,19 @@ class Run():
         self.output.add("input", "date", now.strftime("%Y-%m-%d %H:%M"))
         self.output.add("input", "test", self.testdir)
         self.output.add("input", "config spec", str(self.config))
-        self.output.add("input", "spack spec", str(self.spec))
         self.output.add("input", "workspace", self.workspace.path)
+
+
+    def _addMissingOutputs(self):
+        
+        if "build" not in self.output:
+            self.output.add("build", "NA")
+        if "run"   not in self.output:
+            self.output.add("run", "NA")
+        if "hpcstruct" not in self.output:
+            self.output.add("hpcstruct", "NA")
+        if "hpcprof" not in self.output:
+            self.output.add("hpcprof", "NA")
 
 
     def _checkHpcrunExecution(self, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
@@ -487,8 +497,8 @@ class Run():
         else:
             msg = self._checkTextFile("performance db", profPath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
             
-        self.output.add("hpcstruct", "output checks", "FAILED" if msg else "OK")
-        self.output.add("hpcstruct", "output msg",    msg)
+        self.output.add("hpcprof", "output checks", "FAILED" if msg else "OK")
+        self.output.add("hpcprof", "output msg",    msg)
 
 
     def _checkTextFile(self, fileblurb, path, minLen, goodFirstLines, goodLastLines):
@@ -513,3 +523,4 @@ class Run():
 
 
 
+                                                                                                                                    

@@ -4,10 +4,10 @@
 
 
 info:
-    name:  miniAMR
-    version: 1.0
+    name:  miniamr
+    version: 1.4.0  # must match ~spack/var/spack/repos/builtin/packages/miniamr/package.py
     homepage: https://mantevo.org
-    url: https://github.com/Mantevo/miniAMR/archive/v1.4.tar.gz
+    url: https://github.com/Mantevo/miniAMR/archive/v1.4.0.tar.gz
     description: >
         miniAMR applies a stencil calculation on a unit cube computational domain,
         which is divided into blocks. The blocks all have the same number of cells
@@ -23,11 +23,10 @@ info:
         option to uniformly refine the mesh. Each cell contains a number of variables,
         each of which is evaluated indepently.
 
-build:
-    kind: spack-builtin
+config: spack-builtin
 
 run:
-    cmd: miniFE.x -nx 264 -ny 256 -nz 256
+    cmd: ma.x --nx 264 --ny 256 --nz 256
     dir: ref
     ranks: 16
 

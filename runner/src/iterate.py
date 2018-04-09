@@ -52,27 +52,24 @@
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, tests, configs, workspace):
+    def doForAll(myClass, dims, args, workspace):
         
-        import common   # 'from common import options' fails b/c 'options = ...' is treated as local assignment, even with 'global options'
-        from common import infomsg, debugmsg
+        from itertools import product
+##      import common   # 'from common import options' fails b/c 'options = ...' is treated as local assignment, even with 'global options'
+        from common import infomsg, debugmsg, options
         from run import Run
 
-        if not tests.paths():
-            infomsg("test spec matches no tests, so nothing will be run")
+        if not dims["tests"].paths():
+            infomsg("'tests' dimension matches no tests, so no jobs will be run")
         else:
             
-            debugmsg("iterating over tests = {} X configs = {} using workspace = {} and options = {}"
-                    .   format(tests.paths(), configs.specs(), workspace, common.options))
+            debugmsg("iterating over experiment space = crossproduct( {} ) with args = {} and options = {} in workspace = {}"
+                    .   format(dims, args, options, workspace))
+
+            for test, config, hpctoolkit, hpctoolkitparams in product(dims["tests"], dims["configs"], dims["hpctoolkits"], dims["hpctoolkitparams"]):
+                run = Run(test, config, hpctoolkit, hpctoolkitparams, workspace)
+                status = run.run()
             
-            for c in configs.specs():
-                for t in tests.paths():
-                    run = Run(t, c, workspace)
-                    status = run.run()
-                    
-
-
-
-
-
-
+            
+            
+            

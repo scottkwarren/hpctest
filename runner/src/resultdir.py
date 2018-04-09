@@ -61,9 +61,14 @@ class ResultDir():
         self.name = name
         self.dir = join(parentdir, "_" + self.name)
         makedirs(self.dir)
-        self.outdict = OrderedDict() 
+        self.outdict = OrderedDict()
         self.numOutfiles = 0
-    
+
+
+    def __contains__(self, key):
+        
+        return key in self.outdict
+        
     
     def makePath(self, nameFmt, label=None):
 

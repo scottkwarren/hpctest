@@ -59,3 +59,8 @@ class ConfigSpec():
     def specs(self):
             
         return frozenset(self.specList)
+
+
+    def __iter__(self):
+        
+        return iter(self.specList)

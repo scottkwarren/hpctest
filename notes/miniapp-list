@@ -1,0 +1,192 @@
+name: amg 
+  homepage: https://codesign.llnl.gov/amg2013.php 
+  url: None 
+
+name: amg2013 
+  homepage: https://codesign.llnl.gov/amg2013.php 
+  url: https://codesign.llnl.gov/amg2013/amg2013.tgz 
+
+name: amr-exp-parabolic 
+  homepage: https://ccse.lbl.gov/ExaCT/index.html     ????  broken
+  url: https://ccse.lbl.gov/ExaCT/AMR_Exp_Parabolic.tgz 
+
+name: aspa 
+  homepage: http://www.exmatex.org/aspa.html   ????  broken
+  url: https://github.com/exmatex/ASPA/archive/master.tar.gz 
+
+name: branson 
+  homepage: https://github.com/lanl/branson   YYYY but no run info
+  url: https://github.com/lanl/branson/archive/1.01.zip 
+
+name: candle-benchmarks 
+  homepage: https://github.com/ECP-CANDLE/Benchmarks   YYYY
+  url: https://github.com/ECP-CANDLE/Benchmarks/archive/v1.0.tar.gz 
+
+name: clamr 
+  homepage: https://github.com/lanl/CLAMR   YYYY
+  url: https://github.com/lanl/CLAMR.git 
+
+name: cloverleaf 
+  homepage: http://uk-mac.github.io/CloverLeaf   YYYY  maybe
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/CloverLeaf/CloverLeaf-1.1.tar.gz 
+
+name: cloverleaf3d 
+  homepage: http://uk-mac.github.io/CloverLeaf3D/   YYYY  maybe
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/CloverLeaf3D/CloverLeaf3D-1.0.tar.gz 
+
+name: cns-nospec 
+  homepage: https://ccse.lbl.gov/ExaCT/index.html   ????  broken
+  url: https://ccse.lbl.gov/ExaCT/CNS_Nospec.tgz 
+
+name: coevp 
+  homepage: https://github.com/exmatex/CoEVP   YYYY but no run info
+  url: None 
+
+name: cohmm 
+  homepage: http://www.exmatex.org/cohmm.html   ????  broken
+  url: https://github.com/exmatex/CoHMM/archive/sad.tar.gz 
+
+name: comd 
+  homepage: http://www.exmatex.org/comd.html 
+  url: https://github.com/ECP-copa/CoMD/archive/v1.1.tar.gz 
+
+name: cosp2 
+  homepage: http://www.exmatex.org/cosp2.html 
+  url: https://github.com/exmatex/CoSP2/archive/master.tar.gz 
+
+name: ebms 
+  homepage: https://github.com/ANL-CESAR/EBMS 
+  url: https://github.com/ANL-CESAR/EBMS/archive/master.tar.gz 
+
+name: ecp-proxy-apps 
+  homepage: https://exascaleproject.github.io/proxy-apps 
+  url: https://github.com/exascaleproject/proxy-apps/archive/v1.0.tar.gz 
+
+name: exampm 
+  homepage: https://github.com/ECP-copa/ExaMPM 
+  url: https://github.com/ECP-copa/ExaMPM 
+
+name: exasp2 
+  homepage: https://github.com/ECP-copa/ExaSP2 
+  url: None 
+
+name: hacckernels 
+  homepage: https://xgitlab.cels.anl.gov/hacc/HACCKernels 
+  url: https://xgitlab.cels.anl.gov/hacc/HACCKernels.git 
+
+name: hpccg 
+  homepage: https://mantevo.org/about/applications/ 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/HPCCG/HPCCG-1.0.tar.gz 
+
+name: hpgmg 
+  homepage: https://bitbucket.org/hpgmg/hpgmg 
+  url: https://bitbucket.org/hpgmg/hpgmg/get/master.tar.gz 
+
+name: kripke 
+  homepage: https://codesign.llnl.gov/kripke.php 
+  url: https://codesign.llnl.gov/downloads/kripke-openmp-1.1.tar.gz 
+
+name: laghos 
+  homepage: https://codesign.llnl.gov/laghos.php 
+  url: https://github.com/CEED/Laghos/archive/v1.0.tar.gz 
+
+name: lcals 
+  homepage: https://codesign.llnl.gov/LCALS-downloads/ 
+  url: https://codesign.llnl.gov/LCALS-downloads/lcals-v1.0.2.tgz 
+
+name: lulesh 
+  homepage: https://codesign.llnl.gov/lulesh.php 
+  url: https://codesign.llnl.gov/lulesh/lulesh2.0.3.tgz 
+
+name: macsio 
+  homepage: http://llnl.github.io/MACSio 
+  url: https://github.com/LLNL/MACSio/archive/1.0.tar.gz 
+
+name: miniaero 
+  homepage: http://mantevo.org 
+  url: https://github.com/Mantevo/miniAero.git 
+
+name: miniamr 
+  homepage: https://mantevo.org 
+  url: https://github.com/Mantevo/miniAMR/archive/v1.4.0.tar.gz 
+
+name: minife 
+  homepage: https://mantevo.org/ 
+  url: https://github.com/Mantevo/miniFE/archive/v2.1.0.tar.gz 
+
+name: minighost 
+  homepage: http://mantevo.org 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/MiniGhost/miniGhost_1.0.1.tar.gz 
+
+name: minimd 
+  homepage: http://mantevo.org 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/MiniMD/miniMD_1.2.tgz 
+
+name: minismac2d 
+  homepage: http://mantevo.org 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/MiniSMAC2D/miniSMAC2D-2.0.tgz 
+
+name: minitri 
+  homepage: https://github.com/Mantevo/miniTri 
+  url: https://github.com/Mantevo/miniTri/archive/v1.0.tar.gz 
+
+name: minixyce 
+  homepage: https://mantevo.org 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/MiniXyce/miniXyce_1.0.tar.gz 
+
+name: nekbone 
+  homepage: https://github.com/Nek5000/Nekbone 
+  url: https://github.com/Nek5000/Nekbone/tarball/v17.0 
+
+name: nut 
+  homepage: https://github.com/lanl/NuT 
+  url: https://github.com/lanl/NuT.git 
+
+name: openmc 
+  homepage: https://github.com/ANL-CESAR/ 
+  url: https://github.com/ANL-CESAR/openmc.git 
+
+name: pathfinder 
+  homepage: https://mantevo.org/packages/ 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/PathFinder/PathFinder_1.0.0.tgz 
+
+name: pennant 
+  homepage: https://github.com/lanl/PENNANT 
+  url: https://github.com/lanl/PENNANT/archive/pennant_v0.9.tar.gz 
+
+name: rsbench 
+  homepage: https://github.com/ANL-CESAR/RSBench 
+  url: https://github.com/ANL-CESAR/RSBench/archive/v2.tar.gz 
+
+name: simplemoc 
+  homepage: https://github.com/ANL-CESAR/SimpleMOC/ 
+  url: https://github.com/ANL-CESAR/SimpleMOC/archive/master.tar.gz 
+
+name: smc 
+  homepage: https://ccse.lbl.gov/ExaCT/index.html 
+  url: https://ccse.lbl.gov/ExaCT/SMC.tar.gz 
+
+name: snap 
+  homepage: https://github.com/lanl/SNAP 
+  url: None 
+
+name: snbone 
+  homepage: https://github.com/ANL-CESAR/ 
+  url: https://github.com/ANL-CESAR/SNbone.git 
+
+name: sw4lite 
+  homepage: https://geodynamics.org/cig/software/sw4 
+  url: https://github.com/geodynamics/sw4lite/archive/v1.0.zip 
+
+name: swfft 
+  homepage: https://xgitlab.cels.anl.gov/hacc/SWFFT 
+  url: https://xgitlab.cels.anl.gov/hacc/SWFFT/repository/v1.0/archive.tar.gz 
+
+name: tealeaf 
+  homepage: http://uk-mac.github.io/TeaLeaf/ 
+  url: http://mantevo.org/downloads/releaseTarballs/miniapps/TeaLeaf/TeaLeaf-1.0.tar.gz 
+
+name: xsbench 
+  homepage: https://github.com/ANL-CESAR/XSBench/ 
+  url: https://github.com/ANL-CESAR/XSBench/archive/v13.tar.gz 
+

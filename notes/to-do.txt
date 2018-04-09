@@ -14,30 +14,68 @@ HPCTEST TO DO
  - "The test-suite file" ??
  
  
+ OTHER SPACK REPOS FOR HPC APPLICATIONS
  
+Arm HPC Users Group / packages · GitLab
+https://gitlab.com/arm-hpc/packages/wikis/categories/application
+
+
+
 MINI-APPS FROM SPACK BUILTINS
  
+amg
+amg2013
+amr-exp-parabolic
+aspa
+branson
+candle-benchmarks
 clamr
 cleverleaf
 cloverleaf
 cloverleaf3d
+cns-nospec
+coevp
+cohmm
+comd
+cosp2
 ebms
+ecp-proxy-apps
+exampm
+exasp2
+hacckernels
 hpccg
+hpgmg
+kripke
 laghos
-mfem
+lcals
+lulesh
+macsio
 miniaero
+miniamr
+minife
 minighost
 minimd
 minismac2d
+minitri
 minixyce
+nekbone
+nginx
+nut
+openmc
 pathfinder
 pennant
 rsbench
+r-somaticsignatures
+serf
 simplemoc
+smc
+snap
+snbone
+sw4lite
+swfft
 tealeaf
 tycho2
+vpfft
+xfwp
+xrx
 xsbench
-
-
-
-

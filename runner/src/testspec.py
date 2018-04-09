@@ -46,12 +46,6 @@
 ################################################################################
 
 
-from os import environ
-from os.path import join
-from glob import glob
-from common import homepath, debugmsg
-
-
 
 
 # TEMPORARY: specstring is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
@@ -60,24 +54,34 @@ class TestSpec():
     
     def __init__(self, specString):
                 
-        repoPath = join(homepath, "tests")
+        from os.path import join                                                                                                                                                                                                 
+        from glob import glob
+        from common import homepath, forTestsInDirTree
 
-        debugmsg("spec = {}".format(specString))
-        debugmsg("patterns = {}".format(specString.split(',')))
-        for pattern in specString.split(','):
-            debugmsg("paths = {}".format(glob( join(repoPath, pattern.strip()) )))
-        
-        self.pathlist = \
-            [ path
-                for pattern in specString.split(',')
-                    for path in glob( join(repoPath, pattern.strip()) )
-            ]
-                 
+        testsDir = join(homepath, "tests")
+                  
+        if specString == "all":
+            
+            self.pathlist = []
+            _ = forTestsInDirTree(testsDir, lambda (testPath, _): self.pathlist.append(testPath))
+            
+        else:
+                
+            self.pathlist = \
+                [ path
+                    for pattern in specString.split(',')
+                        for path in glob( join(testsDir, pattern.strip()) )
+                ]
+    
                                 
     def paths(self):
             
         return frozenset(self.pathlist)
 
+
+    def __iter__(self):
+        
+        return iter(self.pathlist)
 
 
 

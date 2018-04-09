@@ -77,6 +77,7 @@ class Report():
                 fatalmsg("Test results file OUT.yaml not found for job {}".format(jobPath))
                         
         # print a summary record for each result, sorted by config spec and then test name
+        maxLen = 0
         results.sort(key=lambda result: result["input"]["config spec"])
         for result in results:
             
@@ -85,8 +86,14 @@ class Report():
             config         = result["input"]["config spec"].upper()
             status         = result["summary"]["status"]
             msg            = result["summary"]["status msg"] if status != "OK" else ""
-            overhead       = result["run"]["profiled"]["hpcrun overhead %"]
-            hpcrun         = result["run"]["profiled"]["hpcrun summary"]
+            run            = result["run"]
+            
+            if run != "NA":
+                overhead       = run["profiled"]["hpcrun overhead %"]
+                hpcrun         = run["profiled"]["hpcrun summary"]
+            else:
+                hpcrun         = "NA"
+                
             if hpcrun != "NA":
                 blocked    = hpcrun["blocked"]
                 errant     = hpcrun["errant"]
@@ -114,17 +121,19 @@ class Report():
                     ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))         
             line1 += " " * (len(line2) - len(line1) - 1) + "|"
 
+            maxLen = max(maxLen, line1, line2)
+
             # print job's summary
-            sepmsg(len(line1))
+            sepmsg(maxLen)
             print line1
             print line2
-            
-        sepmsg(len(line1))
+                        
+        sepmsg(maxLen)
 
 
 def _pct(s, d):
     
-    if s is None:
+    if (s is None or s == "NA") or (d is None or d == "NA"):
         formatted = "------"
     else:
         percent   = (float(s) / float(d)) * 100.0

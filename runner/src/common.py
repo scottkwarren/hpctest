@@ -135,6 +135,69 @@ def yesno(prompt):
     return len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
 
 
+# YAML test decriptions
+
+def readYamlforTest(testDir):
+ 
+    from os.path import join, basename
+    from spackle import readYamlFile
+         
+    # read yaml file
+    yaml, msg = readYamlFile(join(testDir, "hpctest.yaml"))
+     
+    # validate and apply defaults
+    if not msg:
+        if not yaml.get("info"):
+             yaml["info"] = {}
+        if not yaml.get("info").get("name"):
+             yaml["info"]["name"] = basename(testDir)
+        if not yaml.get("build"):
+             yaml["build"] = {}
+        if not yaml.get("build").get("separate"):
+             yaml["build"]["separate"] = []
+        # TODO...
+ 
+    return yaml, msg
+
+
+# recursice directory search
+def forTestsInDirTree(dirtree, action):
+    
+    import os
+    from os.path import isfile, join
+    
+    for root, dirs, files in os.walk(dirtree, topdown=False):
+         
+        if isfile(join(root, "hpctest.yaml")):
+            yaml, msg = readYamlforTest(root)
+            if yaml:  # found a test-case directory
+                found = (root, yaml)
+                action(found)
+            else:
+                found = (None, None)
+                
+    return found
+
+
+# context manager for timing
+
+class CpuTimer(object):
+        
+    def __init__(self, verbose=False):
+
+        import time
+        self.timer = time.clock
+
+    def __enter__(self):
+
+        self.start = self.timer()
+        return self
+
+    def __exit__(self, *args):
+        
+        self.cpu_secs = self.timer() - self.start
+
+
 # Custom exceptions
 
 class HPCTestError(Exception):
