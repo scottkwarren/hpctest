@@ -63,7 +63,7 @@ class Run():
         # hpctoolkit paths -- TODO: get from setup or environment
         self.hpctoolkitBinPath = hpctoolkit
         self.hpcrunParams, self.hpcstructParams, self.hpcprofParams = hpctoolkitparams.split(";")
-        self.testIncs          = "./+"
+        self.testIncs = "./+"
 
         # job directory
         self.jobdir = self.workspace.addJobDir(self.name, self.config)
@@ -201,7 +201,7 @@ class Run():
         if self.package.installed:
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
-            cpuTime = "NA"
+            buildTime = 0.0
         else:
             if not self.builtin:
                 self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
@@ -224,17 +224,19 @@ class Run():
                     except Exception as e:
                         status, msg =  "FAILED", str(e)
                         
-                cpuTime = t.cpu_secs
+                buildTime = t.cpu_secs
 
         # save results
         self.prefix = self.package.prefix       # prefix path is valid even if package failed to install
         self.output.add("build", "prefix",     str(self.prefix))
-        self.output.add("build", "cpu time",   cpuTime)
+        self.output.add("build", "cpu time",   buildTime)
         self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
 
         # finish up
-        if status != "OK":
+        if status == "OK":
+            infomsg("... build time = {:<0.2f} seconds".format(buildTime))
+        else:
             if status == "FATAL":
                 fatalmsg(msg)
             else:
@@ -277,7 +279,7 @@ class Run():
     
         # run hpcprof on test measurements
         if profiledFailMsg or structFailMsg:
-            infomsg("skipping hpcprof execution because of previous failure")
+            infomsg("... hpcprof not run due to previous failure")
         else:
             profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
             cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
@@ -290,7 +292,7 @@ class Run():
         elif profiledFailMsg:   failure, msg  = "HPCRUN FAILED",     profiledFailMsg
         elif structFailMsg:     failure, msg  = "HPCSTRUCT FAILED",  structFailMsg
         elif profFailMsg:       failure, msg  = "HPCPROF FAILED",    profFailMsg
-        else:                   failure, msg  = None, None
+        else:                   failure, msg  = None,                None
         
         if failure:
             self.output.addSummaryStatus(failure, msg)
@@ -353,16 +355,17 @@ class Run():
                 execute(timedCmd, cwd=runPath, env=env, output=outf, error=outf)
                 
         except Exception as e:
-            failed, msg = True, "{} execution failed: {} ({})".format(label, type(e).__name__, e.message)
-            infomsg(msg)
+            failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c ProcessError.message ends in ':' fsr
+            infomsg("{} execution failed: {}".format(label, msg))
         else:
             failed, msg = False, None
                     
         # print test's output and cpu time
         if "verbose" in options:
             with open(outPath, "r") as f: print f.read()
-        cputime = self._readTotalCpuTime(timePath)                              ## <<<<<<<<<< IN miniAMR, CAUSES FAILURE
-        infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
+        cputime = self._readTotalCpuTime(timePath)
+        if cputime:
+            infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
         
         # save results
         self.output.add(label, "cpu time", cputime, subroot=keylist)
@@ -377,10 +380,18 @@ class Run():
         import csv
         from os.path import join
         
-        with open(timePath, "r") as f:
-            line = f.read()
-            times = csv.reader([line], delimiter="\t").next()
-        return float(times[1]) + float(times[2])
+        try:
+            
+            with open(timePath, "r") as f:
+                line = f.read()
+                times = csv.reader([line], delimiter="\t").next()
+                cpuTime = float(times[1]) + float(times[2])
+                
+        except Exception as e:
+            cpuTime = None
+        
+        return cpuTime
+            
 
 
     def _checkTestResults(self):

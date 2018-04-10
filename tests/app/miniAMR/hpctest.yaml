@@ -1,5 +1,5 @@
 #=========================================#
-# HPCTest description for AMG2006         #
+# HPCTest description for miniAMR         #
 #=========================================#
 
 
@@ -27,7 +27,6 @@ config: spack-builtin
 
 run:
     cmd: ma.x --nx 264 --ny 256 --nz 256
-    dir: ref
     ranks: 16
 
 
