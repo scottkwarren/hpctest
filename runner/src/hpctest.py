@@ -61,13 +61,13 @@ class HPCTest():
         from os import environ
         from os.path import dirname, join, normpath, realpath
         import sys
-        import common, spackle
+        import common, configuration, spackle, util
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
         from util.which import which
         global dimensions, dimspecDefaults, dimspecClasses, _testDirChecksum
-                
+    
         # determine important paths
         common.homepath  = homepath if homepath else normpath( join(dirname(realpath(__file__)), "..", "..") )
         common.ext_spack_home = extspackpath  # ok to be None
@@ -82,6 +82,9 @@ class HPCTest():
                           join(common.own_spack_module_dir, "external", "yaml", "lib"),
                           join(common.own_spack_module_dir, "llnl"),
                         ]
+
+        # set up hpctest's config system
+####    configuration.initConfig()    # must come after common.homepath is initialized
 
         # dimension info (requires path stuff, above, to be finished)
         dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkitparams"))
@@ -115,7 +118,9 @@ class HPCTest():
         workspace = Workspace(workpath)
         
         status  = Iterate.doForAll(dims, args, workspace)
+        print "\n"
         Report.printReport(workspace)
+        print "\n"
         
         return status
 
@@ -171,19 +176,18 @@ class HPCTest():
             errormsg( "error removing installed packages and their build byproducts ({})".format(str(e)) )
 
         
-    def miniapps(self):
-        
-        from os.path import join
-        import spack
-        from spack.repository import Repo
-        from common import own_spack_home
-        
-         # iterate over builtin packages
-        builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
-        for name in builtin.packages_with_tags("proxy-app"):
-            p = builtin.get(name)
-#           print "name: "+p.name, "  homepage: "+p.homepage, "  url: "+(p.url if p.url else "None"), "  tags: "+str(p.tags), "  versions: "+str(p.versions)
-            print "name: "+p.name, "\n", "  homepage: "+p.homepage, "\n", "  url: "+(p.url if p.url else "None"), "\n"
+#     def miniapps(self):
+#         
+#         from os.path import join
+#         import spack
+#         from spack.repository import Repo
+#         from common import own_spack_home
+#         
+#         # iterate over builtin packages
+#         builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
+#         for name in builtin.packages_with_tags("proxy-app"):
+#             p = builtin.get(name)
+#             print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
 
     
     def _ensureRepos(self):
@@ -333,10 +337,6 @@ class HPCTest():
         # hpath => hpctest.yaml file to generate from
         # ppath => package directory to generate into
         notimplemented("hpctest._generatePackagePy")
-        
-
-
-
 
 
 

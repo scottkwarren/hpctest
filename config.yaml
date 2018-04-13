@@ -1,0 +1,12 @@
+limits:
+  corefile_size:     1G      # ulimit -c
+  cputime:           300     # ulimit -t
+  datasegment_size:  1G      # ulimit -d
+  memlock_size:      1G      # ulimit -l
+  numprocesses:      1K      # ulimit -u
+  openfiles:         1K      # ulimit -n
+  pipebuffer_size:   1G      # ulimit -p
+  residentset_size:  10G     # ulimit -m
+  shellfile_size:    1G      # ulimit -f
+  stack_size:        1G      # ulimit -s
+  vm_size:           10G     # ulimit -v

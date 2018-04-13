@@ -402,12 +402,15 @@ class Run():
 
     def _writeInputs(self):
 
+        from collections import OrderedDict
         import datetime
 
         now = datetime.datetime.now()
         self.output.add("input", "date", now.strftime("%Y-%m-%d %H:%M"))
         self.output.add("input", "test", self.testdir)
         self.output.add("input", "config spec", str(self.config))
+        self.output.add("input", "hpctoolkit", str(self.hpctoolkitBinPath))
+        self.output.add("input", "hpctoolkit params", OrderedDict({"hpcrun":self.hpcrunParams, "hpcstruct":self.hpcstructParams, "hpcprof":self.hpcprofParams}))
         self.output.add("input", "workspace", self.workspace.path)
 
 

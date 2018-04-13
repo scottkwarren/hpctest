@@ -77,12 +77,11 @@ class Report():
                 fatalmsg("Test results file OUT.yaml not found for job {}".format(jobPath))
                         
         # print a summary record for each result, sorted by config spec and then test name
-        maxLen = 0
-        results.sort(key=lambda result: result["input"]["config spec"])
+        results.sort(key=lambda result: ( relpath(result["input"]["test"], join(homepath, "tests")), result["input"]["config spec"]) )
         for result in results:
             
             # extract job data for reporting
-            test           = relpath(result["input"]["test"], join(homepath, "tests")).upper()
+            test           = relpath(result["input"]["test"], join(homepath, "tests")).upper().replace("/", " / ")
             config         = result["input"]["config spec"].upper()
             status         = result["summary"]["status"]
             msg            = result["summary"]["status msg"] if status != "OK" else ""
@@ -115,26 +114,32 @@ class Report():
                 trolled    = None
                 yielded    = None
             
-            # format for display           
-            line1 = "| {} with {}:  {}{}".format(test, config, status, (", " + msg) if msg != "" else "")
-            line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
-                    ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))         
-            line1 += " " * (len(line2) - len(line1) - 1) + "|"
+            # format for display
+            tableWidth = 113    # width of table row manually determined    # TODO: better
+            testLabel = "{} with {}".format(test, config)
+            padding   = " " * (50 - len(testLabel))
+            line1 = "| {}".format(testLabel)
+            line1 += " " * (tableWidth - len(line1) - 1) + "|"
+            if status == "OK":
+                line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
+                        ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))
+            else:
+                line2 = ("| {}: {}").format(status, msg)         
+                line2 += " " * (tableWidth - len(line2) - 1) + "|"
 
-            maxLen = max(maxLen, line1, line2)
 
             # print job's summary
-            sepmsg(maxLen)
+            sepmsg(tableWidth)
             print line1
             print line2
                         
-        sepmsg(maxLen)
+        sepmsg(tableWidth)
 
 
 def _pct(s, d):
     
     if (s is None or s == "NA") or (d is None or d == "NA"):
-        formatted = "------"
+        formatted = " ---- "
     else:
         percent   = (float(s) / float(d)) * 100.0
         formatted = "  0   " if s == 0 else "< 0.1%" if percent < 0.1  else "< 1  %" if percent < 1.0 else "{:>5.1f}%".format(percent)
