@@ -59,7 +59,7 @@ class HPCTest():
     def __init__(self, extspackpath=None, homepath=None):
         
         from os import environ
-        from os.path import dirname, join, normpath, realpath
+        from os.path import dirname, join, normpath, realpath, expanduser
         import sys
         import common, configuration, spackle, util
         from testspec   import TestSpec
@@ -69,7 +69,7 @@ class HPCTest():
         global dimensions, dimspecDefaults, dimspecClasses, _testDirChecksum
     
         # determine important paths
-        common.homepath  = homepath if homepath else normpath( join(dirname(realpath(__file__)), "..", "..") )
+        common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
         common.ext_spack_home = extspackpath  # ok to be None
         common.own_spack_home = join( common.homepath, "runner", "spack" )
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
@@ -83,13 +83,19 @@ class HPCTest():
                           join(common.own_spack_module_dir, "llnl"),
                         ]
 
-        # set up hpctest's config system
-####    configuration.initConfig()    # must come after common.homepath is initialized
+        # set up hpctest's layered configuration system
+        configuration.initConfig()    # must come after common.homepath is initialized
 
-        # dimension info (requires path stuff, above, to be finished)
+        # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkitparams"))
-        dimspecClasses  = { "tests":TestSpec, "configs":ConfigSpec, "hpctoolkits":StringSpec,               "hpctoolkitparams":StringSpec }
-        dimspecDefaults = { "tests":"all",    "configs":"%gcc",     "hpctoolkits":dirname(which("hpcrun")), "hpctoolkitparams":"-t -e REALTIME@10000;;" }
+        dimspecClasses  = { "tests":TestSpec, "configs":ConfigSpec, "hpctoolkits":StringSpec, "hpctoolkitparams":StringSpec }
+        dimspecDefaults = { "tests":            "all",    
+                            "configs":          "%" + configuration.get("build.compiler", "gcc"),     
+                            "hpctoolkits":      expanduser( configuration.get("profile.hpctoolkit bin path", dirname(which("hpcrun"))) ), 
+                            "hpctoolkitparams": configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
+                                                configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
+                                                configuration.get("profile.hpctoolkit.hpcprof params",   "")
+                          }
         
         
     def run(self, dimStrings={}, args={}, workpath=None):
@@ -123,6 +129,19 @@ class HPCTest():
         print "\n"
         
         return status
+        
+        
+    def report(self, workpath=None):
+        
+        import common
+        from common     import debugmsg, options
+        from report     import Report
+
+        if not workpath: workpath = common.workpath ## <<<<<<<<<<<<<<<<<<<<<<< FIX <<<<<<<<<<<<<<<<<<<<<<
+                
+        print "\n"
+        Report.printReport(workspace)
+        print "\n"
 
 
     def clean(self, workpath=None):

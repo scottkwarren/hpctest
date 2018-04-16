@@ -50,7 +50,7 @@
 
 # Shared variables, set in HPCTest at startup
 
-options              = None     # list of options parsed from command line
+options              = []       # list of options parsed from command line
 numErrors            = 0        # count of errors in this test run
 homepath             = None     # path to this HPCTest installation
 ext_spack_home       = None     # path to external Spack's directory if any -- can be None

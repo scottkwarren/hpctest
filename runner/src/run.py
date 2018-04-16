@@ -307,6 +307,7 @@ class Run():
         from spack.util.executable import ProcessError
         from spackle import execute
         from common import options, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg, ExecuteFailed
+        from configuration import currentConfig
         
         wantProfile = profile if profile else False
         wantMPI     = mpi     if mpi    is not None else '+mpi' in self.spec
@@ -324,7 +325,7 @@ class Run():
         # ... add profiling code if wanted
         if profile:
             self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
-            cmd = "{}/hpcrun -o {} {} {}".format(self.hpctoolkitBinPath, self.measurementsPath, self.hpcrunParams, cmd)
+            cmd = "{}/hpcrun -o {} -t {} {}".format(self.hpctoolkitBinPath, self.measurementsPath, self.hpcrunParams, cmd)
 
         # ... add OpenMP parameters if wanted
         if wantOpenMP:
