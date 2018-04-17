@@ -250,10 +250,14 @@ class HPCTest():
         import os
         from os.path import join, isfile
         from common import homepath, readYamlforTest, errormsg
+        import spack
         
         # must start with a clean slate to avoid Spack errrors
         self.reset()
         
+        # customize settings of builtin repo
+        spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
+    
         # create new private repo for building test cases
         repoPath = self._makePrivateRepo("tests")
         
