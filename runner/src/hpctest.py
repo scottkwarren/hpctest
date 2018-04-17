@@ -61,7 +61,8 @@ class HPCTest():
         from os import environ, makedirs
         from os.path import dirname, join, normpath, realpath, expanduser, isdir
         import sys
-        import common, configuration, spackle, util
+        import common, configuration, spackle, util, unzip
+        from common import infomsg
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
@@ -75,6 +76,16 @@ class HPCTest():
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
         common.workpath = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
+        spackle.do("xxx")
+
+        # set up local spack if necessary
+        if not isdir(own_spack_home):
+            infomsg("Setting up local Spack...")
+            spack_version = configuration.get("hpctest.own spack version")
+            spack_tarball = join(common.homepath, "runner", "spack-{}.tar.gz".format(spack_version))
+            unzip(join(common.homepath, "runner", "spack-0.11.2.tar.gz"))
+            infomsg("Spack found these compilers automatically:")
+            spackle.do("compilers")
 
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
