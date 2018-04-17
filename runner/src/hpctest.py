@@ -58,8 +58,8 @@ class HPCTest():
         
     def __init__(self, extspackpath=None, homepath=None):
         
-        from os import environ, makedirs
-        from os.path import dirname, join, normpath, realpath, expanduser, isdir
+        from os import environ, makedirs, system, rename
+        from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
         import sys
         import common, configuration, spackle, util
         from common import infomsg, unzip
@@ -71,18 +71,25 @@ class HPCTest():
     
         # determine important paths
         common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
+        runnerpath = join(common.homepath, "runner")
         common.ext_spack_home = extspackpath  # ok to be None
-        common.own_spack_home = join( common.homepath, "runner", "spack" )
+        common.own_spack_home = join(runnerpath, "spack")
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
         common.workpath = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
 
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
+            
             infomsg("Setting up local Spack...")
-            spack_version = "0.11.2"
-            spack_tarball = join(common.homepath, "runner", "spack-{}.tar.gz".format(spack_version))
-            unzip(spack_tarball, common.own_spack_home)
+            
+            spack_version   = "0.11.2"
+            spack_tarball   = join(runnerpath, "spack-{}.tar.gz".format(spack_version))
+            spack_extracted = join(runnerpath, "spack-{}".format(spack_version))
+            spack_dest      = join(runnerpath, "spack")
+            system("cd {}; tar xzf {}".format(runnerpath, spack_tarball))
+            rename(spack_extracted, spack_dest)
+            
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
 

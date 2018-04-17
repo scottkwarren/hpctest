@@ -198,18 +198,6 @@ class CpuTimer(object):
         self.cpu_secs = self.timer() - self.start
 
 
-# Zip archives
-
-def unzip(zipfile_path, dest_path=None):
-    
-    from os.path import dirname
-    import zipfile
-    
-    zip = zipfile.ZipFile(zipfile_path, 'r')
-    zip.extractall(dest_path if dest_path else own_spack_home)
-    zip.close()
-
-
 # Custom exceptions
 
 class HPCTestError(Exception):
