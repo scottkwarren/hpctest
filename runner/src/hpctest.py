@@ -80,7 +80,7 @@ class HPCTest():
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
             infomsg("Setting up local Spack...")
-            spack_version = "0.11.12"
+            spack_version = "0.11.2"
             spack_tarball = join(common.homepath, "runner", "spack-{}.tar.gz".format(spack_version))
             unzip(spack_tarball, common.own_spack_home)
             infomsg("Spack found these compilers automatically:")
