@@ -76,7 +76,6 @@ class HPCTest():
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
         common.workpath = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
-        spackle.do("xxx")
 
         # set up local spack if necessary
         if not isdir(own_spack_home):
