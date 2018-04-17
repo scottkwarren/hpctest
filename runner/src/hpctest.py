@@ -58,8 +58,8 @@ class HPCTest():
         
     def __init__(self, extspackpath=None, homepath=None):
         
-        from os import environ
-        from os.path import dirname, join, normpath, realpath, expanduser
+        from os import environ, makedirs
+        from os.path import dirname, join, normpath, realpath, expanduser, isdir
         import sys
         import common, configuration, spackle, util
         from testspec   import TestSpec
@@ -74,6 +74,7 @@ class HPCTest():
         common.own_spack_home = join( common.homepath, "runner", "spack" )
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
         common.workpath = join(common.homepath, "work")
+        if not isdir(common.workpath): makedirs(common.workpath)
 
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
