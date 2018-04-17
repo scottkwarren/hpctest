@@ -78,7 +78,7 @@ class HPCTest():
         if not isdir(common.workpath): makedirs(common.workpath)
 
         # set up local spack if necessary
-        if not isdir(own_spack_home):
+        if not isdir(common.own_spack_home):
             infomsg("Setting up local Spack...")
             spack_version = configuration.get("hpctest.own spack version")
             spack_tarball = join(common.homepath, "runner", "spack-{}.tar.gz".format(spack_version))
