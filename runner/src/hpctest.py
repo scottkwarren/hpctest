@@ -77,9 +77,6 @@ class HPCTest():
         common.workpath = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
 
-        # set up hpctest's layered configuration system
-        configuration.initConfig()    # must come after common.homepath is initialized
-
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
             infomsg("Setting up local Spack...")
@@ -88,6 +85,9 @@ class HPCTest():
             unzip(spack_tarball, common.own_spack_home)
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
+
+        # set up hpctest's layered configuration system
+        configuration.initConfig()    # must come after common.homepath and local spack are initialized
 
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
