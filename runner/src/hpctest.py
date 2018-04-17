@@ -83,9 +83,9 @@ class HPCTest():
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
             infomsg("Setting up local Spack...")
-            spack_version = configuration.get("hpctest.own spack version")
+            spack_version = "0.11.12"
             spack_tarball = join(common.homepath, "runner", "spack-{}.tar.gz".format(spack_version))
-            unzip(join(common.homepath, "runner", "spack-0.11.2.tar.gz"), common.own_spack_home)
+            unzip(spack_tarball, common.own_spack_home)
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
 
