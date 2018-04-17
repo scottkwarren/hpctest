@@ -61,8 +61,8 @@ class HPCTest():
         from os import environ, makedirs
         from os.path import dirname, join, normpath, realpath, expanduser, isdir
         import sys
-        import common, configuration, spackle, util, unzip
-        from common import infomsg
+        import common, configuration, spackle, util
+        from common import infomsg, unzip
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
