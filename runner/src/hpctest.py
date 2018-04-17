@@ -62,7 +62,7 @@ class HPCTest():
         from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
         import sys
         import common, configuration, spackle, util
-        from common import infomsg, unzip
+        from common import infomsg
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
@@ -93,9 +93,6 @@ class HPCTest():
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
 
-        # set up hpctest's layered configuration system
-        configuration.initConfig()    # must come after common.homepath and local spack are initialized
-
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
         sys.path[1:0] = [ common.own_spack_module_dir,
@@ -103,6 +100,9 @@ class HPCTest():
                           join(common.own_spack_module_dir, "external", "yaml", "lib"),
                           join(common.own_spack_module_dir, "llnl"),
                         ]
+
+        # set up hpctest's layered configuration system
+        configuration.initConfig()    # must come after paths, spack,and environ are initialized
 
         # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkitparams"))
