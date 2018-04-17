@@ -206,7 +206,7 @@ def unzip(zipfile_path, dest_path=None):
     import zipfile
     
     zip = zipfile.ZipFile(path, 'r')
-    zip.extractall(dest_path if dest_path else dirname(zipfile_path))
+    zip.extractall(dest_path if dest_path else own_spack_home)
     zip.close()
 
 
