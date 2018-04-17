@@ -77,6 +77,9 @@ class HPCTest():
         common.workpath = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
 
+        # set up hpctest's layered configuration system
+        configuration.initConfig()    # must come after common.homepath is initialized
+
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
             infomsg("Setting up local Spack...")
@@ -93,9 +96,6 @@ class HPCTest():
                           join(common.own_spack_module_dir, "external", "yaml", "lib"),
                           join(common.own_spack_module_dir, "llnl"),
                         ]
-
-        # set up hpctest's layered configuration system
-        configuration.initConfig()    # must come after common.homepath is initialized
 
         # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkitparams"))
