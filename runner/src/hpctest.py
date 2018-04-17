@@ -342,7 +342,10 @@ class HPCTest():
         # adding while preserving RepoPath representation invariant is messy
         # ...no single operation for this is available in current Spack code
         repos = spack.config.get_config('repos', "site")
-        repos.insert(0, repoPath)
+        if isinstance(repos, list):
+            repos.insert(0, repoPath)
+        else:
+            repos = [ repoPath ]
         spack.config.update_config('repos', repos, "site")
         repo = Repo(repoPath)
         spack.repo.put_first(repo)
