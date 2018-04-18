@@ -181,12 +181,12 @@ def forTestsInDirTree(dirtree, action):
 
 # context manager for timing
 
-class CpuTimer(object):
+class ElapsedTimer(object):
         
     def __init__(self, verbose=False):
 
         import time
-        self.timer = time.clock
+        self.timer = time.time
 
     def __enter__(self):
 
@@ -195,7 +195,7 @@ class CpuTimer(object):
 
     def __exit__(self, *args):
         
-        self.cpu_secs = self.timer() - self.start
+        self.secs = self.timer() - self.start
 
 
 # Custom exceptions

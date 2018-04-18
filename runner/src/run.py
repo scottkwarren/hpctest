@@ -194,7 +194,7 @@ class Run():
         from spack.package import InstallError
         from llnl.util.tty.log import log_output
 
-        from common import options, infomsg, errormsg, fatalmsg, BuildFailed, CpuTimer
+        from common import options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
@@ -209,7 +209,7 @@ class Run():
             
             outputPath = self.output.makePath("{}-output.txt", "build")
             with log_output(outputPath, echo="verbose" in options):
-                with CpuTimer() as t:
+                with ElapsedTimer() as t:
                     
                     try:
                         self.package.do_install(
@@ -224,7 +224,7 @@ class Run():
                     except Exception as e:
                         status, msg =  "FAILED", str(e)
                         
-                buildTime = t.cpu_secs
+                buildTime = t.secs
 
         # save results
         self.prefix = self.package.prefix       # prefix path is valid even if package failed to install

@@ -58,6 +58,8 @@ class Report():
         from os.path import isfile, isdir, join, basename, relpath
         from common import homepath, options, debugmsg, fatalmsg, sepmsg
         from spackle import readYamlFile, writeYamlFile
+
+        tableWidth = 113    # width of table row manually determined    # TODO: better
         
         debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options))
     
@@ -77,63 +79,63 @@ class Report():
                 fatalmsg("Test results file OUT.yaml not found for job {}".format(jobPath))
                         
         # print a summary record for each result, sorted by config spec and then test name
-        results.sort(key=lambda result: ( relpath(result["input"]["test"], join(homepath, "tests")), result["input"]["config spec"]) )
-        for result in results:
-            
-            # extract job data for reporting
-            test           = relpath(result["input"]["test"], join(homepath, "tests")).upper().replace("/", " / ")
-            config         = result["input"]["config spec"].upper()
-            status         = result["summary"]["status"]
-            msg            = result["summary"]["status msg"] if status != "OK" else ""
-            run            = result["run"]
-            
-            if run != "NA":
-                overhead       = run["profiled"]["hpcrun overhead %"]
-                hpcrun         = run["profiled"]["hpcrun summary"]
-            else:
-                hpcrun         = "NA"
+        if results:
+            results.sort(key=lambda result: ( relpath(result["input"]["test"], join(homepath, "tests")), result["input"]["config spec"]) )
+            for result in results:
                 
-            if hpcrun != "NA":
-                blocked    = hpcrun["blocked"]
-                errant     = hpcrun["errant"]
-                frames     = hpcrun["frames"]
-                intervals  = hpcrun["intervals"]
-                recorded   = hpcrun["recorded"]
-                samples    = hpcrun["samples"]
-                suspicious = hpcrun["suspicious"]
-                trolled    = hpcrun["trolled"]
-                yielded    = hpcrun["yielded"]
-            else:
-                blocked    = None
-                errant     = None
-                frames     = None
-                intervals  = None
-                recorded   = None
-                samples    = None
-                suspicious = None
-                trolled    = None
-                yielded    = None
-            
-            # format for display
-            tableWidth = 113    # width of table row manually determined    # TODO: better
-            testLabel = "{} with {}".format(test, config)
-            padding   = " " * (50 - len(testLabel))
-            line1 = "| {}".format(testLabel)
-            line1 += " " * (tableWidth - len(line1) - 1) + "|"
-            if status == "OK":
-                line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
-                        ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))
-            else:
-                line2 = ("| {}: {}").format(status, msg)         
-                line2 += " " * (tableWidth - len(line2) - 1) + "|"
-
-
-            # print job's summary
+                # extract job data for reporting
+                test           = relpath(result["input"]["test"], join(homepath, "tests")).upper().replace("/", " / ")
+                config         = result["input"]["config spec"].upper()
+                status         = result["summary"]["status"]
+                msg            = result["summary"]["status msg"] if status != "OK" else ""
+                run            = result["run"]
+                
+                if run != "NA":
+                    overhead       = run["profiled"]["hpcrun overhead %"]
+                    hpcrun         = run["profiled"]["hpcrun summary"]
+                else:
+                    hpcrun         = "NA"
+                    
+                if hpcrun != "NA":
+                    blocked    = hpcrun["blocked"]
+                    errant     = hpcrun["errant"]
+                    frames     = hpcrun["frames"]
+                    intervals  = hpcrun["intervals"]
+                    recorded   = hpcrun["recorded"]
+                    samples    = hpcrun["samples"]
+                    suspicious = hpcrun["suspicious"]
+                    trolled    = hpcrun["trolled"]
+                    yielded    = hpcrun["yielded"]
+                else:
+                    blocked    = None
+                    errant     = None
+                    frames     = None
+                    intervals  = None
+                    recorded   = None
+                    samples    = None
+                    suspicious = None
+                    trolled    = None
+                    yielded    = None
+                
+                # format for display
+                testLabel = "{} with {}".format(test, config)
+                padding   = " " * (50 - len(testLabel))
+                line1 = "| {}".format(testLabel)
+                line1 += " " * (tableWidth - len(line1) - 1) + "|"
+                if status == "OK":
+                    line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
+                            ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))
+                else:
+                    line2 = ("| {}: {}").format(status, msg)         
+                    line2 += " " * (tableWidth - len(line2) - 1) + "|"
+    
+    
+                # print job's summary
+                sepmsg(tableWidth)
+                print line1
+                print line2
+                            
             sepmsg(tableWidth)
-            print line1
-            print line2
-                        
-        sepmsg(tableWidth)
 
 
 def _pct(s, d):
