@@ -63,31 +63,36 @@ def extDo(cmdstring):
 
 
 
-# Executing a program with error checking
-
-def execute(cmd, *args, **kwargs):
-    
-    import os
-    from spack.util.executable import Executable
-    from common import errormsg
-
-    oldwd = os.getcwd()
-    newwd = kwargs.get('cwd', None)
-    exe   = Executable(cmd)
-    
+def execute(cmd, cwd=None, env=None, output=None, error=None):
+       
+    import os, subprocess
+    from spack.util.executable import ProcessError
+       
     try:
-        if newwd: os.chdir(newwd)
-        exe(*args, **kwargs)
+           
+        if cwd:
+            oldwd  = os.getcwd()
+            os.chdir(cwd)
+   
+        proc = subprocess.Popen(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
+        out, err = proc.communicate()
+   
+        if proc.returncode != 0:
+            raise ProcessError('Exit status %d:' % proc.returncode)
+   
+    except OSError as e:
+        raise ProcessError('%s: %s' % (self.exe[0], e.strerror))
+   
+    except subprocess.CalledProcessError as e:
+        raise ProcessError(str(e), "exit status %d" % proc.returncode)
+   
     finally:
-        if newwd: os.chdir(oldwd)
-        
+        if env: os.chdir(oldwd)
+           
     # raises spack.util.executable.ProcessError if execution fails
 
 
-
 # Transputting a YAML file
-
-# ... using 'yaml from lib/spack/external via sys.path adjustment in HPCTest.__init__
 
 def readYamlFile(path):
     

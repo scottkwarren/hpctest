@@ -57,18 +57,23 @@ build:
   
 run:
   batch: False
-  limits:
-    core file size:       1G      # ulimit -c
-    cpu time:           5000      # ulimit -t
-    data segment size:    1G      # ulimit -d
-    memlock size:         1G      # ulimit -l
-    num processes:        1K      # ulimit -u
-    open files:           1K      # ulimit -n
-    pipe buffer size:     1G      # ulimit -p
-    resident set size:   10G      # ulimit -m
-    shell file size:      1G      # ulimit -f
-    stack size:           1G      # ulimit -s
-    vm_size:             10G      # ulimit -v
+  ulimit:
+    c:  200K        # core file size          (blocks, -c) 0
+    d:  2M          # data seg size           (kbytes, -d) unlimited
+#   e:  0           # scheduling priority             (-e) 0
+    f:  2M          # file size               (blocks, -f) unlimited
+#   i:  512899      # pending signals                 (-i) 512899
+#   l:  64          # max locked memory       (kbytes, -l) 64
+#   m:  unlimited   # max memory size         (kbytes, -m) unlimited
+#   n:  1024        # open files                      (-n) 1024
+#   p:  8           # pipe size            (512 bytes, -p) 8
+#   q:  819200      # POSIX message queues     (bytes, -q) 819200
+#   r:  0           # real-time priority              (-r) 0
+    s:  100K        # stack size              (kbytes, -s) 8192
+    t:  3000        # cpu time               (seconds, -t) unlimited
+    u:  500         # max user processes              (-u) 4096
+#   v:  unlimited   # virtual memory          (kbytes, -v) unlimited
+#   x:  unlimited   # file locks                      (-x) unlimited
 
 profile:
   hpctoolkit bin path:  null

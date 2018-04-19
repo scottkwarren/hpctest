@@ -321,7 +321,7 @@ class Run():
         runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
         outPath  = self.output.makePath("{}-output.txt", label)
         timePath = self.output.makePath("{}-time.txt", label)
-        
+
         # ... add profiling code if wanted
         if profile:
             self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
@@ -344,16 +344,20 @@ class Run():
             notimplemented("batch scheduling")   # TODO: implement this
         
         # ... always add timing code
-        #### timedCmd = "/usr/bin/time -f '%e\\t%S\\t%U' -o '{}/{}-time.txt' {}".format("OUT", label, cmd)
-        timedCmd = "/usr/bin/time -f %e\\t%S\\t%U -o {} {}".format(timePath, cmd)
-        self.output.add(label, "command", timedCmd, subroot=keylist)
+        cmd = "/usr/bin/time -f '%e\\\\\\\t%S\\\\\\\\t%U' -o {} {}".format(timePath, cmd)
         
+        # ... always add resource limiting code
+        limitstring = self._makeLimitString()
+        cmd = " /bin/bash -c 'ulimit {}; {}' ".format(limitstring, cmd)
+        
+        self.output.add(label, "command", cmd, subroot=keylist)
+
         # execute the command
-        verbosemsg("Executing {} test:\n{}".format(label, timedCmd))
+        verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
             with open(outPath, "w") as outf:
-                execute(timedCmd, cwd=runPath, env=env, output=outf, error=outf)
+                execute(cmd, cwd=runPath, env=env, output=outf, error=outf)
                 
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c ProcessError.message ends in ':' fsr
@@ -375,6 +379,27 @@ class Run():
         
         return cputime, msg
     
+
+    def _makeLimitString(self, limitDict=None):
+        
+        import configuration
+        
+        unitsDict = {"k": 2**10, "K": 2**10, "m": 2**20, "M": 2**20, "g": 2**30, "G": 2**30}
+        
+        if not limitDict: limitDict = configuration.get("run.ulimit", {})
+        s = ""
+        for key in limitDict:
+            value = str(limitDict[key])
+            lastChar = value[-1]
+            if lastChar in unitsDict:
+                coeff = unitsDict[lastChar]
+                value = value[:-1]
+            else:
+                coeff = 1
+            s += "-{} {} ".format(key, coeff * int(value))
+            
+        return s
+
     
     def _readTotalCpuTime(self, timePath):
             

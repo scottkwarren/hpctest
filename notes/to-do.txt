@@ -1,8 +1,36 @@
 HPCTEST TO DO
-
-- arrange to automagically set 'verify_ssl: false' in spack/etc/spack/defaults/config.yaml
-  to avoid download prblems caused by out of date OpenSSL implementations of hosts.
-
+ 
+ - Implement run limits
+ 
+ - Separate repo for dependencies
+ - Finer grain for checksumming
+ - external repo + option to store dependencies there
+ 
+ - Fix double-quote issue that prevents passing hpctoolkit params on command line
+ 
+ - Alternate input notation based on yaml
+ 
+ - Alternation & wildcards in specs
+ 
+ - Reporting options:
+ 	- all/pass/fail
+ 	- sort order
+ 	- optional summaries
+ 
+ - Config defaults per platform and site
+ 
+ - Batch job submission & polling
+ 
+ - Robust iteration & continuation
+ 
+ - Refactor for experiment classes
+ 
+ 
+ 
+ 
+ FUTURE WORK
+ 
+ 
 - Spack team is working on support for iterating through concretizations of specs
   (of use in combinatorial testing) "for @tgamblin's planned package build testing".
   Todd: "With the new concretizer we will have a way to iterate through all solutions,
@@ -10,8 +38,13 @@ HPCTEST TO DO
   combinatorially and what not to. The test-suite file does some of that, but it
   needs some support for iterating over legal combinations".
   See https://github.com/LLNL/spack/issues/4530.
-  
- - "The test-suite file" ??
+  "The test-suite file" ??
+ 
+ 
+ 
+ 
+ 
+ 
  
  
  OTHER SPACK REPOS FOR HPC APPLICATIONS
