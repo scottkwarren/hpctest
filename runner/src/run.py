@@ -344,7 +344,7 @@ class Run():
             notimplemented("batch scheduling")   # TODO: implement this
         
         # ... always add timing code
-        cmd = "/usr/bin/time -f '%e\\\\\\\t%S\\\\\\\\t%U' -o {} {}".format(timePath, cmd)
+        cmd = "/usr/bin/time -f '%e\\\\\\\\t%S\\\\\\\\t%U' -o {} {}".format(timePath, cmd)   # backslashes are 
         
         # ... always add resource limiting code
         limitstring = self._makeLimitString()

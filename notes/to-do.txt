@@ -1,12 +1,15 @@
 HPCTEST TO DO
  
- - Implement run limits
+ - Fix run limits so that cpu time limit is respected; issue is MPI processes
+ 
+ - Fix double-quote issue that prevents passing hpctoolkit params on command line
+ 
+ - Batch job submission & polling
+ - Robust iteration & continuation
  
  - Separate repo for dependencies
  - Finer grain for checksumming
  - external repo + option to store dependencies there
- 
- - Fix double-quote issue that prevents passing hpctoolkit params on command line
  
  - Alternate input notation based on yaml
  
@@ -19,9 +22,6 @@ HPCTEST TO DO
  
  - Config defaults per platform and site
  
- - Batch job submission & polling
- 
- - Robust iteration & continuation
  
  - Refactor for experiment classes
  
