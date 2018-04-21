@@ -60,13 +60,17 @@ class Run():
         self.workspace = workspace                      # storage for collection of test job dirs
         self.name      = basename(self.testdir)
 
-        # hpctoolkit paths -- TODO: get from setup or environment
+        # hpctoolkit params
         self.hpctoolkitBinPath = hpctoolkit
-        self.hpcrunParams, self.hpcstructParams, self.hpcprofParams = hpctoolkitparams.split(";")
+        paramList = hpctoolkitparams.replace("_", "-").split(";")
+        self.hpcrunParams    = paramList[0]
+        self.hpcstructParams = paramList[1] if len(paramList) >= 2 else ""
+        self.hpcprofParams   = paramList[2] if len(paramList) >= 3 else ""
         self.testIncs = "./+"
 
         # job directory
-        self.jobdir = self.workspace.addJobDir(self.name, self.config)
+        configdesc  = self.config    ## TODO: compute description including all dim specs
+        self.jobdir = self.workspace.addJobDir(self.name, configdesc)
         
          # storage for hpctest inputs and outputs
         self.output = ResultDir(self.jobdir, "OUT")
@@ -387,8 +391,10 @@ class Run():
         unitsDict = {"k": 2**10, "K": 2**10, "m": 2**20, "M": 2**20, "g": 2**30, "G": 2**30}
         
         if not limitDict: limitDict = configuration.get("run.ulimit", {})
+        
         s = ""
         for key in limitDict:
+            
             value = str(limitDict[key])
             lastChar = value[-1]
             if lastChar in unitsDict:
@@ -396,6 +402,13 @@ class Run():
                 value = value[:-1]
             else:
                 coeff = 1
+            value = int(value)
+                
+            if key == "t":  # cpu time must be apportioned to child processes
+                try:    ranks = self.yaml["run"]["ranks"]
+                except: ranks = 1
+                value /= ranks
+
             s += "-{} {} ".format(key, coeff * int(value))
             
         return s
@@ -418,7 +431,6 @@ class Run():
         
         return cpuTime
             
-
 
     def _checkTestResults(self):
 

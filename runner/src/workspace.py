@@ -79,10 +79,14 @@ class Workspace():
     def addJobDir(self, testdesc, configdesc):
 
         import os
-        from os.path import join 
+        from os.path import join, isdir
 
         # TODO: should ensure uniqueness
         jobdir = join(self.path, "{}-{}".format(testdesc, configdesc))
+        if isdir(jobdir):
+            n = 2
+            while( isdir(jobdir + "-" + str(n))): n += 1
+            jobdir = jobdir + "-" + str(n)
         os.makedirs(jobdir)
         
         return jobdir
