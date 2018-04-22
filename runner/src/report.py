@@ -52,13 +52,22 @@ class Report():
 
     
     @classmethod
-    def printReport(myclass, workspace):
+    def printReport(myclass, workspace, sortKeys):
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
         from common import homepath, options, debugmsg, fatalmsg, sepmsg
         from spackle import readYamlFile, writeYamlFile
 
+        def sortKeyFunc(result):
+            def get_nested(my_dict, keys):
+                key = keys.pop(0)
+                return my_dict[key] if len(keys) == 0 else get_nested(my_dict[key], keys)
+            keylist = []
+            for keypath in dimkeys:
+                keylist.append(get_nested(result["input"], list(keypath)))  # copy keypath b/c get_nested destroys its second argument
+            return keylist
+    
         tableWidth = 113    # width of table row manually determined    # TODO: better
         
         debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options))
@@ -77,18 +86,30 @@ class Report():
                     results.append(resultdict)
             else:
                 fatalmsg("Test results file OUT.yaml not found for job {}".format(jobPath))
-                        
+
         # print a summary record for each result, sorted by config spec and then test name
         if results:
-            results.sort(key=lambda result: ( relpath(result["input"]["test"], join(homepath, "tests")), result["input"]["config spec"]) )
+
+            # sort results by input dimspec sequence
+            dimkey_map = {"tests":            ["test"],
+                          "configs":          ["config spec"],
+                          "hpctoolkits":      ["hpctoolkit"],
+                          "hpctoolkit params":["hpctoolkit params", "hpcrun"]
+                         }
+            dimkeys = []
+            for key in sortKeys: dimkeys.append(dimkey_map[key])
+            results.sort(key=sortKeyFunc)      # key func returns list of result fields corresponding to dimkey_list
+
             for result in results:
                 
                 # extract job data for reporting
-                test           = relpath(result["input"]["test"], join(homepath, "tests")).upper().replace("/", " / ")
-                config         = result["input"]["config spec"].upper()
-                status         = result["summary"]["status"]
-                msg            = result["summary"]["status msg"] if status != "OK" else ""
-                run            = result["run"]
+                test       = result["input"]["test"].upper().replace("/", " / ")
+                config     = result["input"]["config spec"].upper()
+                hpctoolkit = result["input"]["hpctoolkit"]
+                params     = result["input"]["hpctoolkit params"]["hpcrun"]
+                status     = result["summary"]["status"]
+                msg        = result["summary"]["status msg"] if status != "OK" else ""
+                run        = result["run"]
                 
                 if run != "NA":
                     overhead       = run["profiled"]["hpcrun overhead %"]
@@ -118,8 +139,7 @@ class Report():
                     yielded    = None
                 
                 # format for display
-                testLabel = "{} with {}".format(test, config)
-                padding   = " " * (50 - len(testLabel))
+                testLabel = "{} with {} and {}".format(test, config, params)  # TODO: display hpctoolkit path but make sure line's not too long
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
                 if status == "OK":

@@ -141,9 +141,12 @@ class HPCTest():
         
         workspace = Workspace(workpath)
         
+        # run all the tests
         status  = Iterate.doForAll(dims, args, workspace)
         print "\n"
-        Report.printReport(workspace)
+        
+        # report results
+        Report.printReport(workspace, dimStrings.keys())
         print "\n"
         
         return status
