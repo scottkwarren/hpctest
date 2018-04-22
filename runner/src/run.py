@@ -62,7 +62,7 @@ class Run():
 
         # hpctoolkit params
         self.hpctoolkitBinPath = hpctoolkit
-        paramList = hpctoolkitparams.replace("_", "-").split(";")
+        paramList = hpctoolkitparams.split(";")
         self.hpcrunParams    = paramList[0]
         self.hpcstructParams = paramList[1] if len(paramList) >= 2 else ""
         self.hpcprofParams   = paramList[2] if len(paramList) >= 3 else ""

@@ -181,7 +181,7 @@ def execute(args):
             dims["hpctoolkits"] = args.hpctoolkits
             del args.hpctoolkits
         if args.hpctoolkitparams != "default":
-            dims["hpctoolkit params"] = args.hpctoolkitparams
+            dims["hpctoolkit params"] = args.hpctoolkitparams.replace("_", "-").replace(".", " ")  # undo the workaround for argparse fail on quoted args
             del args.hpctoolkitparams
         workspace = args.workspace; del args.workspace
         otherargs = args
