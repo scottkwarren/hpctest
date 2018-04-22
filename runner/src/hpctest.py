@@ -105,14 +105,14 @@ class HPCTest():
         configuration.initConfig()    # must come after paths, spack,and environ are initialized
 
         # dimension info (requires paths and config to be set up)
-        dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkitparams"))
-        dimspecClasses  = { "tests":TestSpec, "configs":ConfigSpec, "hpctoolkits":StringSpec, "hpctoolkitparams":StringSpec }
-        dimspecDefaults = { "tests":            "all",    
-                            "configs":          "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkits":      expanduser( configuration.get("profile.hpctoolkit bin path", dirname(which("hpcrun"))) ), 
-                            "hpctoolkitparams": configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
-                                                configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
-                                                configuration.get("profile.hpctoolkit.hpcprof params",   "")
+        dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkit params"))
+        dimspecClasses  = { "tests":TestSpec, "configs":ConfigSpec, "hpctoolkits":StringSpec, "hpctoolkit params":StringSpec }
+        dimspecDefaults = { "tests":             "all",    
+                            "configs":           "%" + configuration.get("build.compiler", "gcc"),     
+                            "hpctoolkits":       expanduser( configuration.get("profile.hpctoolkit bin path", dirname(which("hpcrun"))) ), 
+                            "hpctoolkit params": configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
+                                                 configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
+                                                 configuration.get("profile.hpctoolkit.hpcprof params",   "")
                           }
         
         

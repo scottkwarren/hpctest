@@ -88,10 +88,10 @@ def parseCommandLine():
     # ... tests
     testGroup = runParser.add_mutually_exclusive_group()
     testGroup.add_argument("tests",    nargs="?",      type=str,  default="all",     help="test-spec for the set of test cases to be run")
-    testGroup.add_argument("--tests",           "-t",  type=str,  default="all",     help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("--tests",            "-t",  type=str,  default="all",     help="test-spec for the set of test cases to be run")
 
     # ... configs
-    runParser.add_argument("--configs",         "-c",  type=str,  default="default", help="build-spec for the set of build configs on which to test")
+    runParser.add_argument("--configs",          "-c",  type=str,  default="default", help="build-spec for the set of build configs on which to test")
 
     # ... hpctoolkits
     runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default", help="paths to installations of hpctoolkit with which to test")
@@ -181,7 +181,7 @@ def execute(args):
             dims["hpctoolkits"] = args.hpctoolkits
             del args.hpctoolkits
         if args.hpctoolkitparams != "default":
-            dims["hpctoolkitparams"] = args.hpctoolkitparams
+            dims["hpctoolkit params"] = args.hpctoolkitparams
             del args.hpctoolkitparams
         workspace = args.workspace; del args.workspace
         otherargs = args
