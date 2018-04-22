@@ -7,10 +7,6 @@
 ################################################################################
 
 
-run:
-  ulimit:
-    t: 100    # cpu time
-
 profile:
   hpctoolkit bin path: ~/hpctoolkit-current/hpctoolkit/INSTALL/bin/
   
