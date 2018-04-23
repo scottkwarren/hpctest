@@ -1,7 +1,13 @@
 HPCTEST TO DO
  
- - Fix double-quote issue that prevents passing hpctoolkit params on command line
- 
+- Fix the (verbose for now) run banner:
+
+    ----------------------------------------------------------------------
+    running test /home/scott/hpctest/tests/app/AMG2006 with config %gcc@4.4.7
+    ----------------------------------------------------------------------
+
+   to show relative test path, include all dimensions, and have longer rules.
+
  - Batch job submission & polling
  - Robust iteration & continuation
  
