@@ -58,6 +58,7 @@ build:
 
 run:
     cmd: nekbone ex1 2
+    dir: test/example1
     ranks: 2
     numthreads: 4
 

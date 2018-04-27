@@ -4,7 +4,6 @@ HPCTEST TO DO
 - Intermittent failure of Report.report when a build failed b/c <OUT.yaml>["summary"]["status"] does not exist.
 
 
-- Fix nekbone: just needs its data file in the right place.
 - Fix miniAMR: "number of processors used does not match number allocated"
 
 
