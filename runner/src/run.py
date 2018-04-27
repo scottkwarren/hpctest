@@ -98,7 +98,7 @@ class Run():
             self.output.addSummaryStatus("OK", None)
             
         except BadTestDescription as e:
-            msg = "can't run test (missing or invalid '{}' file)".format("hpctest.yaml")
+            msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
         except PrepareFailed as e:
             msg = "failed to set up for building test"
         except BuildFailed as e:
@@ -152,7 +152,7 @@ class Run():
             self.spec.concretize()                                          # TODO: check that this succeeds
         except Exception as e:
             self.output.addSummaryStatus("TEST CONFIG INVALID", e.message)
-            raise BadTestDescription(error)
+            raise BadTestDescription(e.message)
 
 
     def _prepareJobDirs(self):
@@ -186,7 +186,7 @@ class Run():
                 
         except Exception as e:
             self.output.addSummaryStatus("TEST INIT FAILED", e.message)
-            raise PrepareFailed
+            raise PrepareFailed(e.message)
         
 
     def _buildTest(self):
@@ -253,7 +253,7 @@ class Run():
                         with open(e.pkg.build_log_path) as log:
                             shutil.copyfileobj(log, sys.stdout)
             self.output.addSummaryStatus("BUILD FAILED", msg)
-            raise BuildFailed
+            raise BuildFailed(msg)
 
 
     def _runBuiltTest(self):

@@ -155,8 +155,25 @@ def writeYamlFile(path, object):
     except Exception as e:
         msg = "file cannot be opened for writing: (error {})".format(e)
     if "verbose" in options: debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
-   
 
+
+def removeRepo(repo):
+    
+    # spack.repo is a RepoPath. RepoPath.remove is broken:
+    # it removes from RepoPath.by_name but NOT from RepoPath.by_namespace.
+    # this function does the whole job. Cf. RepoPath.remove and RepoPath._add.
+    
+    import spack
+    from spack.util.naming import NamespaceTrie
+    
+    spack.repo.repos.remove(repo)
+    _ = spack.repo.by_path.pop(repo.root, None)
+    
+    # removing from .by_namespace is messy b/c NamespaceTrie has no 'remove' method
+    # instead, we make a new one and re-add each repo
+    spack.repo.by_namespace = NamespaceTrie()
+    for r in spack.repo.repos:
+        spack.repo.by_namespace[r.full_namespace] = r
 
 
 

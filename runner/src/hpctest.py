@@ -187,21 +187,24 @@ class HPCTest():
         from os import remove
         from os.path import exists, join
         from shutil import rmtree
+        import spack
         from common import homepath, own_spack_home, errormsg
         import spackle
 
         self.clean()
         
-        # remove private repo directories
-        tpath = join(homepath, "runner", "repos", "tests")
-        if exists(tpath): rmtree(tpath)
-        bpath = join(homepath, "runner", "repos", "build")
-        if exists(bpath): rmtree(bpath)
-
+        # remove private repos from Spack's in-memory repo set
+        repo = spack.repo.get_repo("tests", default=None)
+        if repo: spackle.removeRepo(repo)
+        
         # remove repo paths from Spack's repos.yaml
         with open(join(own_spack_home, "etc", "spack", "repos.yaml"), "w") as f:
             f.write("repos:\n")
         
+        # remove repo directories
+        tpath = join(homepath, "runner", "repos", "tests")
+        if exists(tpath): rmtree(tpath)
+
         # remove checksum file from tests directory
         cpath = join(homepath, "tests", checksumName)
         if exists(cpath): remove(cpath)
@@ -273,7 +276,9 @@ class HPCTest():
         from common import homepath, readYamlforTest, errormsg
         import spack
         
-        # must start with a clean slate to avoid Spack errrors
+        R = spack.repo
+        
+        # must start with a clean slate to avoid Spack errors
         self.reset()
         
         # customize settings of builtin repo
@@ -314,24 +319,14 @@ class HPCTest():
 
     def _makePrivateRepo(self, dirname):
         
-        from argparse import Namespace
         from os.path import join
-        from shutil import rmtree
         import spack
-        from spack.cmd.repo import repo_remove
         from spack.repository import create_repo
         from common import homepath
 
+        # this just makes & prepares repo directory, must be added to Spack once populated
         repoPath = join(homepath, "runner", "repos", dirname)
         namespace = dirname
-
-        # repo must not exist or already be added to Spack
-        repos = spack.config.get_config('repos', "site")
-        if repoPath in repos:
-            repo_remove(Namespace(path_or_namespace=repoPath, scope="site"))
-            rmtree(repoPath)
-
-        # this just makes & prepares reoo directory, must be added to Spack once populated
         _ = create_repo(repoPath, namespace)
         
         return repoPath
