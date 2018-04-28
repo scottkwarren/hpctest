@@ -133,6 +133,17 @@ def parseCommandLine():
 
 
     # -------------------------------------------------------------------------------------------------------
+    # hpctest spack <cmd>
+    # -------------------------------------------------------------------------------------------------------
+    spackParser = subparsers.add_parser("spack", help="run a Spack command with hpctest's private Spack")
+    spackParser.add_argument('spackcmd', nargs=argparse.REMAINDER)
+    
+    # ... options
+    _addOptionArgs(spackParser)
+    # -------------------------------------------------------------------------------------------------------
+
+
+    # -------------------------------------------------------------------------------------------------------
     # hpctest _miniapps <options>
     # -------------------------------------------------------------------------------------------------------
     miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
@@ -167,6 +178,7 @@ def execute(args):
 
     global tester
     from collections import OrderedDict
+    from os.path import join
     from common import options, yesno
 
     if args.subcommand == "run":
@@ -194,6 +206,8 @@ def execute(args):
             tester.reset()
         else:
             print "Ok, nothing will be deleted."
+    elif args.subcommand == "spack":
+        tester.spack(" ".join(args.spackcmd))
     elif args.subcommand == "miniapps":
             tester.miniapps()
     else:

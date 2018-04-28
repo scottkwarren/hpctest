@@ -235,6 +235,12 @@ class HPCTest():
 #             print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
 
     
+    def spack(self, cmdstring):
+        
+        import spackle
+        spackle.do(cmdstring)
+
+    
     def _ensureRepos(self):
         # set up our private spack & make it extend the external one if any
 
