@@ -4,19 +4,20 @@ HPCTEST TO DO
 - Intermittent failure of Report.report when a build failed b/c <OUT.yaml>["summary"]["status"] does not exist.
 
 
-- Fix miniAMR: "number of processors used does not match number allocated"
-
-
+ - Separate repo for dependencies
+ - Finer grain for checksumming
+ - external repo + option to store dependencies there
+ 
+ 
 - Generate a top-level _OUT directory with whole-job summary info:
 	- OUTs from each run
 	- copy of reported table
 	- Equivalent of run.log for whole job
 	
 
-- Capture into _OUT the spack*out files produced on building and any
-  core files produced during the executions.
-- Add variable-weight separators to report to indicate group changes.
- - Reporting options:
+- Capture into _OUT the spack*out files and any core files produced
+- Add variable-weight separators to report to indicate group changes
+- Reporting options:
  	- all/pass/fail
  	- sort order
  	- optional summaries
@@ -35,11 +36,6 @@ HPCTEST TO DO
  - Alternation & wildcards in specs
    
    
- - Separate repo for dependencies
- - Finer grain for checksumming
- - external repo + option to store dependencies there
- 
- 
  - Refactor for experiment classes
  
  

@@ -396,20 +396,26 @@ class Run():
         for key in limitDict:
             
             value = str(limitDict[key])
-            lastChar = value[-1]
-            if lastChar in unitsDict:
-                coeff = unitsDict[lastChar]
-                value = value[:-1]
-            else:
-                coeff = 1
-            value = int(value)
+            
+            if value != "unlimited":
                 
-            if key == "t":  # cpu time must be apportioned to child processes
-                try:    ranks = self.yaml["run"]["ranks"]
-                except: ranks = 1
-                value /= ranks
+                lastChar = value[-1]
+                if lastChar in unitsDict:
+                    multiplier = unitsDict[lastChar]
+                    value = value[:-1]
+                else:
+                    multiplier = 1
+                
+                if key == "t":  # cpu time must be apportioned to child processes
+                    try:    ranks = self.yaml["run"]["ranks"]
+                    except: ranks = 1
+                    divisor = ranks
+                else:
+                    divisor = 1
+                    
+                value = str( int(value) * multiplier / divisor )
 
-            s += "-{} {} ".format(key, coeff * int(value))
+            s += "-{} {} ".format(key, value)
             
         return s
 

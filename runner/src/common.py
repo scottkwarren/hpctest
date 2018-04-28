@@ -160,7 +160,7 @@ def readYamlforTest(testDir):
     return yaml, msg
 
 
-# recursice directory search
+# recursive directory search
 def forTestsInDirTree(dirtree, action):
     
     import os

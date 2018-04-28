@@ -10,6 +10,10 @@
 profile:
   hpctoolkit bin path: ~/hpctoolkit-current/hpctoolkit/INSTALL/bin/
   
+run:
+  ulimit:
+    t: unlimited  # cpu time (seconds)
+
   
   
   

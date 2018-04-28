@@ -105,7 +105,7 @@ def _overrideDict(dict1, dict2):
     from collections import Mapping, MutableMapping
 
     for key, value2 in dict2.iteritems():
-        if value2:
+        if value2 != None:
             if key in dict1 and dict1[key]:
                 value1 = dict1[key]
                 if isinstance(value1, MutableMapping) and isinstance(value2, Mapping):  ## TODO: FIX CASE "key in both, V1 is scalar, V2 is dict & vv"
