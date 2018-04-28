@@ -220,6 +220,12 @@ class HPCTest():
         except Exception as e:
             errormsg( "error removing installed packages and their build byproducts ({})".format(str(e)) )
 
+    
+    def spack(self, cmdstring):
+        
+        import spackle
+        spackle.do(cmdstring)
+
         
 #     def miniapps(self):
 #         
@@ -233,12 +239,6 @@ class HPCTest():
 #         for name in builtin.packages_with_tags("proxy-app"):
 #             p = builtin.get(name)
 #             print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
-
-    
-    def spack(self, cmdstring):
-        
-        import spackle
-        spackle.do(cmdstring)
 
     
     def _ensureRepos(self):
