@@ -92,6 +92,8 @@ class HPCTest():
             
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
+            infomsg("To add existing or new compilers, use 'hpctest spack <spack-cmd>' and")
+            infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n\n")
 
         # adjust environment accordingly
         environ["HPCTEST_HOME"] = common.homepath
@@ -101,7 +103,7 @@ class HPCTest():
                           join(common.own_spack_module_dir, "llnl"),
                         ]
 
-        # set up hpctest's layered configuration system
+        # set up configuration system
         configuration.initConfig()    # must come after paths, spack,and environ are initialized
 
         # dimension info (requires paths and config to be set up)
