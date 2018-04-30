@@ -116,7 +116,7 @@ class Run():
         # finish writing results
         elapsedTime = time.time() - startTime
         self._addMissingOutputs()
-        self.output.add("summary", "elapsed time", elapsedTime)
+        self.output.add("summary", "elapsed time", elapsedTime, format="{:0.2f}")
         self.output.write()
 
 
@@ -233,7 +233,7 @@ class Run():
         # save results
         self.prefix = self.package.prefix       # prefix path is valid even if package failed to install
         self.output.add("build", "prefix",     str(self.prefix))
-        self.output.add("build", "cpu time",   buildTime)
+        self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
         self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
 
@@ -377,7 +377,7 @@ class Run():
             infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
         
         # save results
-        self.output.add(label, "cpu time", cputime, subroot=keylist)
+        self.output.add(label, "cpu time", cputime, subroot=keylist, format="{:0.2f}")
         self.output.add(label, "status", "FAILED" if failed else "OK", subroot=keylist)
         self.output.add(label, "status msg", msg, subroot=keylist)
         
@@ -484,7 +484,7 @@ class Run():
         else:
             overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
             infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
-            self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent)
+            self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent, format="{:0.2f}")
 
         # summarize hpcrun log
         if profiledFailMsg:

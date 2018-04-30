@@ -98,7 +98,8 @@ class ResultDir():
             dict = dict[key]
             
         # perform insertion
-        dict[lastKey] = value
+        fmt = kwargs.get("format", None)
+        dict[lastKey] = value if fmt is None else fmt.format(value)
 
 
     def addSummaryStatus(self, status, msg):
