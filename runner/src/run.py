@@ -493,6 +493,10 @@ class Run():
         else:
             summaryDict = self._summarizeHpcrunLog()
             self.output.add("run", "profiled", "hpcrun summary", summaryDict)
+        
+        # no checks yet, so always record success
+        self.output.add("hpcrun", "output checks", "OK")
+        self.output.add("hpcrun", "output msg",    None)
 
 
     def _summarizeHpcrunLog(self):
