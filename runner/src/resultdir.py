@@ -99,7 +99,7 @@ class ResultDir():
             
         # perform insertion
         fmt = kwargs.get("format", None)
-        dict[lastKey] = value if fmt is None else fmt.format(value)
+        dict[lastKey] = value if fmt is None else float(fmt.format(value))
 
 
     def addSummaryStatus(self, status, msg):

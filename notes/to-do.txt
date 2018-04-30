@@ -42,7 +42,6 @@ HPCTEST TO DO
  - Config defaults per platform and site
  
  -----
- - Round all times in OUT.yaml to two decimal places. Only some are now.
  - Is it good to divide cpu limit among mpi ranks? Or let limit be per node?
  -----
  
