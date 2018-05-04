@@ -300,29 +300,34 @@ class HPCTest():
         from os.path import join, exists
         from util.checksumdir import dirhash
         from common import options, homepath, forTestsInDirTree
-        
-##      return  ## DEBUG
+        import spack
     
         def ensureTest(testDir, testYaml):
             
             if "nochecksum" in options: return
             if testYaml["config"] == "spack-builtin": return
-            
-            # get old and new checksums
+            name = testYaml["info"]["name"]
             checksumPath = join(testDir, checksumName)
-            if exists(checksumPath):
-                with open(checksumPath) as old: oldChecksum = old.read()
-            else:
-                oldChecksum = "no checksum yet"
-            newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
             
+            # check if repo has an up-to-date package
+            newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
+            if spack.repo.exists(name):
+                # compare old and new checksums
+                if exists(checksumPath):
+                    with open(checksumPath) as old: oldChecksum = old.read()
+                else:
+                    oldChecksum = "no checksum yet"
+                needPackage = newChecksum != oldChecksum
+            else:
+                needPackage = True
+                
             # update package if test has changed
-            if newChecksum != oldChecksum:
-                self._addPackageForTest(testDir, testYaml["info"]["name"])
+            if needPackage:
+                self._addPackageForTest(testDir, name)
                             
-            # save new checksum -- must follow '_setUpRepos' b/c it deletes this checksum file
-            with open(checksumPath, 'w') as new:
-                new.write(newChecksum)
+                # save new checksum
+                with open(checksumPath, 'w') as new:
+                    new.write(newChecksum)
                 
         testsDir = join(homepath, "tests")
         forTestsInDirTree( testsDir, lambda(a, b): ensureTest(a, b) )   # 
@@ -341,8 +346,7 @@ class HPCTest():
         packagePath = join(repopath, "packages", name)
 
         # remove installed versions of package if any
-        pkg = spack.repo.get(name)
-        if pkg:
+        if spack.repo.exists(name):
             cmd = "uninstall --all --force --yes-to-all {}".format(name)
             spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")   # installed dependencies are not removed
         rmtree(packagePath, ignore_errors=True)

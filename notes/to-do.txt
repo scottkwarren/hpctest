@@ -4,9 +4,7 @@ HPCTEST TO DO
 - Intermittent failure of Report.report when a build failed b/c <OUT.yaml>["summary"]["status"] does not exist.
 
 
- - Separate repo for dependencies
- - Finer grain for checksumming
- - external repo + option to store dependencies there
+- external repo + option to store dependencies there
  
  
 - Generate a top-level _OUT directory with whole-job summary info:
@@ -34,6 +32,10 @@ HPCTEST TO DO
  
  - Alternate input notation based on yaml
  - Alternation & wildcards in specs
+ 	- use 'compilerList = spack.compilers.all_compiler_specs()'
+ 	- or to find versions of a given compiler family,
+ 	  use e.g. 'compilerList = spack.compilers.find("gcc")'
+ 	- maybe 'compilerList = 'ppk = PackagePrefs("gcc", "compiler")'
    
    
  - Refactor for experiment classes
