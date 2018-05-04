@@ -75,7 +75,9 @@ class HPCTest():
         common.ext_spack_home = extspackpath  # ok to be None
         common.own_spack_home = join(runnerpath, "spack")
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
-        common.workpath = join(common.homepath, "work")
+        common.testspath = join(common.homepath, "tests")
+        common.repopath  = join(runnerpath, "repos", "tests")
+        common.workpath  = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
 
         # set up local spack if necessary
@@ -106,6 +108,9 @@ class HPCTest():
         # set up configuration system
         configuration.initConfig()    # must come after paths, spack,and environ are initialized
 
+        # set up private repo
+        self._ensureRepo()
+        
         # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "configs", "hpctoolkits", "hpctoolkit params"))
         dimspecClasses  = { "tests":TestSpec, "configs":ConfigSpec, "hpctoolkits":StringSpec, "hpctoolkit params":StringSpec }
@@ -129,7 +134,6 @@ class HPCTest():
         from report     import Report
         global dimensions, dimspecDefaults, dimspecClasses
 
-        self._ensureRepos()
         if not workpath: workpath = common.workpath
                 
         # decode the odict of dimension strings into a complete odict of dimension specs, with default specs for missing dimensions
@@ -241,88 +245,22 @@ class HPCTest():
 #             print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
 
     
-    def _ensureRepos(self):
-        # set up our private spack & make it extend the external one if any
+    def _ensureRepo(self):
 
-        from os.path import join, exists
-        from util.checksumdir import dirhash
-        from common import options, homepath, infomsg, debugmsg
-        global _testDirChecksum
-        
-        testsDir = join(homepath, "tests")
-        checksumPath = join(testsDir, checksumName)
-        
-        if exists(checksumPath) and "nochecksum" in options:     # 'nochecksum' notwithstanding, need to set up repos if checksum file is missing (ie first run)
-            infomsg("skipping check for changes in 'tests' directory because '--nochecksum' option given")
-            return
-        
-        # get old and new checksums
-        if exists(checksumPath):
-            with open(checksumPath) as old: oldChecksum = old.read()
-        else:
-            oldChecksum = "no checksum yet"
-        newChecksum = dirhash(testsDir, hashfunc='md5', excluded_files=[checksumName])
-        
-        # check if tests have changed
-        if newChecksum != oldChecksum:
-
-            # set up repos anew
-            debugmsg("recreating test packages since 'tests' directory has changed")
-            debugmsg("... old = {}, new = {}".format(oldChecksum, newChecksum))
-            self._setUpRepos()
-                        
-            # save new checksum -- must follow '_setUpRepos' b/c it deletes this checksum file
-            with open(checksumPath, 'w') as new:
-                new.write(newChecksum)
-
-
-    def _setUpRepos(self):
-
-        import sys
         import os
-        from os.path import join, isfile
-        from common import homepath, readYamlforTest, errormsg
         import spack
-        
-        R = spack.repo
-        
-        # must start with a clean slate to avoid Spack errors
-        self.reset()
         
         # customize settings of builtin repo
         spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
-    
+
         # create new private repo for building test cases
-        repoPath = self._makePrivateRepo("tests")
-        
-        # populate test repo with a package for each test case
-        testsPath = join(homepath, "tests")
-        for root, dirs, files in os.walk(testsPath, topdown=False):
-            
-            if isfile(join(root, "hpctest.yaml")):
-                yaml, msg = readYamlforTest(root)
-                if yaml:  # found a test-case directory
-                    if yaml["config"] != "spack-builtin":
-                        self._addPackageForTest(repoPath, root, yaml["info"]["name"])
-                    else:
-                        # existing Spack builtin package will be used for this test
-                        pass
-                else:
-                    errormsg("unusable 'hpctest.yaml' file in test {}: {}".format(root, e.message))
-                    
-        # add test repo to private Spack
-        self._addPrivateRepo(repoPath)
+        noRepo = spack.repo.get_repo("tests", default=None) is None
+        if noRepo: repoPath = self._makePrivateRepo("tests")
+        self._ensureTests()
+        if noRepo: self._addPrivateRepo(repoPath)
 
         # extend external repo if one was specified
         pass
-
-# ---------------------------------------------------------------
-#                 if yaml["config"] != "spack-builtin":
-#                     self._addPackageForTest(repoPath, root, yaml["info"]["name"])
-#                 else:
-#                     # existing Spack builtin package will be used for this test
-#                     pass
-# ---------------------------------------------------------------
 
 
     def _makePrivateRepo(self, dirname):
@@ -332,7 +270,7 @@ class HPCTest():
         from spack.repository import create_repo
         from common import homepath
 
-        # this just makes & prepares repo directory, must be added to Spack once populated
+        # this just makes a repo directory -- it must be added to Spack once populated
         repoPath = join(homepath, "runner", "repos", dirname)
         namespace = dirname
         _ = create_repo(repoPath, namespace)
@@ -357,17 +295,59 @@ class HPCTest():
         spack.repo.put_first(repo)
 
 
-    def _addPackageForTest(self, repoPath, testPath, name):
+    def _ensureTests(self):
+
+        from os.path import join, exists
+        from util.checksumdir import dirhash
+        from common import options, homepath, forTestsInDirTree
         
-        from os import mkdir
+##      return  ## DEBUG
+    
+        def ensureTest(testDir, testYaml):
+            
+            if "nochecksum" in options: return
+            if testYaml["config"] == "spack-builtin": return
+            
+            # get old and new checksums
+            checksumPath = join(testDir, checksumName)
+            if exists(checksumPath):
+                with open(checksumPath) as old: oldChecksum = old.read()
+            else:
+                oldChecksum = "no checksum yet"
+            newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
+            
+            # update package if test has changed
+            if newChecksum != oldChecksum:
+                self._addPackageForTest(testDir, testYaml["info"]["name"])
+                            
+            # save new checksum -- must follow '_setUpRepos' b/c it deletes this checksum file
+            with open(checksumPath, 'w') as new:
+                new.write(newChecksum)
+                
+        testsDir = join(homepath, "tests")
+        forTestsInDirTree( testsDir, lambda(a, b): ensureTest(a, b) )   # 
+
+
+    def _addPackageForTest(self, testPath, name):
+        
+        from os import mkdir, devnull
         from os.path import exists, join
-        from shutil import copy
-        from common import debugmsg
+        from shutil import copy, rmtree
+        import spack
+        import spackle
+        from common import debugmsg, repopath
         
         debugmsg("adding package for test {}".format(testPath))
+        packagePath = join(repopath, "packages", name)
+
+        # remove installed versions of package if any
+        pkg = spack.repo.get(name)
+        if pkg:
+            cmd = "uninstall --all --force --yes-to-all {}".format(name)
+            spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")   # installed dependencies are not removed
+        rmtree(packagePath, ignore_errors=True)
 
         # make package directory for this test
-        packagePath = join(repoPath, "packages", name)
         mkdir(packagePath)
         
         # copy or generate test's description files
@@ -378,14 +358,14 @@ class HPCTest():
             copy(ppath, packagePath)
         else:
             self._generatePackagePy(hpath, packagePath)
-            
-        # TODO?? add package to repo
 
 
     def _generatePackagePy(self, hpath, ppath):
         
         # hpath => hpctest.yaml file to generate from
         # ppath => package directory to generate into
+        
+        from common import notimplemented
         notimplemented("hpctest._generatePackagePy")
 
 

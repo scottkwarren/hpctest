@@ -62,5 +62,9 @@ run:
 # -P 2 2 1 -b 12 12 12 on 4x4 =   9.5 /  73 min,  680K samples
 # -P 2 2 1 -b 14 14 14 on 4x4 =  24   / 182 min, 1700K samples
 # -P 2 2 1 -b 16 16 16 on 4x4 =  51   / 390 min, 3000K samples
-    
+#
+# -P 2 2 1 -r 12 12 12 on 4x4 =   1   / --- min
+# -P 2 2 1 -r 14 14 14 on 4x4 =   2   / --- min
+# -P 2 2 1 -r 24 24 24 on 4x4 =  19   / --- min
+
     

@@ -56,7 +56,9 @@ homepath             = None     # path to this HPCTest installation
 ext_spack_home       = None     # path to external Spack's directory if any -- can be None
 own_spack_home       = None     # path to private Spack's directory
 own_spack_module_dir = None     # path to dir containing private Spack's top level module
-workpath             = None     # path to this HPCTest's arena for orkspaces
+testspath            = None     # path to this HPCTest's test case directory
+repopath             = None     # path to this HPCTest's repo for test packages
+workpath             = None     # path to this HPCTest's arena for workspaces
 logger               = None     # used to write test results -- TODO
 
 

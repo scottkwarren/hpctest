@@ -48,19 +48,26 @@
 
 
 
+import sys
+
+
 # Executing a Spack command
 
-def do(cmdstring):
-    
+def do(cmdstring, stdout="", stderr=""):
+
+    # cmdstring contents can and must be shell-escaped by caller, including the 'stdout' & 'stderr' args
+        
     import os, common
-    os.system(common.own_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
+    
+    if stdout != "": stdout = "> {}".format(stdout)
+    if stderr != "": stderr = "2> {}".format(stderr)
+    os.system(common.own_spack_home + "/bin/spack " + cmdstring + " {} {}".format(stdout, stderr))
 
 
 def extDo(cmdstring):
     
     import os, common
     os.system(common.ext_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
-
 
 
 def execute(cmd, cwd=None, env=None, output=None, error=None):
