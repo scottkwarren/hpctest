@@ -1,10 +1,12 @@
 HPCTEST TO DO
 
 
-- Intermittent failure of Report.report when a build failed b/c <OUT.yaml>["summary"]["status"] does not exist.
+-Cosmetic fixes
+	- 'hpctest report':
+		- use latest workspace by default
 
 
-- external repo + option to store dependencies there
+- External repo + option to store dependencies there
  
  
 - Generate a top-level _OUT directory with whole-job summary info:
@@ -19,11 +21,6 @@ HPCTEST TO DO
  	- all/pass/fail
  	- sort order
  	- optional summaries
-- Fix the (verbose for now) run banner:
-    ----------------------------------------------------------------------
-    running test /home/scott/hpctest/tests/app/AMG2006 with config %gcc@4.4.7
-    ----------------------------------------------------------------------
-   to show relative test path, include all dimensions, and have longer rules.
 
 
  - Batch job submission & polling
