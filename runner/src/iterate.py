@@ -55,7 +55,6 @@ class Iterate():
     def doForAll(myClass, dims, args, workspace):
         
         from itertools import product
-##      import common   # 'from common import options' fails b/c 'options = ...' is treated as local assignment, even with 'global options'
         from common import infomsg, debugmsg, options
         from run import Run
 

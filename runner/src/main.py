@@ -108,6 +108,24 @@ def parseCommandLine():
 
 
     # -------------------------------------------------------------------------------------------------------
+    # hpctest report [ workspace | --workspace workspace ] [ --sort sortKeys ] <options>
+    # -------------------------------------------------------------------------------------------------------
+    reportParser = subparsers.add_parser("report", help="print report summarizing a workspace")
+
+    # ... workspace
+    workGroup = reportParser.add_mutually_exclusive_group()
+    workGroup.add_argument("workspace", nargs="?", type=str, default=workpath,  help="path to workspace to report on")
+    workGroup.add_argument("--workspace", "-w",    type=str, default=workpath,  help="path to workspace to report on")
+
+    # ... report spec
+    reportParser.add_argument("--sort",   "-s",    type=str, default="default", help="sequence of dimensions to sort report by")
+    
+    # ... options
+    _addOptionArgs(reportParser)
+    # -------------------------------------------------------------------------------------------------------
+
+
+    # -------------------------------------------------------------------------------------------------------
     # hpctest clean [ workspace | --workspace workspace] <options>
     # -------------------------------------------------------------------------------------------------------
     cleanParser = subparsers.add_parser("clean", help="clean up by deleting unwanted workspaces")
@@ -198,6 +216,10 @@ def execute(args):
         workspace = args.workspace; del args.workspace
         otherargs = args
         tester.run(dims, args, workspace)
+    elif args.subcommand == "report":
+        workspace = args.workspace if args.workspace != "default" else None; del args.workspace
+        sortKeys  = args.sort if args.sort != "default" else None
+        tester.report(workspace, sortKeys)
     elif args.subcommand == "clean":
         tester.clean(args.workspace)
     elif args.subcommand == "reset":

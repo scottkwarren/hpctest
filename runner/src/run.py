@@ -62,15 +62,16 @@ class Run():
 
         # hpctoolkit params
         self.hpctoolkitBinPath = hpctoolkit
+        self.hpctoolkitParams  = hpctoolkitparams
         paramList = hpctoolkitparams.split(";")
-        self.hpcrunParams    = paramList[0]
-        self.hpcstructParams = paramList[1] if len(paramList) >= 2 else ""
-        self.hpcprofParams   = paramList[2] if len(paramList) >= 3 else ""
+        self.hpcrunParams      = paramList[0]
+        self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
+        self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
         self.testIncs = "./+"
 
         # job directory
-        configdesc  = self.config    ## TODO: compute description including all dim specs
-        self.jobdir = self.workspace.addJobDir(self.name, configdesc)
+        configdesc  = self.config
+        self.jobdir = self.workspace.addJobDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
         
          # storage for hpctest inputs and outputs
         self.output = ResultDir(self.jobdir, "OUT")
@@ -79,13 +80,19 @@ class Run():
 
     def run(self):
         
+        from os.path import join, relpath
         import time
-        from common import infomsg, sepmsg
+        from common import homepath, infomsg, sepmsg
         from common import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         
         startTime = time.time()
+        self.hpcrunParams.replace(" ", ".")
+        
         sepmsg(True)
-        infomsg("running test {} with config {}".format(self.testdir, self.config))
+        
+        name = relpath(self.testdir, join(homepath, "tests"))
+        params = self.hpcrunParams.replace(" ", ".")
+        infomsg("running test {} with config {} and {}".format(name, self.config, params))
         sepmsg(True)
         
         try:

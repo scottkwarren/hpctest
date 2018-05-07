@@ -153,22 +153,17 @@ class HPCTest():
         
         # report results
         Report.printReport(workspace, dimStrings.keys())
-        print "\n"
         
         return status
         
         
-    def report(self, workpath=None):
+    def report(self, workpath, sortKeys):
         
-        import common
-        from common     import debugmsg, options
         from report     import Report
+        from workspace  import Workspace
 
-        if not workpath: workpath = common.workpath ## <<<<<<<<<<<<<<<<<<<<<<< FIX <<<<<<<<<<<<<<<<<<<<<<
-                
-        print "\n"
-        Report.printReport(workspace)
-        print "\n"
+        workspace = Workspace(workpath)
+        Report.printReport(workspace, sortKeys)
 
 
     def clean(self, workpath=None):

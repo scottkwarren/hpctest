@@ -100,54 +100,64 @@ class Report():
             for key in sortKeys: dimkeys.append(dimkey_map[key])
             results.sort(key=sortKeyFunc)      # key func returns list of result fields corresponding to dimkey_list
 
+            print "\n"
             for result in results:
                 
                 # extract job data for reporting
-                test       = result["input"]["test"].upper().replace("/", " / ")
-                config     = result["input"]["config spec"].upper()
-                hpctoolkit = result["input"]["hpctoolkit"]
-                params     = result["input"]["hpctoolkit params"]["hpcrun"]
-                status     = result["summary"]["status"]
-                msg        = result["summary"]["status msg"] if status != "OK" else ""
-                run        = result["run"]
-                
-                if run != "NA":
-                    overhead       = run["profiled"]["hpcrun overhead %"]
-                    hpcrun         = run["profiled"]["hpcrun summary"]
-                else:
-                    hpcrun         = "NA"
+                jobdataMsg = None
+                try:
                     
-                if hpcrun != "NA":
-                    blocked    = hpcrun["blocked"]
-                    errant     = hpcrun["errant"]
-                    frames     = hpcrun["frames"]
-                    intervals  = hpcrun["intervals"]
-                    recorded   = hpcrun["recorded"]
-                    samples    = hpcrun["samples"]
-                    suspicious = hpcrun["suspicious"]
-                    trolled    = hpcrun["trolled"]
-                    yielded    = hpcrun["yielded"]
-                else:
-                    blocked    = None
-                    errant     = None
-                    frames     = None
-                    intervals  = None
-                    recorded   = None
-                    samples    = None
-                    suspicious = None
-                    trolled    = None
-                    yielded    = None
+                    test       = result["input"]["test"].upper().replace("/", " / ")
+                    config     = result["input"]["config spec"].upper()
+                    hpctoolkit = result["input"]["hpctoolkit"]
+                    params     = result["input"]["hpctoolkit params"]["hpcrun"]
+                    status     = result["summary"]["status"]
+                    msg        = result["summary"]["status msg"] if status != "OK" else ""
+                    run        = result["run"]
+                    
+                    if run != "NA":
+                        overhead       = run["profiled"]["hpcrun overhead %"]
+                        hpcrun         = run["profiled"]["hpcrun summary"]
+                    else:
+                        hpcrun         = "NA"
+                        
+                    if hpcrun != "NA":
+                        blocked    = hpcrun["blocked"]
+                        errant     = hpcrun["errant"]
+                        frames     = hpcrun["frames"]
+                        intervals  = hpcrun["intervals"]
+                        recorded   = hpcrun["recorded"]
+                        samples    = hpcrun["samples"]
+                        suspicious = hpcrun["suspicious"]
+                        trolled    = hpcrun["trolled"]
+                        yielded    = hpcrun["yielded"]
+                    else:
+                        blocked    = None
+                        errant     = None
+                        frames     = None
+                        intervals  = None
+                        recorded   = None
+                        samples    = None
+                        suspicious = None
+                        trolled    = None
+                        yielded    = None
+                    
+                except Exception as e:
+                    jobdataMsg = e.message
                 
                 # format for display
                 testLabel = "{} with {} and {}".format(test, config, params)  # TODO: display hpctoolkit path but make sure line's not too long
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
-                if status == "OK":
-                    line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
-                            ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))
-                else:
+                if jobdataMsg:
+                    line2 = ("| {}: {}").format("REPORTING FAILED", jobdataMsg)         
+                    line2 += " " * (tableWidth - len(line2) - 1) + "|"
+                elif status != "OK":
                     line2 = ("| {}: {}").format(status, msg)         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
+                else:
+                    line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
+                            ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))
     
     
                 # print job's summary
@@ -156,6 +166,7 @@ class Report():
                 print line2
                             
             sepmsg(tableWidth)
+            print "\n"
 
 
 def _pct(s, d):

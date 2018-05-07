@@ -76,13 +76,13 @@ class Workspace():
         return "Workspace@{}".format(self.path)
         
 
-    def addJobDir(self, testdesc, configdesc):
+    def addJobDir(self, testName, config, hpctoolkitparams):
 
         import os
         from os.path import join, isdir
 
         # TODO: should ensure uniqueness
-        jobdir = join(self.path, "{}-{}".format(testdesc, configdesc))
+        jobdir = join(self.path, "{}-{}-{}".format(testName, config, hpctoolkitparams)).replace(" ", ".")
         if isdir(jobdir):
             n = 2
             while( isdir(jobdir + "-" + str(n))): n += 1
