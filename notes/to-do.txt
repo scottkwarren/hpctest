@@ -15,7 +15,6 @@ HPCTEST TO DO
 	- Equivalent of run.log for whole job
 	
 
-- Capture into _OUT the spack*out files and any core files produced
 - Add variable-weight separators to report to indicate group changes
 - Reporting options:
  	- all/pass/fail

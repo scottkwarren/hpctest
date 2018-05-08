@@ -198,7 +198,7 @@ class Run():
 
     def _buildTest(self):
 
-        import shutil
+        import os
         import spack
         from spack.build_environment import ChildError
         from spack.stage import DIYStage
@@ -238,7 +238,8 @@ class Run():
                 buildTime = t.secs
 
         # save results
-        self.prefix = self.package.prefix       # prefix path is valid even if package failed to install
+        os.system("cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir()))
+        self.prefix = self.package.prefix      # prefix path is valid even if package failed to install
         self.output.add("build", "prefix",     str(self.prefix))
         self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
         self.output.add("build", "status",     status)
@@ -384,6 +385,7 @@ class Run():
             infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
         
         # save results
+        os.system("cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir()))
         self.output.add(label, "cpu time", cputime, subroot=keylist, format="{:0.2f}")
         self.output.add(label, "status", "FAILED" if failed else "OK", subroot=keylist)
         self.output.add(label, "status msg", msg, subroot=keylist)
@@ -464,7 +466,7 @@ class Run():
         self.output.add("input", "config spec", str(self.config))
         self.output.add("input", "hpctoolkit", str(self.hpctoolkitBinPath))
         self.output.add("input", "hpctoolkit params", OrderedDict({"hpcrun":self.hpcrunParams, "hpcstruct":self.hpcstructParams, "hpcprof":self.hpcprofParams}))
-        self.output.add("input", "workspace", self.workspace.path)
+        self.output.add("input", "study dir", self.workspace.path)
             
 
 

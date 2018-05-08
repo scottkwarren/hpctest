@@ -70,6 +70,11 @@ class ResultDir():
         return key in self.outdict
         
     
+    def getDir(self):
+
+        return self.dir
+        
+    
     def makePath(self, nameFmt, label=None):
 
         from os.path import join
