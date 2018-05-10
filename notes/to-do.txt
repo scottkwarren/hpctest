@@ -3,7 +3,6 @@ HPCTEST TO DO
 
 - Reporting options:
  	- all/pass/fail
- 	- sort order
  	- optional summaries
 
 
