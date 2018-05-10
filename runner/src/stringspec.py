@@ -54,7 +54,7 @@ class StringSpec():
         # specstring should be a comma-separated list of possibly-quoted strings
         
         # TODO: quotes not yet supported
-        self.specList = [ spackspec.strip() for spackspec in specString.split(',') ]
+        self.specList = [ spackspec.strip() for spackspec in specString.split(",") ]
                                 
                                 
     def strings(self):

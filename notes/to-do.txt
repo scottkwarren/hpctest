@@ -1,12 +1,17 @@
 HPCTEST TO DO
 
 
--Cosmetic fixes
-	- 'hpctest report':
-		- use latest workspace by default
+- Reporting options:
+ 	- all/pass/fail
+ 	- sort order
+ 	- optional summaries
 
 
 - External repo + option to store dependencies there
+ 
+ 
+ - Batch job submission & polling
+ - Robust iteration & continuation
  
  
 - Generate a top-level _OUT directory with whole-job summary info:
@@ -16,16 +21,8 @@ HPCTEST TO DO
 	
 
 - Add variable-weight separators to report to indicate group changes
-- Reporting options:
- 	- all/pass/fail
- 	- sort order
- 	- optional summaries
 
 
- - Batch job submission & polling
- - Robust iteration & continuation
- 
- 
  - Alternate input notation based on yaml
  - Alternation & wildcards in specs
  	- use 'compilerList = spack.compilers.all_compiler_specs()'

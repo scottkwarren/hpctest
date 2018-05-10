@@ -56,7 +56,7 @@ class Report():
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
-        from common import homepath, options, debugmsg, fatalmsg, sepmsg
+        from common import homepath, options, debugmsg, errormsg, fatalmsg, sepmsg
         from spackle import readYamlFile, writeYamlFile
 
         def sortKeyFunc(result):
@@ -85,7 +85,7 @@ class Report():
                 if reportAll or resultdict["summary"]["status"] != "OK":
                     results.append(resultdict)
             else:
-                fatalmsg("Test results file OUT.yaml not found for job {}".format(jobPath))
+                errormsg("Test results file OUT.yaml not found for job {}, ignored".format(jobPath))
 
         # print a summary record for each result, sorted by config spec and then test name
         if results:
@@ -97,8 +97,13 @@ class Report():
                           "hpctoolkit params":["hpctoolkit params", "hpcrun"]
                          }
             dimkeys = []
-            for key in sortKeys: dimkeys.append(dimkey_map[key])
-            results.sort(key=sortKeyFunc)      # key func returns list of result fields corresponding to dimkey_list
+            for key in sortKeys:
+                if key in dimkey_map:
+                    dimkeys.append(dimkey_map[key])
+                else:
+                    errormsg("unknown sort key for report ignored: '{}'".format(key))
+            if len(dimkeys):
+                results.sort(key=sortKeyFunc)      # key func returns list of result fields corresponding to dimkey_list
 
             print "\n"
             for result in results:

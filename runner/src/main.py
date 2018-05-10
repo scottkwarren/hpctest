@@ -87,20 +87,20 @@ def parseCommandLine():
 
     # ... tests
     testGroup = runParser.add_mutually_exclusive_group()
-    testGroup.add_argument("tests",    nargs="?",      type=str,  default="all",     help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("tests",    nargs="?",       type=str,  default="all",     help="test-spec for the set of test cases to be run")
     testGroup.add_argument("--tests",            "-t",  type=str,  default="all",     help="test-spec for the set of test cases to be run")
 
     # ... configs
     runParser.add_argument("--configs",          "-c",  type=str,  default="default", help="build-spec for the set of build configs on which to test")
 
     # ... hpctoolkits
-    runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default", help="paths to installations of hpctoolkit with which to test")
+    runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to installations of hpctoolkit with which to test")
 
     # ... hpcrun/struct/prof params
-    runParser.add_argument("--hpctoolkitparams", "-p", type=str,  default="default", help="parameters for the programs in hpctoolkit with which to test")
+    runParser.add_argument("--hpctoolkitparams", "-p", type=str,  default="default",  help="parameters for the programs in hpctoolkit with which to test")
 
     # ... workspace 
-    runParser.add_argument("--workspace",        "-w", type=str,  default=workpath,  help="where to create run directory for this run")
+    runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to create run directory for this run")
     
     # ... options       
     _addOptionArgs(runParser)
@@ -114,8 +114,8 @@ def parseCommandLine():
 
     # ... workspace
     workGroup = reportParser.add_mutually_exclusive_group()
-    workGroup.add_argument("workspace", nargs="?", type=str, default=workpath,  help="path to workspace to report on")
-    workGroup.add_argument("--workspace", "-w",    type=str, default=workpath,  help="path to workspace to report on")
+    workGroup.add_argument("workspace", nargs="?", type=str, default="default",  help="path to workspace to report on")
+    workGroup.add_argument("--workspace", "-w",    type=str, default="default",  help="path to workspace to report on")
 
     # ... report spec
     reportParser.add_argument("--sort",   "-s",    type=str, default="default", help="sequence of dimensions to sort report by")
@@ -132,8 +132,8 @@ def parseCommandLine():
 
     # ... workspace
     workGroup = cleanParser.add_mutually_exclusive_group()
-    workGroup.add_argument("workspace", nargs="?", type=str, default=workpath, help="path to run directory or dir-of-rundirs to be cleaned")
-    workGroup.add_argument("--workspace", "-w",    type=str, default=workpath, help="path to run directory or dir-of-rundirs to be cleaned")
+    workGroup.add_argument("workspace", nargs="?", type=str, default="default", help="path to run directory or dir-of-rundirs to be cleaned")
+    workGroup.add_argument("--workspace", "-w",    type=str, default="default", help="path to run directory or dir-of-rundirs to be cleaned")
     
     # ... options
     _addOptionArgs(cleanParser)
@@ -200,6 +200,7 @@ def execute(args):
     from common import options, yesno
 
     if args.subcommand == "run":
+        
         dims = OrderedDict()
         if args.tests != "default":
             dims["tests"] = args.tests
@@ -216,23 +217,34 @@ def execute(args):
         workspace = args.workspace; del args.workspace
         otherargs = args
         tester.run(dims, args, workspace)
+        
     elif args.subcommand == "report":
+        
         workspace = args.workspace if args.workspace != "default" else None; del args.workspace
-        sortKeys  = args.sort if args.sort != "default" else None
+        sortKeys  = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
         tester.report(workspace, sortKeys)
+        
     elif args.subcommand == "clean":
+        
         tester.clean(args.workspace)
+        
     elif args.subcommand == "reset":
+        
         really = "force" in options or yesno("Really delete all previously built tests and workspaces")
         if really:
             tester.reset()
         else:
             print "Ok, nothing will be deleted."
+            
     elif args.subcommand == "spack":
+        
         tester.spack(" ".join(args.spackcmd))
+        
     elif args.subcommand == "miniapps":
+        
             tester.miniapps()
     else:
+        
         fatalmsg("in main.execute, unexpected subcommand name")
     
 

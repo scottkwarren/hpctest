@@ -76,6 +76,13 @@ class Workspace():
         return "Workspace@{}".format(self.path)
         
 
+    @classmethod
+    def isWorkspace(cls, path):
+        
+        from os.path import basename, isdir 
+        return isdir(path) and basename(path).startswith(_prefix)
+    
+    
     def addJobDir(self, testName, config, hpctoolkitparams):
 
         import os
