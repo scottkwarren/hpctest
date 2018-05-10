@@ -192,7 +192,7 @@ class HPCTest():
         
         for name in listdir(workpath):
             path = join(workpath, name)
-            if isdir(path) and name.startswith("study-"):
+            if Workspace.isWorkspace(path):
                 Workspace(path).clean()
 
 
