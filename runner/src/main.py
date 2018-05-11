@@ -87,11 +87,11 @@ def parseCommandLine():
 
     # ... tests
     testGroup = runParser.add_mutually_exclusive_group()
-    testGroup.add_argument("tests",    nargs="?",       type=str,  default="all",     help="test-spec for the set of test cases to be run")
-    testGroup.add_argument("--tests",            "-t",  type=str,  default="all",     help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("tests",    nargs="?",       type=str, default="all",     help="test-spec for the set of test cases to be run")
+    testGroup.add_argument("--tests",            "-t",  type=str, default="all",     help="test-spec for the set of test cases to be run")
 
     # ... configs
-    runParser.add_argument("--configs",          "-c",  type=str,  default="default", help="build-spec for the set of build configs on which to test")
+    runParser.add_argument("--configs",          "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
 
     # ... hpctoolkits
     runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to installations of hpctoolkit with which to test")
@@ -101,6 +101,15 @@ def parseCommandLine():
 
     # ... workspace 
     runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to create run directory for this run")
+
+    # ... repetitions 
+    runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
+
+    # ... report spec
+    runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to be produced")
+    
+    # ... sort spec
+    runParser.add_argument("--sort",             "-s", type=str,  default="default",  help="sequence of dimensions to sort report by")
     
     # ... options       
     _addOptionArgs(runParser)
@@ -108,7 +117,7 @@ def parseCommandLine():
 
 
     # -------------------------------------------------------------------------------------------------------
-    # hpctest report [ workspace | --workspace workspace ] [ --sort sortKeys ] <options>
+    # hpctest report [ workspace | --workspace workspace ] [ --report reportspec ] [ --sort sortspec ] <options>
     # -------------------------------------------------------------------------------------------------------
     reportParser = subparsers.add_parser("report", help="print report summarizing a workspace")
 
@@ -118,6 +127,9 @@ def parseCommandLine():
     workGroup.add_argument("--workspace", "-w",    type=str, default="default",  help="path to workspace to report on")
 
     # ... report spec
+    reportParser.add_argument("--report", "-r",    type=str, default="default", help="details of report to be produced")
+    
+    # ... sort spec
     reportParser.add_argument("--sort",   "-s",    type=str, default="default", help="sequence of dimensions to sort report by")
     
     # ... options
@@ -214,19 +226,24 @@ def execute(args):
         if args.hpctoolkitparams != "default":
             dims["hpctoolkit params"] = args.hpctoolkitparams.replace("_", "-").replace(".", " ")  # undo the workaround for argparse fail on quoted args
             del args.hpctoolkitparams
-        workspace = args.workspace; del args.workspace
-        otherargs = args
-        tester.run(dims, args, workspace)
+        workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
+        numrepeats = args.numrepeats
+        otherargs  = args
+        reportspec = args.report if args.report != "default" else "all"
+        sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
+        tester.run(dims, args, numrepeats, reportspec, sortKeys, workspace)
         
     elif args.subcommand == "report":
         
-        workspace = args.workspace if args.workspace != "default" else None; del args.workspace
-        sortKeys  = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        tester.report(workspace, sortKeys)
+        workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
+        reportspec = args.report if args.report != "default" else "all"
+        sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
+        tester.report(workspace, reportspec, sortKeys)
         
     elif args.subcommand == "clean":
         
-        tester.clean(args.workspace)
+        workspace = args.workspace if args.workspace != "default" else None
+        tester.clean(workspace)
         
     elif args.subcommand == "reset":
         

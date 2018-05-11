@@ -123,7 +123,7 @@ class HPCTest():
                           }
         
         
-    def run(self, dimStrings={}, args={}, workpath=None):
+    def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], workpath=None):
         
         import common
         from common     import debugmsg, options
@@ -148,16 +148,16 @@ class HPCTest():
         workspace = Workspace(workpath)
         
         # run all the tests
-        status  = Iterate.doForAll(dims, args, workspace)
+        status  = Iterate.doForAll(dims, args, numrepeats, workspace)
         print "\n"
         
         # report results
-        Report.printReport(workspace, dimStrings.keys())
+        Report.printReport(workspace, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
         
         return status
         
         
-    def report(self, studypath, sortKeys=[]):
+    def report(self, studypath, reportspec="", sortKeys=[]):
         
         from os         import listdir
         from os.path    import join, isdir
@@ -171,7 +171,7 @@ class HPCTest():
         if studypath:
             if Workspace.isWorkspace(studypath):
                 workspace = Workspace(studypath)
-                Report.printReport(workspace, sortKeys)
+                Report.printReport(workspace, reportspec, sortKeys)
             else:
                 errormsg("given path does not point to a study directory: {}".format(studypath))
         else:

@@ -50,11 +50,12 @@
 
 class Run():
     
-    def __init__(self, testdir, config, hpctoolkit, hpctoolkitparams, workspace):
+    def __init__(self, testdir, config, hpctoolkit, hpctoolkitparams, numrepeats, workspace):
         
         from os.path import basename
         from resultdir import ResultDir
         
+        # general params
         self.testdir   = testdir                        # path to test case's directory
         self.config    = config                         # Spack spec for desired build configuration
         self.workspace = workspace                      # storage for collection of test job dirs
@@ -69,6 +70,9 @@ class Run():
         self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
         self.testIncs = "./+"
 
+        # execution params
+        self.numrepeats = numrepeats
+        
         # job directory
         configdesc  = self.config
         self.jobdir = self.workspace.addJobDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs

@@ -2,15 +2,14 @@ HPCTEST TO DO
 
 
 - Reporting options:
- 	- all/pass/fail
  	- optional summaries
 
 
 - External repo + option to store dependencies there
  
  
- - Batch job submission & polling
- - Robust iteration & continuation
+- Batch job submission & polling
+- Robust iteration & continuation
  
  
 - Generate a top-level _OUT directory with whole-job summary info:
@@ -30,14 +29,14 @@ HPCTEST TO DO
  	- maybe 'compilerList = 'ppk = PackagePrefs("gcc", "compiler")'
    
    
- - Refactor for experiment classes
+- Refactor for experiment classes
  
  
- - Config defaults per platform and site
+- Config defaults per platform and site
  
- -----
- - Is it good to divide cpu limit among mpi ranks? Or let limit be per node?
- -----
+-----
+- Is it good to divide cpu limit among mpi ranks? Or let limit be per node?
+-----
  
  
  

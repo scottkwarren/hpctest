@@ -49,7 +49,7 @@ build:
       - test/sstruct.in.AMG.FD
 
 run:
-    cmd: amg2006 -P 1 2 2  -p 16 16 16  # on les: "-r 12 12 12" => 1 min; "-r 14 14 14" => 2 min; "-r 16 16 16" => 4 min; "-r 24 24 24" => 19 min
+    cmd: amg2006 -P 1 2 2  -r 16 16 16  # on les: "-r 12 12 12" => 1 min; "-r 14 14 14" => 2 min; "-r 16 16 16" => 4 min; "-r 24 24 24" => 19 min
     dir: test
     ranks: 4
     threads: 4

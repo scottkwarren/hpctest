@@ -52,7 +52,7 @@
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, dims, args, workspace):
+    def doForAll(myClass, dims, args, numrepeats, workspace):
         
         from itertools import product
         from common import infomsg, debugmsg, options
@@ -66,7 +66,7 @@ class Iterate():
                     .   format(dims, args, options, workspace))
 
             for test, config, hpctoolkit, hpctoolkitparams in product(dims["tests"], dims["configs"], dims["hpctoolkits"], dims["hpctoolkit params"]):
-                run = Run(test, config, hpctoolkit, hpctoolkitparams, workspace)
+                run = Run(test, config, hpctoolkit, hpctoolkitparams, numrepeats, workspace)
                 status = run.run()
             
             

@@ -52,11 +52,11 @@ class Report():
 
     
     @classmethod
-    def printReport(myclass, workspace, sortKeys):
+    def printReport(myclass, workspace, reportspec, sortKeys):
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
-        from common import homepath, options, debugmsg, errormsg, fatalmsg, sepmsg
+        from common import homepath, options, infomsg, debugmsg, errormsg, fatalmsg, sepmsg
         from spackle import readYamlFile, writeYamlFile
 
         def sortKeyFunc(result):
@@ -71,10 +71,10 @@ class Report():
         tableWidth = 113    # width of table row manually determined    # TODO: better
         
         debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options))
-    
-        reportAll = True    # TODO: get from command line
-        
-        # collect the results from all the jobs
+            
+        # collect the results from all jobs meeting 'reportspec'
+        reportAll    = reportspec == "all"
+        reportPassed = reportspec == "pass"     # don't care if 'reportAll'
         results = list()
         for jobname in listdir(workspace.path):
             jobPath = join(workspace.path, jobname)
@@ -82,7 +82,7 @@ class Report():
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)
                 if error: fatalmsg("result file OUT.yaml cannot be read for test job {}".format(jobPath))
-                if reportAll or resultdict["summary"]["status"] != "OK":
+                if reportAll or reportPassed == (resultdict["summary"]["status"] == "OK"):
                     results.append(resultdict)
             else:
                 errormsg("Test results file OUT.yaml not found for job {}, ignored".format(jobPath))
@@ -172,6 +172,9 @@ class Report():
                             
             sepmsg(tableWidth)
             print "\n"
+
+        else:
+            infomsg("no runs matching reportspec '{}'".format(reportspec))
 
 
 def _pct(s, d):
