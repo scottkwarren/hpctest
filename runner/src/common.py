@@ -121,7 +121,15 @@ def sepmsg(long=False):
     infomsg("-" * num)
 
 
-# stack traceback
+# String conveniences
+
+def truncate(s, n):
+    
+    n = max(n,3)
+    return (s[:n-3] + '...') if len(s) > n else s
+
+
+# Stack traceback
 
 def traceback():
     
@@ -162,7 +170,6 @@ def readYamlforTest(testDir):
     return yaml, msg
 
 
-# recursive directory search
 def forTestsInDirTree(dirtree, action):
     
     import os

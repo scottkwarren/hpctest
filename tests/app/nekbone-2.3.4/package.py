@@ -78,15 +78,15 @@ class Nekbone(MakefilePackage):
 
 # from build.kind
     def build(self, spec, prefix):
-        """Runs sppecified command, passing :py:attr:`~.MakefilePackage.build_targets`
+        """Runs specified command, passing :py:attr:`~.MakefilePackage.build_targets`
         as targets.
         """
         import os
         from os.path import join as path_join
         from subprocess import call
         
-        call("env {} ./makenek.hpctest ex1".format(" ".join(self.build_targets)), shell=True,
-             cwd=path_join(self.build_directory, "test", "example1"))
+        call("env {} ./makenek.hpctest ex1".format(" ".join(self.build_targets)),
+             shell=True, cwd=path_join(self.build_directory, "test", "example1"))
 
 
 # from build.install

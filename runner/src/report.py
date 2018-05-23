@@ -56,7 +56,7 @@ class Report():
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
-        from common import homepath, options, infomsg, debugmsg, errormsg, fatalmsg, sepmsg
+        from common import homepath, options, infomsg, debugmsg, errormsg, fatalmsg, sepmsg, truncate
         from spackle import readYamlFile, writeYamlFile
 
         def sortKeyFunc(result):
@@ -155,10 +155,10 @@ class Report():
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
                 if jobdataMsg:
-                    line2 = ("| {}: {}").format("REPORTING FAILED", jobdataMsg)         
+                    line2 = ("| {}: {}").format("REPORTING FAILED", truncate(jobdataMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 elif status != "OK":
-                    line2 = ("| {}: {}").format(status, msg)         
+                    line2 = ("| {}: {}").format(status, truncate(msg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 else:
                     line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"

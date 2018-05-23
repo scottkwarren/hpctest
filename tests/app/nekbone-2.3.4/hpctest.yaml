@@ -48,8 +48,8 @@ config:
         env: "USE_MPI=1"
 
 build:
-    kind: command                       # TODO
-    cmd: makenek ex1                    # TODO
+    kind: command
+    cmd: makenek ex1
     separate: []
     install:
         - test/example1/nekbone
@@ -63,6 +63,7 @@ run:
     numthreads: 4
 
     
-    
-    
-    
+
+
+
+

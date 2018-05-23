@@ -203,6 +203,8 @@ class Run():
     def _buildTest(self):
 
         import os
+        from shutil import copyfileobj
+        from sys import stdout
         import spack
         from spack.build_environment import ChildError
         from spack.stage import DIYStage
@@ -237,7 +239,7 @@ class Run():
                             force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
                         status, msg = "OK", None
                     except Exception as e:
-                        status, msg =  "FAILED", str(e)
+                        status, msg =  "FAILED", e.message
                         
                 buildTime = t.secs
 
@@ -263,7 +265,7 @@ class Run():
                     else:
                         infomsg("...build log:")
                         with open(e.pkg.build_log_path) as log:
-                            shutil.copyfileobj(log, sys.stdout)
+                            copyfileobj(log, stdout)
             self.output.addSummaryStatus("BUILD FAILED", msg)
             raise BuildFailed(msg)
 
@@ -275,44 +277,49 @@ class Run():
         from string import split
         from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
 
-        # set up for test case execution
-        cmd = self.yaml["run"]["cmd"]
-        self.exeName = cmd.split()[0]
+        # run the test case 'self.numrepeats' times
+        for k in range(self.numrepeats):
         
-        # execute test case with and without profiling (to measure overhead)
-        normalTime,   normalFailMsg   = self._execute(cmd, ["run"], "normal")
-        profiledTime, profiledFailMsg = self._execute(cmd, ["run"], "profiled", profile=True)
-        self._checkHpcrunExecution(normalTime, normalFailMsg, profiledTime, profiledFailMsg)
+            suffix = "-{:d}".format(k+1) if self.numrepeats > 1 else ""
+            
+            # set up for test case execution
+            cmd = self.yaml["run"]["cmd"]
+            self.exeName = cmd.split()[0]
         
-        if "verbose" in options: sepmsg()
+            # execute test case with and without profiling (to measure overhead)
+            normalTime,   normalFailMsg   = self._execute(cmd, ["run"], "normal" + suffix)
+            profiledTime, profiledFailMsg = self._execute(cmd, ["run"], "profiled" + suffix, profile=True)
+            self._checkHpcrunExecution(normalTime, normalFailMsg, profiledTime, profiledFailMsg)
+            
+            if "verbose" in options: sepmsg()
+            
+            # run hpcstruct on test executable
+            structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
+            cmd = "{}/hpcstruct -o {} {} -I {} {}" \
+                .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
+            structTime, structFailMsg = self._execute(cmd, [], "hpcstruct" + suffix, mpi=False, openmp=False)
+            self._checkHpcstructExecution(structTime, structFailMsg, structPath)
         
-        # run hpcstruct on test executable
-        structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
-        cmd = "{}/hpcstruct -o {} {} -I {} {}" \
-            .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
-        structTime, structFailMsg = self._execute(cmd, [], "hpcstruct", mpi=False, openmp=False)
-        self._checkHpcstructExecution(structTime, structFailMsg, structPath)
-    
-        # run hpcprof on test measurements
-        if profiledFailMsg or structFailMsg:
-            infomsg("... hpcprof not run due to previous failure")
-        else:
-            profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
-            cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
-                .format(self.hpctoolkitBinPath, profPath, structPath, self.hpcprofParams, self.testIncs, self.measurementsPath)
-            profTime, profFailMsg = self._execute(cmd, [], "hpcprof", mpi=False, openmp=False)
-            self._checkHpcprofExecution(profTime, profFailMsg, profPath)
-    
-        # let caller know if test case failed
-        if   normalFailMsg:     failure, msg  = "NORMAL RUN FAILED", normalFailMsg
-        elif profiledFailMsg:   failure, msg  = "HPCRUN FAILED",     profiledFailMsg
-        elif structFailMsg:     failure, msg  = "HPCSTRUCT FAILED",  structFailMsg
-        elif profFailMsg:       failure, msg  = "HPCPROF FAILED",    profFailMsg
-        else:                   failure, msg  = None,                None
+            # run hpcprof on test measurements
+            if profiledFailMsg or structFailMsg:
+                infomsg("... hpcprof not run due to previous failure")
+            else:
+                profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
+                cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
+                    .format(self.hpctoolkitBinPath, profPath, structPath, self.hpcprofParams, self.testIncs, self.measurementsPath)
+                profTime, profFailMsg = self._execute(cmd, [], "hpcprof" + suffix, mpi=False, openmp=False)
+                self._checkHpcprofExecution(profTime, profFailMsg, profPath)
         
-        if failure:
-            self.output.addSummaryStatus(failure, msg)
-            raise ExecuteFailed
+            # let caller know if test case failed
+            if   normalFailMsg:     failure, msg  = "NORMAL RUN FAILED", normalFailMsg
+            elif profiledFailMsg:   failure, msg  = "HPCRUN FAILED",     profiledFailMsg
+            elif structFailMsg:     failure, msg  = "HPCSTRUCT FAILED",  structFailMsg
+            elif profFailMsg:       failure, msg  = "HPCPROF FAILED",    profFailMsg
+            else:                   failure, msg  = None,                None
+            
+            if failure:
+                self.output.addSummaryStatus(failure, msg)
+                raise ExecuteFailed
             
     
     def _execute(self, cmd, keylist, label, profile=None, mpi=None, openmp=None, batch=None):

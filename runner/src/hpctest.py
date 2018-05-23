@@ -260,6 +260,7 @@ class HPCTest():
         
         # customize settings of builtin repo
         spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
+        spack.insecure = True
 
         # create new private repo for building test cases
         noRepo = spack.repo.get_repo("tests", default=None) is None
