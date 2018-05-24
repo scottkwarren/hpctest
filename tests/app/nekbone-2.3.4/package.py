@@ -84,7 +84,6 @@ class Nekbone(MakefilePackage):
         import os
         from os.path import join as path_join
         from subprocess import call
-        
         call("env {} ./makenek.hpctest ex1".format(" ".join(self.build_targets)),
              shell=True, cwd=path_join(self.build_directory, "test", "example1"))
 

@@ -64,7 +64,7 @@ class Workspace():
         if isdir(path) and basename(path).startswith(_prefix):
                 self.path = path
         elif not isfile(path):
-            timestamp = strftime("%Y-%m-%d-%H:%M:%S")
+            timestamp = strftime("%Y-%m-%d--%H-%M-%S")
             self.path = join(path, _prefix + timestamp)
             makedirs(self.path)
         else:
