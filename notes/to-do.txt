@@ -1,39 +1,45 @@
 HPCTEST TO DO
 
 
-- Reporting options:
- 	- optional summaries
+- Finish implementing 'numrepeats'
 
 
-- External repo + option to store dependencies there
- 
- 
-- Batch job submission & polling
-- Robust iteration & continuation
- 
- 
 - Generate a top-level _OUT directory with whole-job summary info:
 	- OUTs from each run
 	- copy of reported table
 	- Equivalent of run.log for whole job
 	
 
-- Add variable-weight separators to report to indicate group changes
+- Reporting:
+	- Add variable-weight separators to report to indicate group changes
+ 	- optional summaries
 
 
- - Alternate input notation based on yaml
- - Alternation & wildcards in specs
+- Alternation & wildcards in specs
  	- use 'compilerList = spack.compilers.all_compiler_specs()'
  	- or to find versions of a given compiler family,
  	  use e.g. 'compilerList = spack.compilers.find("gcc")'
  	- maybe 'compilerList = 'ppk = PackagePrefs("gcc", "compiler")'
+ 
+ 
+- Batch job submission & polling
+- Robust iteration & continuation
+ 
+ 
+- Alternate input notation based on yaml
+
+
+- External repo + option to store dependencies there
    
    
 - Refactor for experiment classes
  
  
 - Config defaults per platform and site
- 
+
+
+
+
 -----
 - Is it good to divide cpu limit among mpi ranks? Or let limit be per node?
 -----
