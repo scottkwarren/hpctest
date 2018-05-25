@@ -23,47 +23,39 @@ class Lulesh(MakefilePackage):
 # from info.version
     version('1.0', 'app/lulesh')
 
-# from config[2].{variant,description}, and config[0].'default variants'
+# from config.variants[@openmp].{variant,description}, and config.'default variants'
     variant('openmp', description='Build with OpenMP support', default=True)
 
-# from config[3].{variant,description,depends}, and config[0].'default variants'
+# from config.variants[@mpi].{variant,description,depends}, and config.'default variants'
     variant('mpi', description='Build with MPI support', default=True)
     depends_on('mpi', when='+mpi')
 
-# boilerplate for config[*].flags...
+# boilerplate for config.variants[*].flags...
     @property
     def build_targets(self):
         targets = []
         
-## from config[@base].languages
-##    languages: [ cxx ]
+## from config.variants[@base].languages
         languages = 'CXX = {}'.format(spack_cxx)
         
-## from config[@base].flags
-##      CXXFLAGS: "-g -O3"
+## from config.variants[@base].flags
         cxxflags = '-g -O3'
         ldflags = '-g -O3'
         
-## from config[@openmp].flags
-##      +CXXFLAGS: $OPENMP_FLAG
-##      +LDFLAGS:  $OPENMP_FLAG
+## from config.variants[@openmp].flags
         if '+openmp' in self.spec:
             cxxflags += ' ' + self.compiler.openmp_flag
             ldflags  += ' ' + self.compiler.openmp_flag
         
-## from config[@mpi].languages
-##    languages: [ mpicxx ]
+## from config.variants[@mpi].languages
         if '+mpi' in self.spec:
             languages = 'CXX = {}'.format(self.spec['mpi'].mpicxx)
         
-## from config[@mpi].flags
-##    flags: +CXXFLAGS: "-DUSE_MPI=1"
+## from config.variants[@mpi].flags
         if '+mpi' in self.spec:
             cxxflags += ' ' + '-DUSE_MPI=1'
-        
-## from config[@mpi].env
-##      - "MPI_INC = $MPI_INC"
-##      - "MPI_LIB = $MPI_LIB"
+
+## from config.variants[@mpi].env
         if '+mpi' in self.spec:
             targets.append('MPI_INC = {0}'.format(self.spec['mpi'].prefix.include))
             targets.append('MPI_LIB = {0}'.format(self.spec['mpi'].prefix.lib))

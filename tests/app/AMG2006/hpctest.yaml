@@ -4,17 +4,20 @@
 
 
 info:
-    name:  AMG2006
-    version: 1.0
-    homepage: https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006
-    url: https://github.com/HPCToolkit
-    description: >
-        AMG2006 is a parallel algebraic multigrid solver for linear systems arising
-        from problems on unstructured grids. 
+  name:  AMG2006
+  version: 1.0
+  homepage: https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006
+  url: https://github.com/HPCToolkit
+  description: >
+    AMG2006 is a parallel algebraic multigrid solver for linear systems arising
+    from problems on unstructured grids. 
     
 config:
-    - default variants: [ openmp mpi ]
-    
+
+  default variants: [ openmp mpi ]
+  
+  variants:
+  
     - base: serial
       description: "Build as a serial program"
       languages: [ c ]
@@ -22,8 +25,8 @@ config:
         CXXFLAGS: "-g -O2"
         LDFLAGS:  "-lm"
         env:
-            - "INCLUDE_CFLAGS = $CFLAGS"
-            - "INCLUDE_LFLAGS = $LDFLAGS"
+          - "INCLUDE_CFLAGS = $CFLAGS"
+          - "INCLUDE_LFLAGS = $LDFLAGS"
         
     - variant: openmp
       description: "Build with OpenMP support"
@@ -31,28 +34,20 @@ config:
         +CFLAGS: $OPENMP_FLAG
         +LDFLAGS: $OPENMP_FLAG
         env:
-            - "-DHYPRE_USING_OPENMP"
-            
-    - variant: mpi
-      description: "Build with MPI support"
-      languages: [ mpicc ]
-      depends: [ mpi ]
-      flags:
-        env:
-            - "-DTIMER_USE_MPI"
+          - "-DHYPRE_USING_OPENMP"
 
 build:
-    kind: makefile
-    separate: []
-    install:
-      - test/amg2013
-      - test/sstruct.in.AMG.FD
+  kind: makefile
+  separate: []
+  install:
+    - test/amg2013
+    - test/sstruct.in.AMG.FD
 
 run:
-    cmd: amg2006 -P 1 2 2  -r 16 16 16  # on les: "-r 12 12 12" => 1 min; "-r 14 14 14" => 2 min; "-r 16 16 16" => 4 min; "-r 24 24 24" => 19 min
-    dir: test
-    ranks: 4
-    threads: 4
+  cmd: amg2006 -P 1 2 2  -r 16 16 16  # on les: "-r 12 12 12" => 1 min; "-r 14 14 14" => 2 min; "-r 16 16 16" => 4 min; "-r 24 24 24" => 19 min
+  dir: test
+  ranks: 4
+  threads: 4
 
 
 # Times on les (elapsed / cpu):

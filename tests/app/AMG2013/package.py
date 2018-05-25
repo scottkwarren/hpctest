@@ -22,28 +22,28 @@ class Amg2013(MakefilePackage):
 # from info.version
     version('1.0', 'app/AMG2013')
 
-# from config[@openmp].{variant,description}, and config[@base].'default variants'
+# from config.variants[@openmp].{variant,description}, and config.'default variants'
     variant('openmp', description='Build with OpenMP support', default=True)
 
-# from config[@mpi].{variant,description,depends}, and config[@base].'default variants'
+# from config.variants[@mpi].{variant,description,depends}, and config.'default variants'
     variant('mpi', description='Build with MPI support', default=True)
     depends_on('mpi', when='+mpi')
 
-# boilerplate for config[*].flags...
+# boilerplate for config.variants[*].flags...
     @property
     def build_targets(self):
         targets = []
         
-## from config[@base].languages
+## from config.variants[@base].languages
 ##    languages: [ cxx ]
         languages = 'CC = {}'.format(spack_cc)
         
-## from config[@base].flags
+## from config.variants[@base].flags
 ##      CXXFLAGS: "-g -O3"
         cxxflags = '-g -O2'
         ldflags = '-lm'
         
-## from config[@openmp].flags
+## from config.variants[@openmp].flags
 ##      +CXXFLAGS: $OPENMP_FLAG
 ##      +LDFLAGS:  $OPENMP_FLAG
         if '+openmp' in self.spec:
@@ -51,17 +51,17 @@ class Amg2013(MakefilePackage):
             cxxflags += ' ' + self.compiler.openmp_flag
             ldflags  += ' ' + self.compiler.openmp_flag
         
-## from config[@mpi].languages
+## from config.variants[@mpi].languages
 ##    languages: [ mpicxx ]
         if '+mpi' in self.spec:
             languages = 'CC = {}'.format(self.spec['mpi'].mpicc)
         
-## from config[@mpi].flags
+## from config.variants[@mpi].flags
 ##    flags: +CXXFLAGS: "-DUSE_MPI=1"
         if '+mpi' in self.spec:
             cxxflags += ' ' + '-DUSE_MPI=1'
 
-## from config[@mpi].env
+## from config.variants[@mpi].env
 ##      - "-DUSE_MPI=1"
 ##      - "MPI_INC = $MPI_INC"
 ##      - "MPI_LIB = $MPI_LIB"

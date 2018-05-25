@@ -30,41 +30,41 @@ class Nekbone(MakefilePackage):
 # from info.version
     version('1.0', 'app/nekbone-2.3.4')
 
-# from config[2].{variant,description}, and config[0].'default variants'
+# from config.variants[@openmp].{variant,description}, and config.'default variants'
     variant('openmp', description='Build with OpenMP support', default=True)
 
-# from config[3].{variant,description,depends}, and config[0].'default variants'
+# from config.variants[@mpi].{variant,description,depends}, and config.'default variants'
     variant('mpi', description='Build with MPI support', default=True)
     depends_on('mpi', when='+mpi')
 
-# boilerplate for config[*].flags...
+# boilerplate for config.variants[*].flags...
     @property
     def build_targets(self):
         targets = []
         
-## from config[@base].languages
+## from config.variants[@base].languages
 ##    languages: [ cxx ]
         languages = 'CC = {} F77 = {}'.format(spack_cc, spack_f77)
         
-## from config[@base].flags
+## from config.variants[@base].flags
 ##      CXXFLAGS: "-g -O3"
         cflags = '-g -O3'
         fflags = '-g -O3'
         lflags = '-g -O3'
         
-## from config[@openmp].flags
+## from config.variants[@openmp].flags
 ##      +CXXFLAGS: $OPENMP_FLAG
 ##      +LDFLAGS:  $OPENMP_FLAG
         if '+openmp' in self.spec:
             cflags += ' ' + self.compiler.openmp_flag
             lflags += ' ' + self.compiler.openmp_flag
         
-## from config[@mpi].languages
+## from config.variants[@mpi].languages
 ##    languages: [ mpicxx ]
         if '+mpi' in self.spec:
             languages = 'CC={} F77={}'.format(self.spec['mpi'].mpicc, self.spec['mpi'].mpif77)
         
-## from config[@mpi].flags
+## from config.variants[@mpi].flags
 ##    flags: +CXXFLAGS: "-DUSE_MPI=1"
         if '+mpi' in self.spec:
             targets.append('USE_MPI=1')

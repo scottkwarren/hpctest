@@ -4,60 +4,63 @@
 
 
 info:
-    name:  AMG2013
-    version: 1.0
-    homepage: https://codesign.llnl.gov/amg2013.php
-    url: https://github.com/HPCToolkit
-    description: >
-        AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
-        problems on unstructured grids.  The driver provided with AMG2013 builds linear 
-        systems for various 3-dimensional problems.
-        AMG2013 is written in ISO-C.  It is an SPMD code which uses MPI and OpenMP 
-        threading within MPI tasks. Parallelism is achieved by data decomposition. The 
-        driver provided with AMG2013 achieves this decomposition by simply subdividing 
-        the grid into logical P x Q x R (in 3D) chunks of equal size. 
+  name:  AMG2013
+  version: 1.0
+  homepage: https://codesign.llnl.gov/amg2013.php
+  url: https://github.com/HPCToolkit
+  description: >
+    AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
+    problems on unstructured grids.  The driver provided with AMG2013 builds linear 
+    systems for various 3-dimensional problems.
+    AMG2013 is written in ISO-C.  It is an SPMD code which uses MPI and OpenMP 
+    threading within MPI tasks. Parallelism is achieved by data decomposition. The 
+    driver provided with AMG2013 achieves this decomposition by simply subdividing 
+    the grid into logical P x Q x R (in 3D) chunks of equal size. 
     
 config:
-    - default variants: [ openmp mpi ]
-    
-    - base: serial
-      description: "Build as a serial program"
-      languages: [ c ]
-      flags:
-        CXXFLAGS: "-g -O2"
-        LDFLAGS:  "-lm"
-        env:
-            - "INCLUDE_CFLAGS = $CFLAGS"
-            - "INCLUDE_LFLAGS = $LDFLAGS"
-        
-    - variant: openmp
-      description: "Build with OpenMP support"
-      flags:
-        +CFLAGS: $OPENMP_FLAG
-        +LDFLAGS: $OPENMP_FLAG
-        env:
-            - "-DHYPRE_USING_OPENMP"
-            
-    - variant: mpi
-      description: "Build with MPI support"
-      languages: [ mpicc ]
-      depends: [ mpi ]
-      flags:
-        env:
-            - "-DTIMER_USE_MPI"
+
+  default variants: [ openmp mpi ]
+  
+  variants:
+  
+  - base: serial
+    description: "Build as a serial program"
+    languages: [ c ]
+    flags:
+      CXXFLAGS: "-g -O2"
+      LDFLAGS:  "-lm"
+      env:
+          - "INCLUDE_CFLAGS = $CFLAGS"
+          - "INCLUDE_LFLAGS = $LDFLAGS"
+      
+  - variant: openmp
+    description: "Build with OpenMP support"
+    flags:
+      +CFLAGS: $OPENMP_FLAG
+      +LDFLAGS: $OPENMP_FLAG
+      env:
+          - "-DHYPRE_USING_OPENMP"
+          
+  - variant: mpi
+    description: "Build with MPI support"
+    languages: [ mpicc ]
+    depends: [ mpi ]
+    flags:
+      env:
+          - "-DTIMER_USE_MPI"
 
 build:
-    kind: makefile
-    separate: []
-    install:
-      - test/amg2013
-      - test/sstruct.in.MG.FD
+  kind: makefile
+  separate: []
+  install:
+    - test/amg2013
+    - test/sstruct.in.MG.FD
 
 run:
-    cmd: amg2013 -P 1 2 2  -r 24 24 24    # "-r 24 24 24" => les: 3 min / 200K samples; "-r 36 36 36" => les: 17 min / 1.2M samples
-    dir: test
-    ranks: 4
-    threads: 4
+  cmd: amg2013 -P 1 2 2  -r 24 24 24    # "-r 24 24 24" => les: 3 min / 200K samples; "-r 36 36 36" => les: 17 min / 1.2M samples
+  dir: test
+  ranks: 4
+  threads: 4
 
     
     

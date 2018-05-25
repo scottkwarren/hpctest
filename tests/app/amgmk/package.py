@@ -25,20 +25,27 @@ class Amgmk(MakefilePackage):
 # from info.version
     version('1.0', 'app/amgmk')
 
-# boilerplate for config.flags...
+# from config.variants[@openmp].{variant,description}, and config.'default variants'
+    variant('openmp', description='Build with OpenMP support', default=True)
+
+# boilerplate for config.variants[@base].flags...
     @property
     def build_targets(self):
         targets = []
         
-## from config.languages
+## from config.variants[@base].languages
 ##    languages: [ cxx ]
         languages = 'CC = {}'.format(spack_cc)
         
-## from config.flags
-##      CXXFLAGS: "-g -O3"
+## from config.variants[@base].flags
         cxxflags = '-g -O3' + ' ' + self.compiler.openmp_flag
         ldflags = cxxflags
         
+## from config.variants[@openmp].flags
+        if '+openmp' in self.spec:
+            cxxflags += ' ' + self.compiler.openmp_flag
+            ldflags  += ' ' + self.compiler.openmp_flag
+
 ## from config.makefilename
         targets.append('-f')
         targets.append("Makefile.hpctest")
