@@ -94,7 +94,7 @@ class Report():
             dimkey_map = {"tests":            ["test"],
                           "configs":          ["config spec"],
                           "hpctoolkits":      ["hpctoolkit"],
-                          "hpctoolkit params":["hpctoolkit params", "hpcrun"]
+                          "hpctoolkitparams": ["hpctoolkit params", "hpcrun"]
                          }
             dimkeys = []
             for key in sortKeys:

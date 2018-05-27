@@ -110,6 +110,7 @@ def parseCommandLine():
     
     # ... sort spec
     runParser.add_argument("--sort",             "-s", type=str,  default="default",  help="sequence of dimensions to sort report by")
+                                                 #                                         "tests, "configs", "hpctoolkits", "hpctoolkitparams"
     
     # ... options       
     _addOptionArgs(runParser)
@@ -224,7 +225,7 @@ def execute(args):
             dims["hpctoolkits"] = args.hpctoolkits
             del args.hpctoolkits
         if args.hpctoolkitparams != "default":
-            dims["hpctoolkit params"] = args.hpctoolkitparams.replace("_", "-").replace(".", " ")  # undo the workaround for argparse fail on quoted args
+            dims["hpctoolkitparams"] = args.hpctoolkitparams.replace("_", "-").replace(".", " ")  # undo the workaround for argparse fail on quoted args
             del args.hpctoolkitparams
         workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
         numrepeats = args.numrepeats
