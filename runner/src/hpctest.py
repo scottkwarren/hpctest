@@ -66,7 +66,7 @@ class HPCTest():
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
-        from util.which import which
+        from common import whichPath
         global dimensions, dimspecDefaults, dimspecClasses, _testDirChecksum
     
         # determine important paths
@@ -116,7 +116,7 @@ class HPCTest():
         dimspecClasses  = { "tests":TestSpec, "configs":ConfigSpec, "hpctoolkits":StringSpec, "hpctoolkitparams":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "configs":           "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkits":       expanduser( configuration.get("profile.hpctoolkit bin path", dirname(which("hpcrun"))) ), 
+                            "hpctoolkits":       expanduser( configuration.get("profile.hpctoolkit bin path", whichPath("hpcrun")) ), 
                             "hpctoolkitparams":  configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
@@ -152,7 +152,8 @@ class HPCTest():
         print "\n"
         
         # report results
-        Report.printReport(workspace, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
+        reporter = Report()
+        reporter.printReport(workspace, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
         
         return status
         
@@ -171,7 +172,8 @@ class HPCTest():
         if studypath:
             if Workspace.isWorkspace(studypath):
                 workspace = Workspace(studypath)
-                Report.printReport(workspace, reportspec, sortKeys)
+                reporter  = Report()
+                reporter.printReport(workspace, reportspec, sortKeys)
             else:
                 errormsg("given path does not point to a study directory: {}".format(studypath))
         else:

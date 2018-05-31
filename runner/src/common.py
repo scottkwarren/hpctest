@@ -207,6 +207,21 @@ class ElapsedTimer(object):
         self.secs = self.timer() - self.start
 
 
+# Finding executables on $PATH
+
+def whichPath(exename):
+    
+    
+    import os
+    from os.path import dirname
+    from util.which import which as utilWhich
+    
+    try:
+        return dirname( utilWhich(exename) )
+    except:
+        return None
+    
+
 # Custom exceptions
 
 class HPCTestError(Exception):

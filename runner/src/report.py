@@ -51,8 +51,7 @@
 class Report():
 
     
-    @classmethod
-    def printReport(myclass, workspace, reportspec, sortKeys):
+    def printReport(self, workspace, reportspec, sortKeys):
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
@@ -72,20 +71,20 @@ class Report():
         
         debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options))
             
-        # collect the results from all jobs meeting 'reportspec'
+        # collect the results from all runs meeting 'reportspec'
         reportAll    = reportspec == "all"
         reportPassed = reportspec == "pass"     # don't care if 'reportAll'
         results = list()
-        for jobname in listdir(workspace.path):
-            jobPath = join(workspace.path, jobname)
-            outPath = join(jobPath, "_OUT", "OUT.yaml")
+        for runname in listdir(workspace.path):
+            runPath = join(workspace.path, runname)
+            outPath = join(runPath, "_OUT", "OUT.yaml")
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)
-                if error: fatalmsg("result file OUT.yaml cannot be read for test job {}".format(jobPath))
+                if error: fatalmsg("result file OUT.yaml cannot be read for test run {}".format(runPath))
                 if reportAll or reportPassed == (resultdict["summary"]["status"] == "OK"):
                     results.append(resultdict)
             else:
-                errormsg("Test results file OUT.yaml not found for job {}, ignored".format(jobPath))
+                errormsg("Test results file OUT.yaml not found for run {}, ignored".format(runPath))
 
         # print a summary record for each result, sorted by config spec and then test name
         if results:
@@ -108,64 +107,29 @@ class Report():
             print "\n"
             for result in results:
                 
-                # extract job data for reporting
-                jobdataMsg = None
-                try:
-                    
-                    test       = result["input"]["test"].upper().replace("/", " / ")
-                    config     = result["input"]["config spec"].upper()
-                    hpctoolkit = result["input"]["hpctoolkit"]
-                    params     = result["input"]["hpctoolkit params"]["hpcrun"]
-                    status     = result["summary"]["status"]
-                    msg        = result["summary"]["status msg"] if status != "OK" else ""
-                    run        = result["run"]
-                    
-                    if run != "NA":
-                        overhead       = run["profiled"]["hpcrun overhead %"]
-                        hpcrun         = run["profiled"]["hpcrun summary"]
-                    else:
-                        hpcrun         = "NA"
-                        
-                    if hpcrun != "NA":
-                        blocked    = hpcrun["blocked"]
-                        errant     = hpcrun["errant"]
-                        frames     = hpcrun["frames"]
-                        intervals  = hpcrun["intervals"]
-                        recorded   = hpcrun["recorded"]
-                        samples    = hpcrun["samples"]
-                        suspicious = hpcrun["suspicious"]
-                        trolled    = hpcrun["trolled"]
-                        yielded    = hpcrun["yielded"]
-                    else:
-                        blocked    = None
-                        errant     = None
-                        frames     = None
-                        intervals  = None
-                        recorded   = None
-                        samples    = None
-                        suspicious = None
-                        trolled    = None
-                        yielded    = None
-                    
-                except Exception as e:
-                    jobdataMsg = e.message
+                info = self.extractRunInfo(result)
                 
                 # format for display
-                testLabel = "{} with {} and {}".format(test, config, params)  # TODO: display hpctoolkit path but make sure line's not too long
+                testLabel = "{} with {} and {}".format(info.test, info.config, info.params)  # TODO: display hpctoolkit path but make sure line's not too long
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
-                if jobdataMsg:
-                    line2 = ("| {}: {}").format("REPORTING FAILED", truncate(jobdataMsg, 100))         
+                if info.rundataMsg:
+                    line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.rundataMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
-                elif status != "OK":
-                    line2 = ("| {}: {}").format(status, truncate(msg, 100))         
+                elif info.status != "OK":
+                    line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 else:
                     line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
-                            ).format(_pct(overhead, 100), _pct(recorded, samples), _pct(blocked, samples), _pct(errant, samples), _pct(suspicious, samples), _pct(trolled, samples))
+                            ).format(_pct(info.overhead,   100), 
+                                     _pct(info.recorded,   info.samples), 
+                                     _pct(info.blocked,    info.samples), 
+                                     _pct(info.errant,     info.samples), 
+                                     _pct(info.suspicious, info.samples), 
+                                     _pct(info.trolled,    info.samples)
+                                    )
     
-    
-                # print job's summary
+                # print run's summary
                 sepmsg(tableWidth)
                 print line1
                 print line2
@@ -175,6 +139,57 @@ class Report():
 
         else:
             infomsg("no runs matching reportspec '{}'".format(reportspec))
+
+
+    def extractRunInfo(self, result):
+        
+        from argparse import Namespace
+
+        info = Namespace()
+        
+        info.rundataMsg = None
+        
+        try:
+            
+            info.test           = result["input"]["test"].upper().replace("/", " / ")
+            info.config         = result["input"]["config spec"].upper()
+            info.hpctoolkit     = result["input"]["hpctoolkit"]
+            info.params         = result["input"]["hpctoolkit params"]["hpcrun"]
+            info.status         = result["summary"]["status"]
+            info.msg            = result["summary"]["status msg"] if info.status != "OK" else ""
+            run                 = result["run"]
+            
+            if run != "NA":
+                info.overhead   = run["profiled"]["hpcrun overhead %"]
+                hpcrun          = run["profiled"]["hpcrun summary"]
+            else:
+                hpcrun          = "NA"
+                
+            if hpcrun != "NA":
+                info.blocked    = hpcrun["blocked"]
+                info.errant     = hpcrun["errant"]
+                info.frames     = hpcrun["frames"]
+                info.intervals  = hpcrun["intervals"]
+                info.recorded   = hpcrun["recorded"]
+                info.samples    = hpcrun["samples"]
+                info.suspicious = hpcrun["suspicious"]
+                info.trolled    = hpcrun["trolled"]
+                info.yielded    = hpcrun["yielded"]
+            else:
+                info.blocked    = None
+                info.errant     = None
+                info.frames     = None
+                info.intervals  = None
+                info.recorded   = None
+                info.samples    = None
+                info.suspicious = None
+                info.trolled    = None
+                info.yielded    = None
+            
+        except Exception as e:
+            info.rundataMsg     = e.message
+    
+        return info
 
 
 def _pct(s, d):
