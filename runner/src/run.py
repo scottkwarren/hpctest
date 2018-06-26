@@ -278,8 +278,10 @@ class Run():
         from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
 
         # run the test case 'self.numrepeats' times
+        repeating = self.numrepeats > 1
         for k in range(self.numrepeats):
         
+            root = ["repeat", k] if repeating else []
             suffix = "-{:d}".format(k+1) if self.numrepeats > 1 else ""
             
             # set up for test case execution
@@ -287,8 +289,8 @@ class Run():
             self.exeName = cmd.split()[0]
         
             # execute test case with and without profiling (to measure overhead)
-            normalTime,   normalFailMsg   = self._execute(cmd, ["run"], "normal" + suffix)
-            profiledTime, profiledFailMsg = self._execute(cmd, ["run"], "profiled" + suffix, profile=True)
+            normalTime,   normalFailMsg   = self._execute(cmd, root + ["run"], "normal",   suffix)
+            profiledTime, profiledFailMsg = self._execute(cmd, root + ["run"], "profiled", suffix, profile=True)
             self._checkHpcrunExecution(suffix, normalTime, normalFailMsg, profiledTime, profiledFailMsg)
             
             if "verbose" in options: sepmsg()
@@ -297,7 +299,7 @@ class Run():
             structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
             cmd = "{}/hpcstruct -o {} {} -I {} {}" \
                 .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
-            structTime, structFailMsg = self._execute(cmd, [], "hpcstruct" + suffix, mpi=False, openmp=False)
+            structTime, structFailMsg = self._execute(cmd, root + [], "hpcstruct", suffix, mpi=False, openmp=False)
             self._checkHpcstructExecution(suffix, structTime, structFailMsg, structPath)
         
             # run hpcprof on test measurements
@@ -307,7 +309,7 @@ class Run():
                 profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
                 cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
                     .format(self.hpctoolkitBinPath, profPath, structPath, self.hpcprofParams, self.testIncs, self.measurementsPath)
-                profTime, profFailMsg = self._execute(cmd, [], "hpcprof" + suffix, mpi=False, openmp=False)
+                profTime, profFailMsg = self._execute(cmd, root + [], "hpcprof",  suffix, mpi=False, openmp=False)
                 self._checkHpcprofExecution(suffix, profTime, profFailMsg, profPath)
         
             # let caller know if test case failed
@@ -322,7 +324,7 @@ class Run():
                 raise ExecuteFailed
             
     
-    def _execute(self, cmd, keylist, label, profile=None, mpi=None, openmp=None, batch=None):
+    def _execute(self, cmd, root, label, suffix, profile=None, mpi=None, openmp=None, batch=None):
 
         import os
         from os.path import join
@@ -342,12 +344,12 @@ class Run():
         env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
         env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
         runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
-        outPath  = self.output.makePath("{}-output.txt", label)
-        timePath = self.output.makePath("{}-time.txt", label)
+        outPath  = self.output.makePath("{}-output.txt", label + suffix)
+        timePath = self.output.makePath("{}-time.txt", label + suffix)
 
         # ... add profiling code if wanted
         if profile:
-            self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
+            self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements{}".format(self.exeName, suffix))
             cmd = "{}/hpcrun -o {} -t {} {}".format(self.hpctoolkitBinPath, self.measurementsPath, self.hpcrunParams, cmd)
 
         # ... add OpenMP parameters if wanted
@@ -373,7 +375,7 @@ class Run():
         limitstring = self._makeLimitString()
         cmd = " /bin/bash -c 'ulimit {}; {}' ".format(limitstring, cmd)
         
-        self.output.add(label, "command", cmd, subroot=keylist)
+        self.output.add(label, "command", cmd, subroot=root)
 
         # execute the command
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
@@ -397,9 +399,9 @@ class Run():
         
         # save results
         os.system("cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir()))
-        self.output.add(label, "cpu time", cputime, subroot=keylist, format="{:0.2f}")
-        self.output.add(label, "status", "FAILED" if failed else "OK", subroot=keylist)
-        self.output.add(label, "status msg", msg, subroot=keylist)
+        self.output.add(label, "cpu time", cputime, subroot=root, format="{:0.2f}")
+        self.output.add(label, "status", "FAILED" if failed else "OK", subroot=root)
+        self.output.add(label, "status msg", msg, subroot=root)
         
         return cputime, msg
     
@@ -494,7 +496,7 @@ class Run():
             self.output.add("hpcprof", "NA")
 
 
-    def _checkHpcrunExecution(self, suffix, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
+    def _checkHpcrunExecution(self, suffix, normalTime, normalFailMsg, profiledTime, profiledFailMsg):   ## <<<<<<
         
         from common import infomsg
 
@@ -563,7 +565,7 @@ class Run():
         return summedResultDict
 
 
-    def _checkHpcstructExecution(self, suffix, structTime, structFailMsg, structPath):
+    def _checkHpcstructExecution(self, suffix, structTime, structFailMsg, structPath):   ## <<<<<<
         
         if structFailMsg:
             msg = structFailMsg
@@ -574,7 +576,7 @@ class Run():
         self.output.add("hpcstruct" + suffix, "output msg",    msg)
 
 
-    def _checkHpcprofExecution(self, suffix, profTime, profFailMsg, profPath):
+    def _checkHpcprofExecution(self, suffix, profTime, profFailMsg, profPath):   ## <<<<<<
         
         from common import infomsg
 

@@ -4,6 +4,9 @@ HPCTEST TO DO
 - Finish implementing 'numrepeats'
 
 
+- External repo + option to store dependencies (and compilers?) there
+
+
 - Generate a top-level _OUT directory with whole-job summary info:
 	- OUTs from each run
 	- copy of reported table
@@ -27,9 +30,6 @@ HPCTEST TO DO
  
  
 - Alternate input notation based on yaml
-
-
-- External repo + option to store dependencies there
    
    
 - Refactor for experiment classes

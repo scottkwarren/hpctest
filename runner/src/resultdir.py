@@ -87,24 +87,29 @@ class ResultDir():
     def add(self, *keysOrValues, **kwargs):
         
         from collections import OrderedDict
-        from common import assertmsg
+        from common import assertmsg, fatalmsg
         
         assertmsg(len(keysOrValues) >= 2, "Output.add must receive at least 2 arguments")
         
         # decompose arguments
-        keyPath = kwargs.get("subroot", []) + list(keysOrValues[:-2])
-        lastKey = keysOrValues[-2]
+        keyPath = kwargs.get("subroot", []) + list(keysOrValues[:-1])   # last element of 'keysOrValues' is the value
+        lastKey = keysOrValues[-2]  # used to store 'value', but also included in 'keyPath'
         value   = keysOrValues[-1]
 
-        # find dictionary at which to insert the value
-        dict = self.outdict
-        for key in keyPath:
-            if key not in dict: dict[key] = OrderedDict()
-            dict = dict[key]
-            
+        # find collection object into which to insert the value
+        ob = self.outdict
+        for k, key in enumerate(keyPath[:-1]):    # last key in 'keyPath' is not traversed, but used to store given 'value'
+            if _isCompatible(key, ob):
+                if key not in ob:
+                    nextkey = keyPath[k+1]
+                    ob[key] = _collectionForKey(nextkey)
+                ob = ob[key]
+            else:
+                fatalmsg("ResultDir.add: invalid key for current collection in key path")
+        
         # perform insertion
         fmt = kwargs.get("format", None)
-        dict[lastKey] = value if fmt is None else float(fmt.format(value))
+        ob[lastKey] = value if fmt is None else float(fmt.format(value))
 
 
     def addSummaryStatus(self, status, msg):
@@ -119,6 +124,36 @@ class ResultDir():
         from spackle import writeYamlFile
 
         writeYamlFile(join(self.dir, "{}.yaml".format(self.name)), self.outdict)
+
+
+def _isCompatible(key, collection):
+    
+    from collections import OrderedDict
+    from common import fatalmsg
+
+    ktype, ctype = type(key), type(collection)
+    
+    if ktype is str:
+        return ctype is dict or ctype is OrderedDict
+    elif ktype is int:
+        return ctype is list
+    else:
+        fatalmsg("ResultDir._isCompatible: invalid key type ({})".format(ktype))
+
+
+def _collectionForKey(key):
+
+    from collections import OrderedDict
+    from common import fatalmsg
+
+    ktype = type(key)
+    
+    if ktype is str:
+        return OrderedDict()
+    elif ktype is int:
+        return list()
+    else:
+        fatalmsg("ResultDir._collectionForKey: invalid key type ({})".format(ktype))
 
 
 
