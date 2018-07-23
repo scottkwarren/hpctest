@@ -46,6 +46,9 @@
 ################################################################################
 
 
+#### TEMPORARY: ALL CODE INVOLVING 'numrepeats' IS STUBBED OUT FOR NOW
+
+
 from hpctest import HPCTest
 
 global tester
@@ -103,7 +106,7 @@ def parseCommandLine():
     runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to create run directory for this run")
 
     # ... repetitions 
-    runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
+##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
 
     # ... report spec
     runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to be produced")
@@ -228,7 +231,7 @@ def execute(args):
             dims["hpctoolkitparams"] = args.hpctoolkitparams.replace("_", "-").replace(".", " ")  # undo the workaround for argparse fail on quoted args
             del args.hpctoolkitparams
         workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
-        numrepeats = args.numrepeats
+        numrepeats = 1  ## args.numrepeats
         otherargs  = args
         reportspec = args.report if args.report != "default" else "all"
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
