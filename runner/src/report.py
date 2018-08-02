@@ -110,7 +110,9 @@ class Report():
                 info = self.extractRunInfo(result)
                 
                 # format for display
-                testLabel = "{} with {} and {}".format(info.test, info.config, info.params)  # TODO: display hpctoolkit path but make sure line's not too long
+                testLabel = "{} with {}".format(info.test, info.config)
+                if info.wantProfiling:
+                    testLabel += " and {}".format(info.params)  # TODO: display hpctoolkit path but make sure line's not too long
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
                 if info.rundataMsg:
@@ -158,7 +160,7 @@ class Report():
             info.params         = result["input"]["hpctoolkit params"]["hpcrun"]
             info.wantProfiling  = literal_eval(result["input"]["wantProfiling"])
             info.status         = result["summary"]["status"]
-            info.msg            = result["summary"]["status msg"] if info.status != "OK" else "cpu time {}".format(result["run"]["normal"]["cpu time"])
+            info.msg            = result["summary"]["status msg"] if info.status != "OK" else "cpu time {} seconds".format(result["run"]["normal"]["cpu time"])
             run                 = result["run"]
                                             
             if info.wantProfiling and (run != "NA"):
