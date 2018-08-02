@@ -520,10 +520,11 @@ class Run():
             self.output.add("build", "NA")
         if "run" not in self.output.get():
             self.output.add("run", "NA")
-        if "hpcstruct" not in self.output.get("run"):
-            self.output.add("run", "hpcstruct", "NA")
-        if "hpcprof" not in self.output.get("run"):
-            self.output.add("run", "hpcprof", "NA")
+        if self.wantProfiling:
+            if "hpcstruct" not in self.output.get("run"):
+                self.output.add("run", "hpcstruct", "NA")
+            if "hpcprof" not in self.output.get("run"):
+                self.output.add("run", "hpcprof", "NA")
 
 
     def _checkHpcrunExecution(self, suffix, normalTime, normalFailMsg, profiledTime, profiledFailMsg):   ## <<<<<<
