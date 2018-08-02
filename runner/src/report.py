@@ -116,10 +116,7 @@ class Report():
                 if info.rundataMsg:
                     line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.rundataMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
-                elif info.status != "OK":
-                    line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
-                    line2 += " " * (tableWidth - len(line2) - 1) + "|"
-                else:
+                elif info.wantProfiling and info.status == "OK":
                     line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
                             ).format(_pct(info.overhead,   100), 
                                      _pct(info.recorded,   info.samples), 
@@ -128,6 +125,9 @@ class Report():
                                      _pct(info.suspicious, info.samples), 
                                      _pct(info.trolled,    info.samples)
                                     )
+                else:
+                    line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
+                    line2 += " " * (tableWidth - len(line2) - 1) + "|"
     
                 # print run's summary
                 sepmsg(tableWidth)
@@ -144,6 +144,7 @@ class Report():
     def extractRunInfo(self, result):
         
         from argparse import Namespace
+        from ast import literal_eval
 
         info = Namespace()
         
@@ -155,15 +156,17 @@ class Report():
             info.config         = result["input"]["config spec"].upper()
             info.hpctoolkit     = result["input"]["hpctoolkit"]
             info.params         = result["input"]["hpctoolkit params"]["hpcrun"]
+            info.wantProfiling  = literal_eval(result["input"]["wantProfiling"])
             info.status         = result["summary"]["status"]
-            info.msg            = result["summary"]["status msg"] if info.status != "OK" else ""
+            info.msg            = result["summary"]["status msg"] if info.status != "OK" else "cpu time {}".format(result["run"]["normal"]["cpu time"])
             run                 = result["run"]
-            
-            if run != "NA":
-                info.overhead   = run["profiled"]["hpcrun overhead %"]
+                                            
+            if info.wantProfiling and (run != "NA"):
                 hpcrun          = run["profiled"]["hpcrun summary"]
+                info.overhead   = run["profiled"]["hpcrun overhead %"]
             else:
                 hpcrun          = "NA"
+                info.overhead   = "NA"
                 
             if hpcrun != "NA":
                 info.blocked    = hpcrun["blocked"]

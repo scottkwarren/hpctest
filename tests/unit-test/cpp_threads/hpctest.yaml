@@ -1,0 +1,38 @@
+#=========================================#
+# HPCTest description for cpp_threads     #
+#=========================================#
+
+
+info:
+  name:  cpp_threads
+  version: 1.0
+  url: https://github.com/HPCToolkit-tests
+  description: >
+    TBD
+    
+config:
+ 
+  variants:
+  
+    - base: plain
+      description: "Uses pthreads controlled manually."
+      languages: [ cxx ]
+      conflicts: "%gcc@:4.8.4"
+      flags:
+        CXXFLAGS: "-std=gnu++11"
+        when:     "%gcc"
+        
+build:
+  kind: makefile
+  makefilename: Makefile.hpctest
+  install: fib
+
+run:
+  cmd: make check
+
+profile: no
+
+
+
+
+

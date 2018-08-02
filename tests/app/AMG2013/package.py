@@ -17,7 +17,7 @@ class Amg2013(MakefilePackage):
 
 # from info.homepage and info.url
     homepage = "https://codesign.llnl.gov/amg2013.php"
-    url      = "https://github.com/HPCToolkit/HPCTest"
+    url      = "https://github.com/HPCToolkit/HPCTest-tests"
 
 # from info.version
     version('1.0', 'app/AMG2013')

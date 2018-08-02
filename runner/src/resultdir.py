@@ -96,20 +96,15 @@ class ResultDir():
         lastKey = keysOrValues[-2]  # used to store 'value', but also included in 'keyPath'
         value   = keysOrValues[-1]
 
-        # find collection object into which to insert the value
-        ob = self.outdict
-        for k, key in enumerate(keyPath[:-1]):    # last key in 'keyPath' is not traversed, but used to store given 'value'
-            if _isCompatible(key, ob):
-                if key not in ob:
-                    nextkey = keyPath[k+1]
-                    ob[key] = _collectionForKey(nextkey)
-                ob = ob[key]
-            else:
-                fatalmsg("ResultDir.add: invalid key for current collection in key path")
-        
         # perform insertion
+        ob = self._findValueForPath(*keyPath)
         fmt = kwargs.get("format", None)
         ob[lastKey] = value if fmt is None else float(fmt.format(value))
+
+
+    def get(self, *keyPath):
+        
+        return self._findValueForPath(keyPath)
 
 
     def addSummaryStatus(self, status, msg):
@@ -126,35 +121,48 @@ class ResultDir():
         writeYamlFile(join(self.dir, "{}.yaml".format(self.name)), self.outdict)
 
 
-def _isCompatible(key, collection):
+    def _isCompatible(self, key, collection):
+        
+        from collections import OrderedDict
+        from common import fatalmsg
     
-    from collections import OrderedDict
-    from common import fatalmsg
-
-    ktype, ctype = type(key), type(collection)
+        ktype, ctype = type(key), type(collection)
+        
+        if ktype is str:
+            return ctype is dict or ctype is OrderedDict
+        elif ktype is int:
+            return ctype is list
+        else:
+            fatalmsg("ResultDir._isCompatible: invalid key type ({})".format(ktype))
     
-    if ktype is str:
-        return ctype is dict or ctype is OrderedDict
-    elif ktype is int:
-        return ctype is list
-    else:
-        fatalmsg("ResultDir._isCompatible: invalid key type ({})".format(ktype))
-
-
-def _collectionForKey(key):
-
-    from collections import OrderedDict
-    from common import fatalmsg
-
-    ktype = type(key)
     
-    if ktype is str:
-        return OrderedDict()
-    elif ktype is int:
-        return list()
-    else:
-        fatalmsg("ResultDir._collectionForKey: invalid key type ({})".format(ktype))
-
+    def _findValueForPath(self, *keyPath):
+    
+        ob = self.outdict
+        for k, key in enumerate(keyPath[:-1]):    # last key in 'keyPath' is not traversed, but used to store given 'value'
+            if self._isCompatible(key, ob):
+                if key not in ob:
+                    nextkey = keyPath[k+1]
+                    ob[key] = self._collectionForKey(nextkey)
+                ob = ob[key]
+            else:
+                fatalmsg("ResultDir: invalid key for current collection in key path")
+        return ob
+    
+    
+    def _collectionForKey(self, key):
+    
+        from collections import OrderedDict
+        from common import fatalmsg
+    
+        ktype = type(key)
+        
+        if ktype is str:
+            return OrderedDict()
+        elif ktype is int:
+            return list()
+        else:
+            fatalmsg("ResultDir._collectionForKey: invalid key type ({})".format(ktype))
 
 
 

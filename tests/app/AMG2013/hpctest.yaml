@@ -7,7 +7,7 @@ info:
   name:  AMG2013
   version: 1.0
   homepage: https://codesign.llnl.gov/amg2013.php
-  url: https://github.com/HPCToolkit
+  url: https://github.com/HPCToolkit-tests
   description: >
     AMG2013 is a parallel algebraic multigrid solver for linear systems arising from
     problems on unstructured grids.  The driver provided with AMG2013 builds linear 

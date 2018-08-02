@@ -145,6 +145,13 @@ def yesno(prompt):
     return len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
 
 
+# iterator for list-or-scalar values. used for one-or-more fields in yaml
+
+def oneOrMore(x):
+    
+    return iter( x if type(x) is list else [x] )
+
+
 # YAML test decriptions
 
 def readYamlforTest(testDir):

@@ -1,0 +1,20 @@
+# Edited for HPCTest by SKW 7/26/18
+
+CXX         = g++
+HPCRUN      = hpxrun
+HPCSTRUCT   = hpcstruct
+HPCPROF     = hpcprof
+HPCPROF_MPI = hpcprof
+
+
+all: main_fib.cxx  fib.h  fib_thread.cxx
+	$(CXX) $(CXXFLAGS) -I. -g -O0 -lpthread -o fib main_fib.cxx fib_thread.cxx
+
+check:
+	time ./fib 8 3
+	time $(HPCRUN) -dd LINUX_PERF -e cycles -t ./fib 8 3
+	time $(HPCSTRUCT) fib
+	time mpirun -np 4 $(HPCPROF_MPI) -S fib.hpcstruct  hpctoolkit-fib-measurements/
+
+clean:
+	rm *.o
