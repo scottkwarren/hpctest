@@ -92,19 +92,21 @@ class ResultDir():
         assertmsg(len(keysOrValues) >= 2, "Output.add must receive at least 2 arguments")
         
         # decompose arguments
-        keyPath = kwargs.get("subroot", []) + list(keysOrValues[:-1])   # last element of 'keysOrValues' is the value
+        keyPath = kwargs.get("subroot", []) + list(keysOrValues[:-2])   # last 2 elements of 'keysOrValues' are key & value for final store
         lastKey = keysOrValues[-2]  # used to store 'value', but also included in 'keyPath'
         value   = keysOrValues[-1]
 
         # perform insertion
-        ob = self._findValueForPath(*keyPath)
+        ob = self._findValueForPath(lastKey, *keyPath)
         fmt = kwargs.get("format", None)
         ob[lastKey] = value if fmt is None else float(fmt.format(value))
 
 
     def get(self, *keyPath):
         
-        return self._findValueForPath(keyPath)
+        # assert: can traverse keyPath without needed to add a new collection, so None is ok for keyAfter
+        print keyPath
+        return self._findValueForPath(None, *keyPath)
 
 
     def addSummaryStatus(self, status, msg):
@@ -136,13 +138,13 @@ class ResultDir():
             fatalmsg("ResultDir._isCompatible: invalid key type ({})".format(ktype))
     
     
-    def _findValueForPath(self, *keyPath):
+    def _findValueForPath(self, keyAfter, *keyPath):
     
         ob = self.outdict
-        for k, key in enumerate(keyPath[:-1]):    # last key in 'keyPath' is not traversed, but used to store given 'value'
+        for k, key in enumerate(keyPath):
             if self._isCompatible(key, ob):
                 if key not in ob:
-                    nextkey = keyPath[k+1]
+                    nextkey = keyPath[k+1] if k+1 < len(keyPath) else keyAfter
                     ob[key] = self._collectionForKey(nextkey)
                 ob = ob[key]
             else:
