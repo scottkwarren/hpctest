@@ -97,16 +97,17 @@ class ResultDir():
         value   = keysOrValues[-1]
 
         # perform insertion
-        ob = self._findValueForPath(lastKey, *keyPath)
+        ob = self._findValueForPath(True, lastKey, *keyPath)
         fmt = kwargs.get("format", None)
         ob[lastKey] = value if fmt is None else float(fmt.format(value))
 
 
     def get(self, *keyPath):
+        # returns None if keyPath not in results
         
-        # assert: can traverse keyPath without needed to add a new collection, so None is ok for keyAfter
+        # won't try to go past existing prefix of KeyPath, so None is ok for keyAfter
         print keyPath
-        return self._findValueForPath(None, *keyPath)
+        return self._findValueForPath(False, None, *keyPath)
 
 
     def addSummaryStatus(self, status, msg):
@@ -138,14 +139,18 @@ class ResultDir():
             fatalmsg("ResultDir._isCompatible: invalid key type ({})".format(ktype))
     
     
-    def _findValueForPath(self, keyAfter, *keyPath):
+    def _findValueForPath(self, autoAddCollections, keyAfter, *keyPath):
     
         ob = self.outdict
         for k, key in enumerate(keyPath):
             if self._isCompatible(key, ob):
                 if key not in ob:
-                    nextkey = keyPath[k+1] if k+1 < len(keyPath) else keyAfter
-                    ob[key] = self._collectionForKey(nextkey)
+                    if autoAddCollections:
+                        nextkey = keyPath[k+1] if k+1 < len(keyPath) else keyAfter
+                        ob[key] = self._collectionForKey(nextkey)
+                    else:
+                        ob = None
+                        break
                 ob = ob[key]
             else:
                 fatalmsg("ResultDir: invalid key for current collection in key path")

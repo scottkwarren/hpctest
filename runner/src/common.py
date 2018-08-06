@@ -147,9 +147,9 @@ def yesno(prompt):
 
 # iterator for list-or-scalar values. used for one-or-more fields in yaml
 
-def oneOrMore(x):
+def noneOrMore(x):
     
-    return iter( x if type(x) is list else [x] )
+    return iter( x if type(x) is list else [x] if x else [] )
 
 
 # YAML test decriptions

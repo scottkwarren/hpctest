@@ -223,7 +223,7 @@ class Run():
         from spack.package import InstallError
         from llnl.util.tty.log import log_output
 
-        from common import oneOrMore, options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
+        from common import noneOrMore, options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
@@ -256,8 +256,9 @@ class Run():
                 buildTime = t.secs
 
         # Make alias(es) in build directory to the built product(s)    #### TODO: support more than one product
+        products = self.yaml["build"]["install"] if "build" in self.yaml and "install" in self.yaml["build"] else None
         self.prefix    = self.package.prefix      # prefix path is valid even if package failed to install
-        for productRelpath in oneOrMore(self.yaml["build"]["install"]):
+        for productRelpath in noneOrMore(products):
             productPath = join(self.rundir, productRelpath)
             productName = basename(productPath)
             productPrefix = join(self.prefix.bin, productName)
@@ -451,6 +452,7 @@ class Run():
             
             if value != "unlimited":
                 
+                # check for units modifier, e.g. '16K'
                 lastChar = value[-1]
                 if lastChar in unitsDict:
                     multiplier = unitsDict[lastChar]
@@ -458,15 +460,19 @@ class Run():
                 else:
                     multiplier = 1
                 
-                if key == "t":  # cpu time must be apportioned to child processes
+                # limit on cpu time is a special case
+                if key == "t":
+                    # time must be split among child processes, so each gets just a fraction of given time
                     try:    ranks = self.yaml["run"]["ranks"]
                     except: ranks = 1
                     divisor = ranks
                 else:
                     divisor = 1
                     
+                # compute effective limit accordingly
                 value = str( int(value) * multiplier / divisor )
 
+            # append a limit option for this resource
             s += "-{} {} ".format(key, value)
             
         return s
@@ -520,14 +526,14 @@ class Run():
             self.output.add("build", "NA")
         if "run" not in self.output.get():
             self.output.add("run", "NA")
-        if self.wantProfiling:
+        if self.wantProfiling and self.output.get("run") != "NA":
             if "hpcstruct" not in self.output.get("run"):
                 self.output.add("run", "hpcstruct", "NA")
             if "hpcprof" not in self.output.get("run"):
                 self.output.add("run", "hpcprof", "NA")
 
 
-    def _checkHpcrunExecution(self, suffix, normalTime, normalFailMsg, profiledTime, profiledFailMsg):   ## <<<<<<
+    def _checkHpcrunExecution(self, suffix, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
         
         from common import infomsg
 
