@@ -99,6 +99,50 @@ def execute(cmd, cwd=None, env=None, output=None, error=None):
     # raises spack.util.executable.ProcessError if execution fails
 
 
+# Spack-based operations needed by HPCTest
+
+def allPackageNames(namespace):
+    
+    # for HPCTest, namespace must be "builtin" or "tests"
+    # result is a set of strings for all packages in given namespace, installed or not
+    
+    import spack
+    return spack.repo.get_repo(namespace).all_package_names()
+
+
+def isInstalled(spec):
+    
+    # a list of *installed* packages matching 'spec'
+    
+    import spack
+    return spack.store.db.query(spec, installed=True)
+
+
+def getDependents(spec):
+    
+    # return list of *installed* packages which depend on the given spec's package(s).
+    # in HPCTest, if the returned list is empty then the spec denotes a built test (not a dependency)
+    
+    import spack
+    return spack.store.db.installed_relatives(spec, 'parents', True)
+
+
+def hasDependents(spec):
+    
+    # return wheether there are any *installed* packages which depend on the given spec's package(s).
+    
+    import spackle
+    return len( spackle.getDependents(spec) ) > 0
+    
+
+def uninstall(name):
+    
+    import spackle
+    
+    cmd = "uninstall --all --force --yes-to-all {}".format(name)
+    spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")
+    
+
 # Transputting a YAML file
 
 def readYamlFile(path):
@@ -162,25 +206,6 @@ def writeYamlFile(path, object):
     except Exception as e:
         msg = "file cannot be opened for writing: (error {})".format(e)
     if "verbose" in options: debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
-
-
-def removeRepo(repo):
-    
-    # spack.repo is a RepoPath. RepoPath.remove is broken:
-    # it removes from RepoPath.by_name but NOT from RepoPath.by_namespace.
-    # this function does the whole job. Cf. RepoPath.remove and RepoPath._add.
-    
-    import spack
-    from spack.util.naming import NamespaceTrie
-    
-    spack.repo.repos.remove(repo)
-    _ = spack.repo.by_path.pop(repo.root, None)
-    
-    # removing from .by_namespace is messy b/c NamespaceTrie has no 'remove' method
-    # instead, we make a new one and re-add each repo
-    spack.repo.by_namespace = NamespaceTrie()
-    for r in spack.repo.repos:
-        spack.repo.by_namespace[r.full_namespace] = r
 
 
 

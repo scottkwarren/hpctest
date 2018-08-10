@@ -181,59 +181,46 @@ class HPCTest():
             
 
 
-    def clean(self, workpath=None):
+    def clean(self, workspace, tests, dependencies):
         
         from os        import listdir
         from os.path   import join, isdir
-        import common
-        from common    import debugmsg
-        from workspace import Workspace
-        
-        if not workpath: workpath = common.workpath
-        debugmsg("cleaning work directory {}".format(workpath))
-        
-        for name in listdir(workpath):
-            path = join(workpath, name)
-            if Workspace.isWorkspace(path):
-                Workspace(path).clean()
-
-
-    def reset(self):
-        
-        from os import remove
-        from os.path import exists, join
-        from shutil import rmtree
         import spack
-        from common import homepath, own_spack_home, errormsg
-        import spackle
+        import spackle        
+        import common
+        from common    import infomsg, verbosemsg, debugmsg
+        from workspace import Workspace
 
-        self.clean()
+        # clean workspace if desired
+        if workspace:
+            workpath = common.workpath if workspace == "<default>" else workspace
+            debugmsg("cleaning work directory {}".format(workpath))
+            for name in listdir(workpath):
+                path = join(workpath, name)
+                if Workspace.isWorkspace(path):
+                    Workspace(path).clean()
         
-        # remove private repos from Spack's in-memory repo set
-        repo = spack.repo.get_repo("tests", default=None)
-        if repo: spackle.removeRepo(repo)
+        # uninstall tests if desired
+        # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
+        if tests:
+            verbosemsg("uninstalling built tests...")
+            for name in sorted( spackle.allPackageNames("tests") ):
+                if spackle.isInstalled(name):
+                    spackle.uninstall(name)
+                    verbosemsg("  uninstalled {} (all versions)".format(name))
+            verbosemsg("...done")
         
-        # remove repo paths from Spack's repos.yaml
-        with open(join(own_spack_home, "etc", "spack", "repos.yaml"), "w") as f:
-            f.write("repos:\n")
-        
-        # remove repo directories
-        tpath = join(homepath, "runner", "repos", "tests")
-        if exists(tpath): rmtree(tpath)
+        # uninstall dependencies if desired
+        if dependencies:
+            verbosemsg("uninstalling built dependencies...")
+            for name in sorted( spackle.allPackageNames("builtin") ):
+                if spackle.isInstalled(name) and spackle.hasDependents(name):
+                    # ... 'and' in case there's a 'builtin' w/ same name as a test
+                    spackle.uninstall(name)
+                    verbosemsg("  uninstalled {} (all versions)".format(name))
+            verbosemsg("...done")
 
-        # remove checksum file from tests directory
-        cpath = join(homepath, "tests", checksumName)
-        if exists(cpath): remove(cpath)
-        
-        # remove all installed packages and leftover build byproducts
-        try:
-            spackle.do("clean --all")
-            rmtree(join(own_spack_home, "opt"))
-            spackle.do("reindex")
-#           spackle.do("module refresh")    # CONTRARY TO DOCS, 'constraint' arg is mandatory    # could add a package's spec to limit the refresh
-        except Exception as e:
-            errormsg( "error removing installed packages and their build byproducts ({})".format(str(e)) )
-
+    
     
     def spack(self, cmdstring):
         

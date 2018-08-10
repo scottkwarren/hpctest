@@ -142,27 +142,24 @@ def parseCommandLine():
 
 
     # -------------------------------------------------------------------------------------------------------
-    # hpctest clean [ workspace | --workspace workspace] <options>
+    # hpctest clean [ --all | [-w|--workspace  [workspace] ] [-t|-tests] [-d|--dependencies] ]   <options>
     # -------------------------------------------------------------------------------------------------------
     cleanParser = subparsers.add_parser("clean", help="clean up by deleting unwanted workspaces")
 
     # ... workspace
-    workGroup = cleanParser.add_mutually_exclusive_group()
-    workGroup.add_argument("workspace", nargs="?", type=str, default="default", help="path to run directory or dir-of-rundirs to be cleaned")
-    workGroup.add_argument("--workspace", "-w",    type=str, default="default", help="path to run directory or dir-of-rundirs to be cleaned")
+    cleanParser.add_argument("--workspace",    "-w", type=str, nargs="?", const="<default>", help="delete study directories from workspace")
+
+    # ... tests
+    cleanParser.add_argument("--tests",        "-t", action="store_true", help="uninstall built tests")
+
+    # ... dependencies
+    cleanParser.add_argument("--dependencies", "-d", action="store_true", help="uninstall packages built to satisfy tests' dependencies")
+
+    # ... all
+    cleanParser.add_argument("--all",          "-a", action="store_true", help="clean workspace, tests, and dependencies")
     
     # ... options
     _addOptionArgs(cleanParser)
-    # -------------------------------------------------------------------------------------------------------
-
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest reset <options>
-    # -------------------------------------------------------------------------------------------------------
-    resetParser = subparsers.add_parser("reset", help="return hpctest state to just-installed")
-    
-    # ... options
-    _addOptionArgs(resetParser)
     # -------------------------------------------------------------------------------------------------------
 
 
@@ -240,23 +237,29 @@ def execute(args):
     elif args.subcommand == "report":
         
         workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
-        reportspec = args.report if args.report != "default" else "all"
+        reportspec = args.report if args.report != "default" else "all" 
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
         tester.report(workspace, reportspec, sortKeys)
         
-    elif args.subcommand == "clean":
+    elif args.subcommand == "clean":    
         
-        workspace = args.workspace if args.workspace != "default" else None
-        tester.clean(workspace)
+        w = args.workspace
+        t = args.tests
+        d = args.dependencies
         
-    elif args.subcommand == "reset":
-        
-        really = "force" in options or yesno("Really delete all previously built tests and workspaces")
-        if really:
-            tester.reset()
+        if w or t or d:
+            if args.all:
+                infomsg("option '--all' may not be combined with other options, so is ignored")
+        elif args.all:
+            w = "<default>"
+            t = True
+            d = True
         else:
-            print "Ok, nothing will be deleted."
+            w = "<default>"
             
+        tester.clean(w, t, d)
+
+        
     elif args.subcommand == "spack":
         
         tester.spack(" ".join(args.spackcmd))

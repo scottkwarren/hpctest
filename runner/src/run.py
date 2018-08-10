@@ -242,6 +242,7 @@ class Run():
                     
                     try:
                         self.package.do_install(
+                            restage=True,
                             keep_prefix=False,
                             install_deps=True,
                             verbose="verbose" in options,
