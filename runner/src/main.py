@@ -121,22 +121,12 @@ def parseCommandLine():
 
 
     # -------------------------------------------------------------------------------------------------------
-    # hpctest report [ workspace | --workspace workspace ] [ --report reportspec ] [ --sort sortspec ] <options>
+    # hpctest report [--workspace workspace] [--report reportspec] [--sort sortspec] <options>
     # -------------------------------------------------------------------------------------------------------
     reportParser = subparsers.add_parser("report", help="print report summarizing a workspace")
-
-    # ... workspace
-    workGroup = reportParser.add_mutually_exclusive_group()
-    workGroup.add_argument("workspace", nargs="?", type=str, default="default",  help="path to workspace to report on")
-    workGroup.add_argument("--workspace", "-w",    type=str, default="default",  help="path to workspace to report on")
-
-    # ... report spec
+    reportParser.add_argument("--workspace", "-w",    type=str, default="default",  help="path to workspace to report on")
     reportParser.add_argument("--report", "-r",    type=str, default="default", help="details of report to be produced")
-    
-    # ... sort spec
     reportParser.add_argument("--sort",   "-s",    type=str, default="default", help="sequence of dimensions to sort report by")
-    
-    # ... options
     _addOptionArgs(reportParser)
     # -------------------------------------------------------------------------------------------------------
 
@@ -145,20 +135,10 @@ def parseCommandLine():
     # hpctest clean [ --all | [-w|--workspace  [workspace] ] [-t|-tests] [-d|--dependencies] ]   <options>
     # -------------------------------------------------------------------------------------------------------
     cleanParser = subparsers.add_parser("clean", help="clean up by deleting unwanted workspaces")
-
-    # ... workspace
     cleanParser.add_argument("--workspace",    "-w", type=str, nargs="?", const="<default>", help="delete study directories from workspace")
-
-    # ... tests
     cleanParser.add_argument("--tests",        "-t", action="store_true", help="uninstall built tests")
-
-    # ... dependencies
     cleanParser.add_argument("--dependencies", "-d", action="store_true", help="uninstall packages built to satisfy tests' dependencies")
-
-    # ... all
     cleanParser.add_argument("--all",          "-a", action="store_true", help="clean workspace, tests, and dependencies")
-    
-    # ... options
     _addOptionArgs(cleanParser)
     # -------------------------------------------------------------------------------------------------------
 
@@ -168,8 +148,6 @@ def parseCommandLine():
     # -------------------------------------------------------------------------------------------------------
     spackParser = subparsers.add_parser("spack", help="run a Spack command with hpctest's private Spack")
     spackParser.add_argument('spackcmd', nargs=argparse.REMAINDER)
-    
-    # ... options
     _addOptionArgs(spackParser)
     # -------------------------------------------------------------------------------------------------------
 
@@ -178,8 +156,6 @@ def parseCommandLine():
     # hpctest _miniapps <options>
     # -------------------------------------------------------------------------------------------------------
     miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
-    
-    # ... options
     _addOptionArgs(miniappsParser)
     # -------------------------------------------------------------------------------------------------------
 
@@ -187,6 +163,7 @@ def parseCommandLine():
     # parse the command line
     args = parser.parse_args()
     if args.options is None: args.options = {}          # can argparse do this automagically?
+    print args  ## DEBUG
     common.options = args.options
     common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
 
