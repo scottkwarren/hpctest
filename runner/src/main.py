@@ -87,61 +87,34 @@ def parseCommandLine():
     # hpctest run [tspec | --tests tspec] [--configs cspec] [--workspace workspace] <options>
     # -------------------------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
-
-    # ... tests
-    testGroup = runParser.add_mutually_exclusive_group()
-    testGroup.add_argument("tests",    nargs="?",       type=str, default="all",     help="test-spec for the set of test cases to be run")
-    testGroup.add_argument("--tests",            "-t",  type=str, default="all",     help="test-spec for the set of test cases to be run")
-
-    # ... configs
-    runParser.add_argument("--configs",          "-c",  type=str, default="default", help="build-spec for the set of build configs on which to test")
-
-    # ... hpctoolkits
+    runParser.add_argument("tests",         nargs="?", type=str,  default="all",      help="test-spec for the set of test cases to be run")
+    runParser.add_argument("--configs",          "-c", type=str,  default="default",  help="build-spec for the set of build configs on which to test")
     runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to installations of hpctoolkit with which to test")
-
-    # ... hpcrun/struct/prof params
     runParser.add_argument("--hpctoolkitparams", "-p", type=str,  default="default",  help="parameters for the programs in hpctoolkit with which to test")
-
-    # ... workspace 
     runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to create run directory for this run")
-
-    # ... repetitions 
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
-
-    # ... report spec
     runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to be produced")
-    
-    # ... sort spec
     runParser.add_argument("--sort",             "-s", type=str,  default="default",  help="sequence of dimensions to sort report by")
-                                                 #                                         "tests, "configs", "hpctoolkits", "hpctoolkitparams"
-    
-    # ... options       
     _addOptionArgs(runParser)
-    # -------------------------------------------------------------------------------------------------------
-
 
     # -------------------------------------------------------------------------------------------------------
     # hpctest report [--workspace workspace] [--report reportspec] [--sort sortspec] <options>
     # -------------------------------------------------------------------------------------------------------
-    reportParser = subparsers.add_parser("report", help="print report summarizing a workspace")
-    reportParser.add_argument("--workspace", "-w",    type=str, default="default",  help="path to workspace to report on")
-    reportParser.add_argument("--report", "-r",    type=str, default="default", help="details of report to be produced")
-    reportParser.add_argument("--sort",   "-s",    type=str, default="default", help="sequence of dimensions to sort report by")
+    reportParser = subparsers.add_parser("report",                                    help="print report summarizing a workspace")
+    reportParser.add_argument("--workspace", "-w",     type=str,  default="default",  help="path to workspace to report on")
+    reportParser.add_argument("--report", "-r",        type=str,  default="default",  help="details of report to be produced")
+    reportParser.add_argument("--sort",   "-s",        type=str,  default="default",  help="sequence of dimensions to sort report by")
     _addOptionArgs(reportParser)
-    # -------------------------------------------------------------------------------------------------------
-
 
     # -------------------------------------------------------------------------------------------------------
     # hpctest clean [ --all | [-w|--workspace  [workspace] ] [-t|-tests] [-d|--dependencies] ]   <options>
     # -------------------------------------------------------------------------------------------------------
-    cleanParser = subparsers.add_parser("clean", help="clean up by deleting unwanted workspaces")
-    cleanParser.add_argument("--workspace",    "-w", type=str, nargs="?", const="<default>", help="delete study directories from workspace")
-    cleanParser.add_argument("--tests",        "-t", action="store_true", help="uninstall built tests")
-    cleanParser.add_argument("--dependencies", "-d", action="store_true", help="uninstall packages built to satisfy tests' dependencies")
-    cleanParser.add_argument("--all",          "-a", action="store_true", help="clean workspace, tests, and dependencies")
+    cleanParser = subparsers.add_parser("clean",                                      help="clean up by deleting unwanted workspaces")
+    cleanParser.add_argument("--workspace",    "-w",   type=str, nargs="?", const="<default>", help="delete study directories from workspace")
+    cleanParser.add_argument("--tests",        "-t",   action="store_true",           help="uninstall built tests")
+    cleanParser.add_argument("--dependencies", "-d",   action="store_true",           help="uninstall packages built to satisfy tests' dependencies")
+    cleanParser.add_argument("--all",          "-a",   action="store_true",           help="clean workspace, tests, and dependencies")
     _addOptionArgs(cleanParser)
-    # -------------------------------------------------------------------------------------------------------
-
 
     # -------------------------------------------------------------------------------------------------------
     # hpctest spack <cmd>
@@ -149,16 +122,12 @@ def parseCommandLine():
     spackParser = subparsers.add_parser("spack", help="run a Spack command with hpctest's private Spack")
     spackParser.add_argument('spackcmd', nargs=argparse.REMAINDER)
     _addOptionArgs(spackParser)
-    # -------------------------------------------------------------------------------------------------------
-
 
     # -------------------------------------------------------------------------------------------------------
     # hpctest _miniapps <options>
     # -------------------------------------------------------------------------------------------------------
     miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
     _addOptionArgs(miniappsParser)
-    # -------------------------------------------------------------------------------------------------------
-
 
     # parse the command line
     args = parser.parse_args()
