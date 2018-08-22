@@ -1,0 +1,69 @@
+# from info.name, info.description, and build.kind
+from spack import *
+class ${testname}(${buildKind}):
+    ${testDescription}
+
+# from info.homepage and info.url
+    homepage = ${homepage}
+    url      = ${url}
+
+# from info.version
+    version(${versionNum}, ${versionStr})
+
+
+# VARIANT BASE:
+
+## from config.variants[@base].languages
+        languages = \"${langvar} =  {}\".format(spack_${langcompiler})
+        
+## from config.variants[@base].flags
+        cxxflags = ${cxxflags}
+        ldflags = ${ldflags}
+
+# VARIANT OPENMP:
+
+# from config.variants[@openmp].{variant,description}, and config.'default variants'
+    variant(${variantName}, description=${variantDescr}, default=${isDefault})
+
+## from config.variants[@openmp].flags
+        if ${variantName} in self.spec:
+            cxxflags += ' ' + ${cxxflags}
+            cxxflags += ' ' + self.compiler.openmp_flag
+            ldflags  += ' ' + self.compiler.openmp_flag
+
+# VARIANT MPI:
+
+# from config.variants[@mpi].{variant,description,depends}, and config.'default variants'
+    variant('mpi', description='Build with MPI support', default=True)
+    depends_on('mpi', when='+mpi')
+        
+## from config.variants[@mpi].languages
+        if '+mpi' in self.spec:
+            languages = 'CC = {}'.format(self.spec['mpi'].mpicc)
+        
+## from config.variants[@mpi].flags
+        if '+mpi' in self.spec:
+            cxxflags += ' ' + '-DUSE_MPI=1'
+
+## from config.variants[@mpi].env
+        if '+mpi' in self.spec:
+            targets.append('MPI_INC = {0}'.format(self.spec['mpi'].prefix.include))
+            targets.append('MPI_LIB = {0}'.format(self.spec['mpi'].prefix.lib))
+            
+
+# boilerplate for config.variants[*].flags...
+    @property
+    def build_targets(self):
+        targets = []
+
+# boilerplate closing 'build_targets'
+        targets.append(languages)
+        targets.append('INCLUDE_CFLAGS = {0}'.format(cxxflags))
+        targets.append('INCLUDE_LFLAGS = {0}'.format(ldflags))
+        return targets
+
+# from build.install
+    def install(self, spec, prefix):
+        mkdirp(prefix.bin)
+        install('test/amg2006', prefix.bin)
+        install('test/sstruct.in.AMG.FD', prefix.bin)

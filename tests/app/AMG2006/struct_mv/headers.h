@@ -30,4 +30,4 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "struct_mv.h"
+#include "../../../app/AMG2006/struct_mv/struct_mv.h"

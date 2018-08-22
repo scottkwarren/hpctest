@@ -1,0 +1,6 @@
+Record /proc/self/maps and [vdso] to support regression testing of
+runtime environment analysis modules that parse /proc/self/maps and
+analyze symbols in [vdso]
+
+usage:
+  ./vdso-query

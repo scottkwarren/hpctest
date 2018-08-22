@@ -259,9 +259,8 @@
  ***********************************************************************EHEADER*/
 
 
-#include "utilities.h"
-
-#include "HYPRE_struct_mv.h"
+#include "../../../app/AMG2006/struct_mv/HYPRE_struct_mv.h"
+#include "../../../app/AMG2006/utilities/utilities.h"
 
 #ifndef hypre_STRUCT_MV_HEADER
 #define hypre_STRUCT_MV_HEADER

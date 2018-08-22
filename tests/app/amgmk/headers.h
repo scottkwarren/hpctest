@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "utilities.h"
-#include "seq_mv.h"
+#include "../amgmk/seq_mv.h"
+#include "../amgmk/utilities.h"
 
 

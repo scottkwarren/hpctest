@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "HYPRE.h"
-#include "parcsr_mv.h"
+#include "../../../app/AMG2006/HYPRE.h"
+#include "../../../app/AMG2006/parcsr_mv/parcsr_mv.h"
 
 

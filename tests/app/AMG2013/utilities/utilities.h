@@ -97,7 +97,7 @@
  *
  * $Revision: 2.4 $
  ***********************************************************************EHEADER*/
-#include "HYPRE_utilities.h"
+#include "../../../app/AMG2013/utilities/HYPRE_utilities.h"
 
 #ifndef hypre_UTILITIES_HEADER
 #define hypre_UTILITIES_HEADER

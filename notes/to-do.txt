@@ -1,9 +1,6 @@
 HPCTEST TO DO
 
 
-- Finish implementing 'numrepeats'
-
-
 - External repo + option to store dependencies (and compilers?) there
 
 
@@ -29,6 +26,9 @@ HPCTEST TO DO
 - Robust iteration & continuation
  
  
+- Finish implementing 'numrepeats'
+
+
 - Alternate input notation based on yaml
    
    

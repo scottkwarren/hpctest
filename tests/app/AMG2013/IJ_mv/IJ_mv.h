@@ -48,10 +48,10 @@
 #ifndef hypre_IJ_HEADER
 #define hypre_IJ_HEADER
 
-#include "utilities.h"
-#include "seq_mv.h"
-#include "parcsr_mv.h"
-#include "HYPRE_IJ_mv.h"
+#include "../../../app/AMG2013/IJ_mv/HYPRE_IJ_mv.h"
+#include "../../../app/AMG2013/parcsr_mv/parcsr_mv.h"
+#include "../../../app/AMG2013/seq_mv/seq_mv.h"
+#include "../../../app/AMG2013/utilities/utilities.h"
 
 #ifdef __cplusplus
 extern "C" {

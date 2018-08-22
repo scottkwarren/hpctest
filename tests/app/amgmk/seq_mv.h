@@ -31,7 +31,7 @@
 #ifndef hypre_MV_HEADER
 #define hypre_MV_HEADER
 
-#include "utilities.h"
+#include "../amgmk/utilities.h"
 
 #ifdef __cplusplus
 extern "C" {

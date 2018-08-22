@@ -1,0 +1,23 @@
+testname:			Amg2006
+buildKind:			MakefilePackage
+testDescription:  	"""AMG2006 is a parallel algebraic multigrid solver for linear systems arising
+    				from problems on unstructured grids. 
+    				"""
+homepage:			"https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006"
+url:				"https://github.com/HPCToolkit/HPCTest"
+versionNum:			"1.0"
+versionStr:	        "app/AMG2006"
+variants:
+  base:
+    variantName:	None
+	langvar:		"CC"
+	langcompiler:	"cc"
+	cxxflags:		"-g -O2"
+    ldflags:		"-lm"
+  openmp:
+    variantName:	"openmp"
+    variantDescr:	"Build with OpenMP support"
+    isDefault:		True
+	cxxflags:		"-DHYPRE_USING_OPENMP"
+    ldflags:		xxx
+  mpi:

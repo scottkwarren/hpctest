@@ -43,13 +43,13 @@
  * $Revision: 2.4 $
  ***********************************************************************EHEADER*/
 
-#include "HYPRE_parcsr_mv.h"
+#include "../../../app/AMG2013/parcsr_mv/HYPRE_parcsr_mv.h"
 
 #ifndef hypre_PARCSR_MV_HEADER
 #define hypre_PARCSR_MV_HEADER
 
-#include "utilities.h"
-#include "seq_mv.h"
+#include "../../../app/AMG2013/utilities/utilities.h"
+#include "../../../app/AMG2013/seq_mv/seq_mv.h"
 
 #ifdef __cplusplus
 extern "C" {

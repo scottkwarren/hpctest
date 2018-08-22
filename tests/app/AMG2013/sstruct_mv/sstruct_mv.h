@@ -65,16 +65,15 @@
  * $Revision: 2.4 $
  ***********************************************************************EHEADER*/
 
-#include "utilities.h"
-
-#include "HYPRE_sstruct_mv.h"
+#include "../../../app/AMG2013/sstruct_mv/HYPRE_sstruct_mv.h"
+#include "../../../app/AMG2013/utilities/utilities.h"
 
 #ifndef hypre_SSTRUCT_MV_HEADER
 #define hypre_SSTRUCT_MV_HEADER
 
-#include "struct_mv.h"
-#include "IJ_mv.h"
-#include "HYPRE.h"
+#include "../../../app/AMG2013/struct_mv/struct_mv.h"
+#include "../../../app/AMG2013/IJ_mv/IJ_mv.h"
+#include "../../../app/AMG2013/HYPRE.h"
 
 #ifdef __cplusplus
 extern "C" {

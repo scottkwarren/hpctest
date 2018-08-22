@@ -16,7 +16,7 @@
 #ifndef HYPRE_IJ_MV_HEADER
 #define HYPRE_IJ_MV_HEADER
 
-#include "HYPRE_utilities.h"
+#include "../../../app/AMG2013/utilities/HYPRE_utilities.h"
 
 #ifdef __cplusplus
 extern "C" {
