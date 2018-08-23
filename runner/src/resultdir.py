@@ -106,7 +106,6 @@ class ResultDir():
         # returns None if keyPath not in results
         
         # won't try to go past existing prefix of KeyPath, so None is ok for keyAfter
-        print keyPath
         return self._findValueForPath(False, None, *keyPath)
 
 

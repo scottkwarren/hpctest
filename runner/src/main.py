@@ -132,7 +132,6 @@ def parseCommandLine():
     # parse the command line
     args = parser.parse_args()
     if args.options is None: args.options = {}          # can argparse do this automagically?
-    print args  ## DEBUG
     common.options = args.options
     common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
 
