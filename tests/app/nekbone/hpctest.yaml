@@ -33,15 +33,17 @@ config:
     
     - base: serial
       description: "Build as a serial program"
-      languages: [ c f77 ]
+      languages: [ c f90 ]
       flags:
-        CXXFLAGS: "-g -O3"
+        CFLAGS:   "-g -O3"
         LDFLAGS:  "-g -O3"
+        env:
+          - "-DF77=$F90"    # oddity of nekbone makefile, uses F77 even though wants f90 compiler
         
     - variant: openmp
       description: "Build with OpenMP support"
       flags:
-        +CXXFLAGS: $OPENMP_FLAG
+        +CFLAGS:   $OPENMP_FLAG
         +LDFLAGS:  $OPENMP_FLAG
             
     - variant: mpi

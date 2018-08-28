@@ -33,7 +33,7 @@
 #  ifndef comm_gbl_id
 #    define comm_gbl_id PREFIXED_NAME(comm_gbl_id)
 #    define comm_gbl_np PREFIXED_NAME(comm_gbl_np)
-#    include "../../../../app/nekbone-2.3.4/src/jl/types.h"
+#    include "types.h"
      extern uint comm_gbl_id, comm_gbl_np;
 #  endif
 #endif

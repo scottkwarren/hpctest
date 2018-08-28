@@ -227,6 +227,7 @@ class Run():
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
+        print repr(self.spec)  ## DEBUG
         if self.package.installed:
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
@@ -394,7 +395,8 @@ class Run():
         if wantMPI:
             mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
             mpiNumRanks = str( self.yaml["run"]["ranks"] )
-            cmd = "{}/mpiexec -np {} {}".format(mpiBinPath, mpiNumRanks, cmd)
+            mpiOptions  = "-verbose" if "verbose" in options else ""
+            cmd = "{}/mpiexec -np {} {} {}".format(mpiBinPath, mpiNumRanks, mpiOptions, cmd)
         
         # ... add batch scheduling code if wanted
         if wantBatch:

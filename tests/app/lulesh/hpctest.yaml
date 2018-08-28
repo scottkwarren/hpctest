@@ -30,6 +30,10 @@ config:
       flags:
         CXXFLAGS: -g -O3
         LDFLAGS:  -g -O3
+        env:
+          - "-DF77=$F90"
+        
+
         
     - variant: openmp
       description: Build with OpenMP support

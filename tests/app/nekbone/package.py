@@ -44,7 +44,7 @@ class Nekbone(MakefilePackage):
         
 ## from config.variants[@base].languages
 ##    languages: [ cxx ]
-        languages = 'CC = {} F77 = {}'.format(spack_cc, spack_f77)
+        languages = 'CC = {} F90 = {}'.format(spack_cc, spack_fc)
         
 ## from config.variants[@base].flags
 ##      CXXFLAGS: "-g -O3"
@@ -62,7 +62,7 @@ class Nekbone(MakefilePackage):
 ## from config.variants[@mpi].languages
 ##    languages: [ mpicxx ]
         if '+mpi' in self.spec:
-            languages = 'CC={} F77={}'.format(self.spec['mpi'].mpicc, self.spec['mpi'].mpif77)
+            languages = 'CC={} F77={}'.format(self.spec['mpi'].mpicc, self.spec['mpi'].mpifc) # sic 'F77': cf 'env' flag in yaml
         
 ## from config.variants[@mpi].flags
 ##    flags: +CXXFLAGS: "-DUSE_MPI=1"
