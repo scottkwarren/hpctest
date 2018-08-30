@@ -31,6 +31,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2006/seq_mv/seq_mv.h"
+#include "seq_mv.h"
 
 

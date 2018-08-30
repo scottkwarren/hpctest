@@ -30,10 +30,10 @@
 #ifndef HYPRE_SSTRUCT_MV_HEADER
 #define HYPRE_SSTRUCT_MV_HEADER
 
-#include "../../../app/AMG2006/HYPRE.h"
-#include "../../../app/AMG2006/IJ_mv/HYPRE_IJ_mv.h"
-#include "../../../app/AMG2006/struct_mv/HYPRE_struct_mv.h"
-#include "../../../app/AMG2006/utilities/HYPRE_utilities.h"
+#include "HYPRE_utilities.h"
+#include "HYPRE.h"
+#include "HYPRE_struct_mv.h"
+#include "HYPRE_IJ_mv.h"
 
 #ifdef __cplusplus
 extern "C" {

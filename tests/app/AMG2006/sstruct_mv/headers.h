@@ -31,4 +31,4 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2006/sstruct_mv/sstruct_mv.h"
+#include "sstruct_mv.h"

@@ -35,8 +35,8 @@
 #ifndef HYPRE_PARCSR_MV_HEADER
 #define HYPRE_PARCSR_MV_HEADER
 
-#include "../../../app/AMG2006/seq_mv/HYPRE_seq_mv.h"
-#include "../../../app/AMG2006/utilities/HYPRE_utilities.h"
+#include "HYPRE_utilities.h"
+#include "HYPRE_seq_mv.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -31,6 +31,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2006/parcsr_ls/parcsr_ls.h"
+#include "parcsr_ls.h"
 /*#include "par_csr_block_matrix.h"*/
 

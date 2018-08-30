@@ -1,10 +1,10 @@
 
-#include "../../../app/AMG2006/seq_mv/HYPRE_seq_mv.h"
+#include "HYPRE_seq_mv.h"
 
 #ifndef hypre_MV_HEADER
 #define hypre_MV_HEADER
 
-#include "../../../app/AMG2006/utilities/utilities.h"
+#include "utilities.h"
 
 #ifdef __cplusplus
 extern "C" {

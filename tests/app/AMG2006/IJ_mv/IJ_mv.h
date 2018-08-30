@@ -4,10 +4,10 @@
 #ifndef hypre_IJ_HEADER
 #define hypre_IJ_HEADER
 
-#include "../../../app/AMG2006/IJ_mv/HYPRE_IJ_mv.h"
-#include "../../../app/AMG2006/parcsr_mv/parcsr_mv.h"
-#include "../../../app/AMG2006/seq_mv/seq_mv.h"
-#include "../../../app/AMG2006/utilities/utilities.h"
+#include "utilities.h"
+#include "seq_mv.h"
+#include "parcsr_mv.h"
+#include "HYPRE_IJ_mv.h"
 
 #ifdef __cplusplus
 extern "C" {

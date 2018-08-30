@@ -1,4 +1,4 @@
-#include "../../../app/AMG2006/utilities/HYPRE_utilities.h"
+#include "HYPRE_utilities.h"
 
 #ifndef hypre_UTILITIES_HEADER
 #define hypre_UTILITIES_HEADER

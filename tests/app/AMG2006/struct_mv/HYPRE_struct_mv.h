@@ -29,7 +29,7 @@
 #ifndef HYPRE_STRUCT_MV_HEADER
 #define HYPRE_STRUCT_MV_HEADER
 
-#include "../../../app/AMG2006/utilities/HYPRE_utilities.h"
+#include "HYPRE_utilities.h"
 
 #ifdef __cplusplus
 extern "C" {

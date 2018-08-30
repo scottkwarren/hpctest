@@ -30,7 +30,7 @@
  *
  *****************************************************************************/
 
-#include "../../../app/AMG2006/HYPRE.h"
+#include "HYPRE.h"
 
 #ifndef HYPRE_UTILITIES_HEADER
 #define HYPRE_UTILITIES_HEADER

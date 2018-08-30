@@ -1,13 +1,13 @@
 
-#include "../../../app/AMG2006/parcsr_ls/HYPRE_parcsr_ls.h"
+#include "HYPRE_parcsr_ls.h"
 
 #ifndef hypre_PARCSR_LS_HEADER
 #define hypre_PARCSR_LS_HEADER
 
-#include "../../../app/AMG2006/utilities/utilities.h"
-#include "../../../app/AMG2006/krylov/krylov.h"
-#include "../../../app/AMG2006/seq_mv/seq_mv.h"
-#include "../../../app/AMG2006/parcsr_mv/parcsr_mv.h"
+#include "utilities.h"
+#include "krylov.h"
+#include "seq_mv.h"
+#include "parcsr_mv.h"
 
 #ifdef __cplusplus
 extern "C" {
