@@ -62,7 +62,7 @@ class Nekbone(MakefilePackage):
 ## from config.variants[@mpi].languages
 ##    languages: [ mpicxx ]
         if '+mpi' in self.spec:
-            languages = 'CC={} F77={}'.format(self.spec['mpi'].mpicc, self.spec['mpi'].mpifc) # sic 'F77': cf 'env' flag in yaml
+            languages = 'CC={} F77={}'.format(self.spec['mpi'].mpicc, self.spec['mpi'].mpifc) # sic 'F77' b/c makefile uses it for f90 (!)
         
 ## from config.variants[@mpi].flags
 ##    flags: +CXXFLAGS: "-DUSE_MPI=1"
@@ -84,6 +84,7 @@ class Nekbone(MakefilePackage):
         import os
         from os.path import join as path_join
         from subprocess import call
+        print "env {} ./makenek ex1".format(" ".join(self.build_targets))
         call("env {} ./makenek ex1".format(" ".join(self.build_targets)),
              shell=True, cwd=path_join(self.build_directory, "test", "example1"))
 

@@ -1,6 +1,12 @@
 HPCTEST TO DO
 
 
+Bugs
+-------------------------------------------------------------------------------------
+- compiler version not handled correctly by nekbone/package.py... others??
+-------------------------------------------------------------------------------------
+
+
 - External repo + option to store dependencies (and compilers?) there
 
 
@@ -40,9 +46,9 @@ HPCTEST TO DO
 
 
 
------
+-------------------------------------------------------------------------------------
 - Is it good to divide cpu limit among mpi ranks? Or let limit be per node?
------
+-------------------------------------------------------------------------------------
  
  
  

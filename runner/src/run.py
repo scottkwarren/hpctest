@@ -111,13 +111,13 @@ class Run():
         except BadTestDescription as e:
             msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
         except PrepareFailed as e:
-            msg = "failed to set up for building test"
+            msg = "setup for test build failed"
         except BuildFailed as e:
-            msg = "failed to build test"
+            msg = "test build failed"
         except ExecuteFailed as e:
-            msg = "failed to run test"
+            msg = "test execution failed"
         except CheckFailed as e:
-            msg = "failed to check test results"
+            msg = "test result check failed"
         except Exception as e:
             msg = "unexpected error {} ({})".format(type(e).__name__, e.message)
         else:
