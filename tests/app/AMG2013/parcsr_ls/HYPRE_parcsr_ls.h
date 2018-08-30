@@ -21,11 +21,11 @@
 #ifndef HYPRE_PARCSR_LS_HEADER
 #define HYPRE_PARCSR_LS_HEADER
 
-#include "../../../app/AMG2013/HYPRE.h"
-#include "../../../app/AMG2013/IJ_mv/HYPRE_IJ_mv.h"
-#include "../../../app/AMG2013/parcsr_mv/HYPRE_parcsr_mv.h"
-#include "../../../app/AMG2013/seq_mv/HYPRE_seq_mv.h"
-#include "../../../app/AMG2013/utilities/HYPRE_utilities.h"
+#include "HYPRE.h"
+#include "HYPRE_utilities.h"
+#include "HYPRE_seq_mv.h"
+#include "HYPRE_parcsr_mv.h"
+#include "HYPRE_IJ_mv.h"
 
 #ifdef __cplusplus
 extern "C" {

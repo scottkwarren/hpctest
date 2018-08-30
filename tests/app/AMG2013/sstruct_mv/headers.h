@@ -17,4 +17,4 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2013/sstruct_mv/sstruct_mv.h"
+#include "sstruct_mv.h"

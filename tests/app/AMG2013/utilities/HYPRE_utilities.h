@@ -16,7 +16,7 @@
  *
  *****************************************************************************/
 
-#include "../../../app/AMG2013/HYPRE.h"
+#include "HYPRE.h"
 
 #ifndef HYPRE_UTILITIES_HEADER
 #define HYPRE_UTILITIES_HEADER

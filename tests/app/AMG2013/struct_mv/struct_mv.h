@@ -119,8 +119,9 @@
 
 
 
-#include "../../../app/AMG2013/struct_mv/HYPRE_struct_mv.h"
-#include "../../../app/AMG2013/utilities/utilities.h"
+#include "utilities.h"
+
+#include "HYPRE_struct_mv.h"
 
 #ifndef hypre_STRUCT_MV_HEADER
 #define hypre_STRUCT_MV_HEADER

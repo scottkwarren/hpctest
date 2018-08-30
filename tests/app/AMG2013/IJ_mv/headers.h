@@ -17,6 +17,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2013/IJ_mv/HYPRE_IJ_mv.h"
-#include "../../../app/AMG2013/IJ_mv/IJ_mv.h"
+#include "IJ_mv.h"
+#include "HYPRE_IJ_mv.h"
 

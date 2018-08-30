@@ -17,8 +17,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2013/HYPRE.h"
-#include "../../../app/AMG2013/parcsr_mv/parcsr_mv.h"
+#include "HYPRE.h"
+#include "parcsr_mv.h"
 
 
 #ifdef HYPRE_USE_MCSUP

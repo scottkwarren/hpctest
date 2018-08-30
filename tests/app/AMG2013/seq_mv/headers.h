@@ -17,5 +17,5 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../../app/AMG2013/seq_mv/seq_mv.h"
+#include "seq_mv.h"
 
