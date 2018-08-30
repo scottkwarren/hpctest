@@ -1,4 +1,0 @@
-In the Spack builtin package 'miniamr' as of 0.11.2, the 'url' field in package.py is incorrect. It should be:
-
-    url      = "https://github.com/Mantevo/miniAMR/archive/v1.4.0.tar.gz"
-
