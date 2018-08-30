@@ -148,14 +148,15 @@ class HPCTest():
         workspace = Workspace(workpath)
         
         # run all the tests
-        status  = Iterate.doForAll(dims, args, numrepeats, workspace)
+        nonempty = Iterate.doForAll(dims, args, numrepeats, workspace)
         print "\n"
         
         # report results
-        reporter = Report()
-        reporter.printReport(workspace, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
+        if nonempty:
+            reporter = Report()
+            reporter.printReport(workspace, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
         
-        return status
+        return 0
         
         
     def report(self, studypath, reportspec="", sortKeys=[]):

@@ -58,8 +58,9 @@ class Iterate():
         from common import infomsg, debugmsg, options
         from run import Run
 
-        if not dims["tests"].paths():
-            infomsg("'tests' dimension matches no tests, so no jobs will be run")
+        if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
+            infomsg("test spec matches no tests")
+            return False
         else:
             
             debugmsg("iterating over experiment space = crossproduct( {} ) with args = {} and options = {} in workspace = {}"
@@ -68,6 +69,8 @@ class Iterate():
             for test, config, hpctoolkit, hpctoolkitparams in product(dims["tests"], dims["configs"], dims["hpctoolkits"], dims["hpctoolkitparams"]):
                 run = Run(test, config, hpctoolkit, hpctoolkitparams, numrepeats, workspace)
                 status = run.run()
+            
+            return True
             
             
             
