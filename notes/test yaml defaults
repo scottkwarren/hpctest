@@ -1,0 +1,37 @@
+DEFAULT VALUES IN HPCTEST.YAML FILES
+
+info:version: 1.0
+
+config: variants: []
+config: default variants: []
+... variant: description: ""
+... variant: flags: {:}
+... variant: env: []
+... variant: depends: [ mpi ]					WHEN ... variant: name: mpi
+... variant: depends: [ openmp ]				WHEN ... variant: name: openmp
+... variant: flags: +CFLAGS:  $OPENMP_FLAG		WHEN ... variant: name: openmp
+... variant: flags: +LDFLAGS: $OPENMP_FLAG		WHEN ... variant: name: openmp
+
+build: kind: <spack guess>
+build: separate: []
+build: makefilename: makefile					WHEN build: kind: makefile
+
+run: dir: .
+run: ranks: None
+run: threads: 1
+
+
+
+
+
+
+
+
+Additional defaults for unit tests
+----------------------------------
+
+info: homepage: <hpctoolkit-tests on github>
+info: url: <tetst page on hpctoolkit-tests on github>
+
+
+

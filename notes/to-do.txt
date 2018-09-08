@@ -3,18 +3,9 @@ HPCTEST TO DO
 
 Bugs
 -------------------------------------------------------------------------------------
-- compiler version not handled correctly by nekbone/package.py... others??
+- check each dimension for emptiness; requires each Spec class to evaluate its spec
 -------------------------------------------------------------------------------------
 
-
-- External repo + option to store dependencies (and compilers?) there
-
-
-- Generate a top-level _OUT directory with whole-job summary info:
-	- OUTs from each run
-	- copy of reported table
-	- Equivalent of run.log for whole job
-	
 
 - Reporting:
 	- Add variable-weight separators to report to indicate group changes
@@ -28,6 +19,15 @@ Bugs
  	- maybe 'compilerList = 'ppk = PackagePrefs("gcc", "compiler")'
  
  
+- External repo + option to store dependencies (and compilers?) there
+
+
+- Generate a top-level _OUT directory with whole-job summary info:
+	- OUTs from each run
+	- copy of reported table
+	- Equivalent of run.log for whole job
+	
+
 - Batch job submission & polling
 - Robust iteration & continuation
  

@@ -1,0 +1,31 @@
+#=========================================#
+# HPCTest description for hello           #
+#=========================================#
+
+
+info:
+  name:  hello-mpi
+  version: 1.0
+  description: >
+    Hello World for MPI testing.
+    
+config:
+  languages: [ c f77 f90 ]
+  depends:   [ mpi ]
+        
+build:
+  kind: makefile
+  install:
+    - hello-c
+    - hello-f
+    - hello-f90
+
+run:
+  cmd: make run
+
+profile: no
+
+
+
+
+
