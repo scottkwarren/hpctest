@@ -11,7 +11,7 @@ SOURCE_ROOT="../../src"
 F77="mpif90"
 
 # C compiler
-CC="mpifcc"
+CC="mpicc"
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
