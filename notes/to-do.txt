@@ -3,7 +3,13 @@ HPCTEST TO DO
 
 Bugs
 -------------------------------------------------------------------------------------
+
+- "Executing normal test:" vs "tun:normal" in yaml =>
+   - "normal" is inapt
+   - "run" vs "test" is inconsistent
+   
 - check each dimension for emptiness; requires each Spec class to evaluate its spec
+
 -------------------------------------------------------------------------------------
 
 
