@@ -227,7 +227,6 @@ class Run():
 
         # build the package if necessary
         self.package = spack.repo.get(self.spec)
-        print repr(self.spec)  ## DEBUG
         if self.package.installed:
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"

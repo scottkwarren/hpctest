@@ -1,6 +1,18 @@
 HPCTEST TO DO
 
 
+============================
+README deltas
+
+- finish renaming 'hpctoolkit' option to 'hpctoolkits'
+- rename '--report' to '--cases'
+- rename '--workspace' to '--study'
+- rename '--hpctoolkitparams' to 'profileparams'  <=== cf hpcstruct, hpcprof params
+- rename test 'app/amgmk' to 'app/AMGmk'
+- rename 'runner' to 'internal'
+
+============================
+
 Bugs
 -------------------------------------------------------------------------------------
 
