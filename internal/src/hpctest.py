@@ -264,13 +264,15 @@ class HPCTest():
 
     def _makePrivateRepo(self, dirname):
         
-        from os.path import join
+        from os.path import join, isdir
+        from shutil import rmtree
         import spack
         from spack.repository import create_repo
         from common import homepath
 
         # this just makes a repo directory -- it must be added to Spack once populated
         repoPath = join(homepath, "internal", "repos", dirname)
+        if isdir(repoPath): rmtree(repoPath, ignore_errors=True)
         namespace = dirname
         _ = create_repo(repoPath, namespace)
         
