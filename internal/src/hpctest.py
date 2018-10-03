@@ -71,12 +71,12 @@ class HPCTest():
     
         # determine important paths
         common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
-        runnerpath = join(common.homepath, "runner")
+        internalpath = join(common.homepath, "internal")
         common.ext_spack_home = extspackpath  # ok to be None
-        common.own_spack_home = join(runnerpath, "spack")
+        common.own_spack_home = join(internalpath, "spack")
         common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
         common.testspath = join(common.homepath, "tests")
-        common.repopath  = join(runnerpath, "repos", "tests")
+        common.repopath  = join(internalpath, "repos", "tests")
         common.workpath  = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
 
@@ -86,10 +86,10 @@ class HPCTest():
             infomsg("Setting up local Spack...")
             
             spack_version   = "0.11.2"
-            spack_tarball   = join(runnerpath, "spack-{}.tar.gz".format(spack_version))
-            spack_extracted = join(runnerpath, "spack-{}".format(spack_version))
-            spack_dest      = join(runnerpath, "spack")
-            system("cd {}; tar xzf {}".format(runnerpath, spack_tarball))
+            spack_tarball   = join(internalpath, "spack-{}.tar.gz".format(spack_version))
+            spack_extracted = join(internalpath, "spack-{}".format(spack_version))
+            spack_dest      = join(internalpath, "spack")
+            system("cd {}; tar xzf {}".format(internalpath, spack_tarball))
             rename(spack_extracted, spack_dest)
             
             infomsg("Spack found these compilers automatically:")
@@ -270,7 +270,7 @@ class HPCTest():
         from common import homepath
 
         # this just makes a repo directory -- it must be added to Spack once populated
-        repoPath = join(homepath, "runner", "repos", dirname)
+        repoPath = join(homepath, "internal", "repos", dirname)
         namespace = dirname
         _ = create_repo(repoPath, namespace)
         

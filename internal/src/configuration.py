@@ -61,7 +61,7 @@ def initConfig():
     global currentConfig
     
     # compute filesys locations of layered config files from most global to most local
-    builtin = join(homepath, "runner", "src", "config-builtin.yaml")
+    builtin = join(homepath, "internal", "src", "config-builtin.yaml")
     user    = join("~", ".hpctest", "config.yaml")
     install = join(homepath, "config.yaml")
     configFileLocations = [ builtin, user, install ]

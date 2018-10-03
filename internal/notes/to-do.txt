@@ -5,7 +5,6 @@ HPCTEST TO DO
 README deltas
 
 - rename '--workspace' to '--study'
-- rename '--hpctoolkitparams' to 'profileparams'  <=== cf hpcstruct, hpcprof params
 - rename test 'app/amgmk' to 'app/AMGmk'
 - rename 'runner' to 'internal'
 
@@ -19,6 +18,15 @@ Bugs
    - "run" vs "test" is inconsistent
    
 - check each dimension for emptiness; requires each Spec class to evaluate its spec
+
+- hpctest clean -d does not delete all built dependencies. Survivors are:
+  - libtool
+  - m4
+  - miniamr
+  - pkg-config
+  - util-macros
+
+- hpctest clean -d does not delete test packages in hpctest/internal/repos.
 
 -------------------------------------------------------------------------------------
 
