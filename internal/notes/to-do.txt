@@ -11,7 +11,7 @@ README deltas
 Bugs
 -------------------------------------------------------------------------------------
 
-- "Executing normal test:" vs "tun:normal" in yaml =>
+- "Executing normal test:" vs "run:normal" in yaml =>
    - "normal" is inapt
    - "run" vs "test" is inconsistent
    
