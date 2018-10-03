@@ -47,6 +47,6 @@
 ################################################################################
 
 
-cd runner/src; python -B main.py $@
+cd internal/src; python -B main.py $@
 
 
