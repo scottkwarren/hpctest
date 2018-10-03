@@ -51,7 +51,7 @@
 class Report():
 
     
-    def printReport(self, workspace, reportspec, sortKeys):
+    def printReport(self, workspace, whichspec, sortKeys):
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
@@ -71,9 +71,9 @@ class Report():
         
         debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options))
             
-        # collect the results from all runs meeting 'reportspec'
-        reportAll    = reportspec == "all"
-        reportPassed = reportspec == "pass"     # don't care if 'reportAll'
+        # collect the results from all runs meeting 'whichspec'
+        reportAll    = whichspec == "all"
+        reportPassed = whichspec == "pass"     # if 'reportAll', don't care
         results = list()
         for runname in listdir(workspace.path):
             runPath = join(workspace.path, runname)
@@ -140,7 +140,7 @@ class Report():
             print "\n"
 
         else:
-            infomsg("no runs matching reportspec '{}'".format(reportspec))
+            infomsg("no runs matching '--which {}'".format(whichspec))
 
 
     def extractRunInfo(self, result):
