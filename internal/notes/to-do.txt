@@ -6,8 +6,6 @@ README deltas
 
 - rename '--workspace' to '--study'
 - rename test 'app/amgmk' to 'app/AMGmk'
-- rename 'runner' to 'internal'
-
 ============================
 
 Bugs
