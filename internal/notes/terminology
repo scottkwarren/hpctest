@@ -1,0 +1,20 @@
+TRADITIONAL EXPERIMENTATION TERMINOLOGY
+
+
+-------------------------------------------------------------------------------
+
+Experimentation
+
+An experiment deliberately imposes a treatment on a group of objects or subjects in the interest of observing the response. This differs from an observational study, which involves collecting and analyzing data without changing existing conditions. Because the validity of a experiment is directly affected by its construction and execution, attention to experimental design is extremely important.
+Treatment
+
+In experiments, a treatment is something that researchers administer to experimental units. For example, a corn field is divided into four, each part is 'treated' with a different fertiliser to see which produces the most corn; a teacher practices different teaching methods on different groups in her class to see which yields the best results; a doctor treats a patient with a skin condition with different creams to see which is most effective. Treatments are administered to experimental units by 'level', where level implies amount or magnitude. For example, if the experimental units were given 5mg, 10mg, 15mg of a medication, those amounts would be three levels of the treatment. 
+(Definition taken from Valerie J. Easton and John H. McColl's Statistics Glossary v1.1)
+Factor
+
+A factor of an experiment is a controlled independent variable; a variable whose levels are set by the experimenter.
+A factor is a general type or category of treatments. Different treatments constitute different levels of a factor. For example, three different groups of runners are subjected to different training methods. The runners are the experimental units, the training methods, the treatments, where the three types of training methods constitute three levels of the factor 'type of training'. 
+(Definition taken from Valerie J. Easton and John H. McColl's Statistics Glossary v1.1)
+
+-------------------------------------------------------------------------------
+
