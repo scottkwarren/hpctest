@@ -75,7 +75,7 @@ class Run():
         
         # job directory
         configdesc  = self.config
-        self.jobdir = self.workspace.addJobDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
+        self.jobdir = self.workspace.addRunDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
         
          # storage for hpctest inputs and outputs
         self.output = ResultDir(self.jobdir, "OUT")

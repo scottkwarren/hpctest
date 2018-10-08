@@ -83,7 +83,7 @@ class HPCTest():
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
             
-            infomsg("Setting up local Spack...")
+            infomsg("Setting up internal Spack...")
             
             spack_version   = "0.11.2"
             spack_tarball   = join(internalpath, "spack-{}.tar.gz".format(spack_version))
@@ -171,7 +171,7 @@ class HPCTest():
             workspaces = sorted(listdir(workpath), reverse=True)
             studypath  = join(workpath, workspaces[0]) if len(workspaces) else None
         if studypath:
-            if Workspace.isWorkspace(studypath):
+            if Workspace.isStudyDir(studypath):
                 workspace = Workspace(studypath)
                 reporter  = Report()
                 reporter.printReport(workspace, reportspec, sortKeys)
@@ -198,7 +198,7 @@ class HPCTest():
             debugmsg("cleaning work directory {}".format(workpath))
             for name in listdir(workpath):
                 path = join(workpath, name)
-                if Workspace.isWorkspace(path):
+                if Workspace.isStudyDir(path):
                     Workspace(path).clean()
         
         # uninstall tests if desired
@@ -245,8 +245,8 @@ class HPCTest():
     
     def _ensureRepo(self):
 
-        import os
-        import spack
+        import os, spack
+        import common
         
         # customize settings of builtin repo
         spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
@@ -254,15 +254,18 @@ class HPCTest():
 
         # create new private repo for building test cases
         noRepo = spack.repo.get_repo("tests", default=None) is None
-        if noRepo: repoPath = self._makePrivateRepo("tests")
+        if noRepo: self._makeInternalRepo("tests")
         self._ensureTests()
-        if noRepo: self._addPrivateRepo(repoPath)
+        if noRepo:
+            self._addInternalRepo(common.repopath)
+        else:
+            self._internalRepoChanged(common.repopath)
 
         # extend external repo if one was specified
         pass
 
 
-    def _makePrivateRepo(self, dirname):
+    def _makeInternalRepo(self, dirname):
         
         from os.path import join, isdir
         from shutil import rmtree
@@ -279,28 +282,43 @@ class HPCTest():
         return repoPath
 
 
-    def _addPrivateRepo(self, repoPath):
+    def _addInternalRepo(self, repoPath):
 
         import spack
         from spack.repository import Repo, FastPackageChecker
 
         # adding while preserving RepoPath representation invariant is messy
         # ...no single operation for this is available in current Spack code
+        
+        # update Spack's config
         repos = spack.config.get_config('repos', "site")
         if isinstance(repos, list):
             repos.insert(0, repoPath)
         else:
             repos = [ repoPath ]
         spack.config.update_config('repos', repos, "site")
+        
+        # add to Spack's RepoPath
         repo = Repo(repoPath)
         spack.repo.put_first(repo)
+
+
+    def _internalRepoChanged(self, repoPath):
+
+        import spack
+        from spack.repository import Repo
+        from common import assertmsg
+
+        # update Spack's current RepoPath
+        assertmsg(len(spack.repo.repos) == 2, "unexpected RepoPath length while updating Spack for changed internal repo")
+        spack.repo.repos[0] = Repo(repoPath)
 
 
     def _ensureTests(self):
 
         from os.path import join, exists
         from util.checksumdir import dirhash
-        from common import options, homepath, forTestsInDirTree
+        from common import options, homepath, forTestsInDirTree, repopath
         import spack
     
         def ensureTest(testDir, testYaml):
@@ -312,7 +330,8 @@ class HPCTest():
             
             # check if repo has an up-to-date package
             newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
-            if spack.repo.exists(name):
+            packagePath = join(repopath, "packages", name)
+            if exists(packagePath):
                 # compare old and new checksums
                 if exists(checksumPath):
                     with open(checksumPath) as old: oldChecksum = old.read()
@@ -347,7 +366,7 @@ class HPCTest():
         packagePath = join(repopath, "packages", name)
 
         # remove installed versions of package if any
-        if spack.repo.exists(name):
+        if exists(packagePath):
             cmd = "uninstall --all --force --yes-to-all {}".format(name)
             spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")   # installed dependencies are not removed
         rmtree(packagePath, ignore_errors=True)

@@ -90,10 +90,10 @@ class Report():
         if results:
 
             # sort results by input dimspec sequence
-            dimkey_map = {"tests":            ["test"],
-                          "configs":          ["config spec"],
-                          "hpctoolkits":      ["hpctoolkit"],
-                          "hpctoolkitparams": ["hpctoolkit params", "hpcrun"]
+            dimkey_map = {"tests":       ["test"],
+                          "configs":     ["config spec"],
+                          "hpctoolkits": ["hpctoolkit"],
+                          "profile":     ["hpctoolkit params", "hpcrun"]       # "profile" WAS "hpctoolkitparams"  TODO: fix whole mess
                          }
             dimkeys = []
             for key in sortKeys:

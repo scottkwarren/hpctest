@@ -24,8 +24,6 @@ Bugs
   - pkg-config
   - util-macros
 
-- hpctest clean -d does not delete test packages in hpctest/internal/repos.
-
 -------------------------------------------------------------------------------------
 
 

@@ -77,26 +77,26 @@ class Workspace():
         
 
     @classmethod
-    def isWorkspace(cls, path):
+    def isStudyDir(cls, path):
         
         from os.path import basename, isdir 
         return isdir(path) and basename(path).startswith(_prefix)
     
     
-    def addJobDir(self, testName, config, hpctoolkitparams):
+    def addRunDir(self, testName, config, hpctoolkitparams):
 
         import os
         from os.path import join, isdir
 
-        # TODO: should ensure uniqueness
-        jobdir = join(self.path, "{}-{}-{}".format(testName, config, hpctoolkitparams)).replace(" ", ".")
-        if isdir(jobdir):
+        # TODO: ensure uniqueness
+        rundir = join(self.path, "{}-{}-{}".format(testName, config, hpctoolkitparams)).replace(" ", ".")
+        if isdir(rundir):
             n = 2
-            while( isdir(jobdir + "-" + str(n))): n += 1
-            jobdir = jobdir + "-" + str(n)
-        os.makedirs(jobdir)
+            while( isdir(rundir + "-" + str(n))): n += 1
+            rundir = rundir + "-" + str(n)
+        os.makedirs(rundir)
         
-        return jobdir
+        return rundir
         
         
     def clean(self):
