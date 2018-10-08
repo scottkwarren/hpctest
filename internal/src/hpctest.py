@@ -189,11 +189,16 @@ class HPCTest():
         import spack
         import spackle        
         import common
-        from common    import infomsg, verbosemsg, debugmsg
+        from common    import options, yesno, infomsg, verbosemsg, debugmsg
         from workspace import Workspace
 
+        def confirm(what):
+            ask    = "Really delete all {}?".format(what)
+            cancel = "Ok, will not delete them."
+            return ("force" in options) or yesno(ask, cancel)
+            
         # clean workspace if desired
-        if workspace:
+        if workspace and confirm("study directories"):
             workpath = common.workpath if workspace == "<default>" else workspace
             debugmsg("cleaning work directory {}".format(workpath))
             for name in listdir(workpath):
@@ -203,7 +208,7 @@ class HPCTest():
         
         # uninstall tests if desired
         # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
-        if tests:
+        if tests and confirm("built tests"):
             verbosemsg("uninstalling built tests...")
             for name in sorted( spackle.allPackageNames("tests") ):
                 if spackle.isInstalled(name):
@@ -212,7 +217,7 @@ class HPCTest():
             verbosemsg("...done")
         
         # uninstall dependencies if desired
-        if dependencies:
+        if dependencies and confirm("built dependencies"):
             verbosemsg("uninstalling built dependencies...")
             for name in sorted( spackle.allPackageNames("builtin") ):
                 if spackle.isInstalled(name) and spackle.hasDependents(name):

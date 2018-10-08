@@ -155,7 +155,7 @@ def execute(args):
     global tester
     from collections import OrderedDict
     from os.path import join
-    from common import options, yesno
+    from common import options
 
     if args.subcommand == "run":
         

@@ -139,10 +139,12 @@ def traceback():
 
 # Prompted input
 
-def yesno(prompt):
+def yesno(prompt, cancelmsg):
     
     reply = raw_input(prompt + " (y/n)?")
-    return len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
+    ok = len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
+    if not ok: infomsg(cancelmsg)
+    return ok
 
 
 # iterator for list-or-scalar values. used for one-or-more fields in yaml
