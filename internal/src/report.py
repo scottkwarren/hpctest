@@ -51,7 +51,7 @@
 class Report():
 
     
-    def printReport(self, workspace, whichspec, sortKeys):
+    def printReport(self, studypath, whichspec, sortKeys):
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
@@ -69,14 +69,14 @@ class Report():
     
         tableWidth = 113    # width of table row manually determined    # TODO: better
         
-        debugmsg("reporting on workspace at {} with options {}".format(workspace.path, options))
+        debugmsg("reporting on study at {} with options {}".format(studypath, options))
             
         # collect the results from all runs meeting 'whichspec'
         reportAll    = whichspec == "all"
         reportPassed = whichspec == "pass"     # if 'reportAll', don't care
         results = list()
-        for runname in listdir(workspace.path):
-            runPath = join(workspace.path, runname)
+        for runname in listdir(studypath):
+            runPath = join(studypath, runname)
             outPath = join(runPath, "_OUT", "OUT.yaml")
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)

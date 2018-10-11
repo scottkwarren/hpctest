@@ -87,22 +87,23 @@ def parseCommandLine():
     # hpctest run [tspec | --tests tspec] [--configs cspec] [--hpctoolkits cspec] [--profile cspec] [--workspace workspace] <options>
     # -------------------------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
-    runParser.add_argument("tests",         nargs="?", type=str,  default="all",      help="test-spec for the set of test cases to be run")
-    runParser.add_argument("--configs",          "-c", type=str,  default="default",  help="build-spec for the set of build configs on which to test")
-    runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to installations of hpctoolkit with which to test")
-    runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters passed to hpctoolkit's tools")
-    runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to create run directory for this run")
+    runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to be run")
+    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of build configs on which to test")
+    runParser.add_argument("--configs",          "-c", type=str,  default="default",  help="buildspec for the set of build configs on which to test")
+    runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to hpctoolkit instances with which to test")
+    runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters passed to hpctoolkit tools")
+    runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to make study directory for this study")
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
     runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to be produced")
     runParser.add_argument("--sort",             "-s", type=str,  default="default",  help="sequence of dimensions to sort report by")
     _addOptionArgs(runParser)
 
     # -------------------------------------------------------------------------------------------------------
-    # hpctest report [--workspace workspace] [--which whichspec] [--sort sortspec] <options>
+    # hpctest report [--study study] [--which whichspec] [--sort sortspec] <options>
     # -------------------------------------------------------------------------------------------------------
     reportParser = subparsers.add_parser("report",                                    help="print report summarizing a workspace")
-    reportParser.add_argument("--workspace", "-w",     type=str,  default="default",  help="path to workspace to report on")
-    reportParser.add_argument("--which",     "-W",     type=str,  default="default",  help="which test runs to report on")
+    reportParser.add_argument("--study",     "-S",     type=str,  default="default",  help="path to study directory to report on")
+    reportParser.add_argument("--which",     "-w",     type=str,  default="default",  help="which test runs to report on")
     reportParser.add_argument("--sort",      "-s",     type=str,  default="default",  help="sequence of dimensions to sort report by")
     _addOptionArgs(reportParser)
 
@@ -155,14 +156,20 @@ def execute(args):
     global tester
     from collections import OrderedDict
     from os.path import join
-    from common import options
+    from common import options, errormsg
 
     if args.subcommand == "run":
         
         dims = OrderedDict()
+        if args.tests_arg != "default":
+            dims["tests"] = args.tests_arg
+            del args.tests_arg
         if args.tests != "default":
-            dims["tests"] = args.tests
-            del args.tests
+            if "tests" in dims:
+                errormsg("'--tests' cannot be combined with <tests> positional argument (ignored).")
+            else:
+                dims["tests"] = args.tests
+                del args.tests
         if args.configs != "default":
             dims["configs"] = args.configs
             del args.configs
@@ -181,10 +188,10 @@ def execute(args):
         
     elif args.subcommand == "report":
         
-        workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
-        whichspec = args.which if args.which != "default" else "all" 
+        studyPath  = args.study if args.study != "default" else None; del args.study
+        whichspec  = args.which if args.which != "default" else "all" 
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        tester.report(workspace, whichspec, sortKeys)
+        tester.report(studyPath, whichspec, sortKeys)
         
     elif args.subcommand == "clean":    
         

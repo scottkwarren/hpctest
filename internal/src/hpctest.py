@@ -168,17 +168,16 @@ class HPCTest():
         from workspace  import Workspace
 
         if not studypath:
-            workspaces = sorted(listdir(workpath), reverse=True)
-            studypath  = join(workpath, workspaces[0]) if len(workspaces) else None
+            studies   = sorted(listdir(workpath), reverse=True)
+            studypath = join(workpath, studies[0]) if len(studies) else None
         if studypath:
             if Workspace.isStudyDir(studypath):
-                workspace = Workspace(studypath)
                 reporter  = Report()
-                reporter.printReport(workspace, reportspec, sortKeys)
+                reporter.printReport(studypath, reportspec, sortKeys)
             else:
-                errormsg("given path does not point to a study directory: {}".format(studypath))
+                errormsg("path does not point to a study directory: {}".format(studypath))
         else:
-            errormsg("no studies available for reporting")
+            errormsg("no study to report on")
             
 
 
