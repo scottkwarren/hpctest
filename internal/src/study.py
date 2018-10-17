@@ -84,13 +84,13 @@ class Study():
         return isdir(path) and basename(path).startswith(_prefix)
     
     
-    def addRunDir(self, testName, config, hpctoolkitparams):
+    def addRunDir(self, testName, build, profile):
 
         import os
         from os.path import join, isdir
 
         # TODO: ensure uniqueness
-        rundir = join(self.path, "{}-{}-{}".format(testName, config, hpctoolkitparams)).replace(" ", ".")
+        rundir = join(self.path, "{}-{}-{}".format(testName, build, profile)).replace(" ", ".")
         if isdir(rundir):
             n = 2
             while( isdir(rundir + "-" + str(n))): n += 1

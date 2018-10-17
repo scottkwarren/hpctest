@@ -112,12 +112,12 @@ class HPCTest():
         self._ensureRepo()
         
         # dimension info (requires paths and config to be set up)
-        dimensions      = set(("tests", "build", "hpctoolkits", "hpctoolkitparams"))
-        dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkits":StringSpec, "hpctoolkitparams":StringSpec }
+        dimensions      = set(("tests", "build", "hpctoolkit", "profile"))
+        dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkits":       expanduser( configuration.get("profile.hpctoolkit bin path", whichPath("hpcrun")) ), 
-                            "hpctoolkitparams":  configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
+                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit bin path", whichPath("hpcrun")) ), 
+                            "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
                           }

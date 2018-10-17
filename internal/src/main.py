@@ -84,17 +84,17 @@ def parseCommandLine():
     
     
     # -------------------------------------------------------------------------------------------------------
-    # hpctest run [tspec | --tests tspec] [--build cspec] [--hpctoolkits cspec] [--profile cspec] [--study study] <options>
+    # hpctest run [tspec | --tests tspec] [--build cspec] [--hpctoolkit tkspec] [--profile pspec] [--study study] <options>
     # -------------------------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
-    runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to be run")
-    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of test cases on which to test")
-    runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for the set of build configs on which to test")
-    runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to hpctoolkit instances with which to test")
-    runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters passed to hpctoolkit tools")
-    runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to make study directory for this study")
+    runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to use")
+    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of test cases to use")
+    runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for the set of build configs on which to use")
+    runParser.add_argument("--hpctoolkit",       "-k", type=str,  default="default",  help="paths to hpctoolkit instances ('bin' dirs) to use")
+    runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters to pass to hpctoolkit tools")
+    runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to put study directory for this study")
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
-    runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to be produced")
+    runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to print")
     runParser.add_argument("--sort",             "-S", type=str,  default="default",  help="sequence of dimensions to sort report by")
     _addOptionArgs(runParser)
 
@@ -173,11 +173,11 @@ def execute(args):
         if args.build != "default":
             dims["build"] = args.build
             del args.build
-        if args.hpctoolkits != "default":
-            dims["hpctoolkits"] = args.hpctoolkits
-            del args.hpctoolkits
-        if args.profile != "default":                                                               # TODO: finish rework of 'hpctoolkitparams' into three args
-            dims["hpctoolkitparams"] = args.profile.replace("_", "-").replace(".", " ")    # undo the workaround for argparse fail on quoted args
+        if args.hpctoolkit != "default":
+            dims["hpctoolkit"] = args.hpctoolkit
+            del args.hpctoolkit
+        if args.profile != "default":                                             # TODO: finish rework of 'profile' into three args
+            dims["profile"] = args.profile.replace("_", "-").replace(".", " ")    # undo the workaround for argparse fail on quoted args
             del args.profile
         studyPath = args.study if args.study != "default" else None; del args.study
         numrepeats = 1  ## args.numrepeats

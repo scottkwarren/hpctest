@@ -50,7 +50,7 @@
 
 class Run():
     
-    def __init__(self, testdir, config, hpctoolkit, hpctoolkitparams, numrepeats, study):
+    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study):
         
         from os.path import basename
         from resultdir import ResultDir
@@ -63,8 +63,8 @@ class Run():
 
         # hpctoolkit params
         self.hpctoolkitBinPath = hpctoolkit
-        self.hpctoolkitParams  = hpctoolkitparams
-        paramList = hpctoolkitparams.split(";")
+        self.hpctoolkitParams  = profile
+        paramList = profile.split(";")
         self.hpcrunParams      = paramList[0]
         self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
         self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
@@ -95,8 +95,7 @@ class Run():
         sepmsg(True)
         
         name = relpath(self.testdir, join(homepath, "tests"))
-        params = self.hpcrunParams.replace(" ", ".")
-        infomsg("running test {} with config {} and {}".format(name, self.config, params))
+        infomsg("running test {} with config {} and {}".format(name, self.config, self.hpcrunParams))
         sepmsg(True)
         
         try:
