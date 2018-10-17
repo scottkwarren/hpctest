@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
 #  run.py                                                                      #
-#  run a single test case in a new job directory in given workspace            #
+#  run a single test case in a new run directory in given study                #
 #                                                                              #                                                                            
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -50,16 +50,16 @@
 
 class Run():
     
-    def __init__(self, testdir, config, hpctoolkit, hpctoolkitparams, numrepeats, workspace):
+    def __init__(self, testdir, config, hpctoolkit, hpctoolkitparams, numrepeats, study):
         
         from os.path import basename
         from resultdir import ResultDir
         
         # general params
-        self.testdir   = testdir                        # path to test case's directory
-        self.config    = config                         # Spack spec for desired build configuration
-        self.workspace = workspace                      # storage for collection of test job dirs
-        self.name      = basename(self.testdir)
+        self.testdir = testdir                        # path to test case's directory
+        self.config  = config                         # Spack spec for desired build configuration
+        self.study   = study                          # storage for collection of test run dirs
+        self.name    = basename(self.testdir)
 
         # hpctoolkit params
         self.hpctoolkitBinPath = hpctoolkit
@@ -75,7 +75,7 @@ class Run():
         
         # job directory
         configdesc  = self.config
-        self.jobdir = self.workspace.addRunDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
+        self.jobdir = self.study.addRunDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
         
          # storage for hpctest inputs and outputs
         self.output = ResultDir(self.jobdir, "OUT")
@@ -518,7 +518,7 @@ class Run():
         self.output.add("input", "hpctoolkit",        str(self.hpctoolkitBinPath))
         self.output.add("input", "hpctoolkit params", OrderedDict({"hpcrun":self.hpcrunParams, "hpcstruct":self.hpcstructParams, "hpcprof":self.hpcprofParams}))
         self.output.add("input", "num repeats",       self.numrepeats)
-        self.output.add("input", "study dir",         self.workspace.path)
+        self.output.add("input", "study dir",         self.study.path)
             
 
 

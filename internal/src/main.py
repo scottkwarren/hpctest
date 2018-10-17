@@ -84,7 +84,7 @@ def parseCommandLine():
     
     
     # -------------------------------------------------------------------------------------------------------
-    # hpctest run [tspec | --tests tspec] [--configs cspec] [--hpctoolkits cspec] [--profile cspec] [--workspace workspace] <options>
+    # hpctest run [tspec | --tests tspec] [--configs cspec] [--hpctoolkits cspec] [--profile cspec] [--study study] <options>
     # -------------------------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
     runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to be run")
@@ -92,29 +92,29 @@ def parseCommandLine():
     runParser.add_argument("--configs",          "-c", type=str,  default="default",  help="buildspec for the set of build configs on which to test")
     runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to hpctoolkit instances with which to test")
     runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters passed to hpctoolkit tools")
-    runParser.add_argument("--workspace",        "-w", type=str,  default="default",  help="where to make study directory for this study")
+    runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to make study directory for this study")
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
     runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to be produced")
-    runParser.add_argument("--sort",             "-s", type=str,  default="default",  help="sequence of dimensions to sort report by")
+    runParser.add_argument("--sort",             "-S", type=str,  default="default",  help="sequence of dimensions to sort report by")
     _addOptionArgs(runParser)
 
     # -------------------------------------------------------------------------------------------------------
     # hpctest report [--study study] [--which whichspec] [--sort sortspec] <options>
     # -------------------------------------------------------------------------------------------------------
-    reportParser = subparsers.add_parser("report",                                    help="print report summarizing a workspace")
-    reportParser.add_argument("--study",     "-S",     type=str,  default="default",  help="path to study directory to report on")
+    reportParser = subparsers.add_parser("report",                                    help="print report summarizing a study")
+    reportParser.add_argument("--study",     "-s",     type=str,  default="default",  help="path to study directory to report on")
     reportParser.add_argument("--which",     "-w",     type=str,  default="default",  help="which test runs to report on")
-    reportParser.add_argument("--sort",      "-s",     type=str,  default="default",  help="sequence of dimensions to sort report by")
+    reportParser.add_argument("--sort",      "-S",     type=str,  default="default",  help="sequence of dimensions to sort report by")
     _addOptionArgs(reportParser)
 
     # -------------------------------------------------------------------------------------------------------
-    # hpctest clean [ --all | [-w|--workspace  [workspace] ] [-t|-tests] [-d|--dependencies] ]   <options>
+    # hpctest clean [ --all | [-s|--study  [study] ] [-t|-tests] [-d|--dependencies] ]   <options>
     # -------------------------------------------------------------------------------------------------------
-    cleanParser = subparsers.add_parser("clean",                                      help="clean up by deleting unwanted workspaces")
-    cleanParser.add_argument("--workspace",    "-w",   type=str, nargs="?", const="<default>", help="delete study directories from workspace")
+    cleanParser = subparsers.add_parser("clean",                                      help="clean up by deleting unwanted testing byproducts")
+    cleanParser.add_argument("--studies",      "-s",   type=str, nargs="?", const="<default>", help="delete study directories from workspace")
     cleanParser.add_argument("--tests",        "-t",   action="store_true",           help="uninstall built tests")
     cleanParser.add_argument("--dependencies", "-d",   action="store_true",           help="uninstall packages built to satisfy tests' dependencies")
-    cleanParser.add_argument("--all",          "-a",   action="store_true",           help="clean workspace, tests, and dependencies")
+    cleanParser.add_argument("--all",          "-a",   action="store_true",           help="clean studies, tests, and dependencies")
     _addOptionArgs(cleanParser)
 
     # -------------------------------------------------------------------------------------------------------
@@ -179,12 +179,12 @@ def execute(args):
         if args.profile != "default":                                                               # TODO: finish rework of 'hpctoolkitparams' into three args
             dims["hpctoolkitparams"] = args.profile.replace("_", "-").replace(".", " ")    # undo the workaround for argparse fail on quoted args
             del args.profile
-        workspace  = args.workspace if args.workspace != "default" else None; del args.workspace
+        studyPath = args.study if args.study != "default" else None; del args.study
         numrepeats = 1  ## args.numrepeats
         otherargs  = args
         reportspec = args.report if args.report != "default" else "all"
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        tester.run(dims, args, numrepeats, reportspec, sortKeys, workspace)
+        tester.run(dims, args, numrepeats, reportspec, sortKeys, studyPath)
         
     elif args.subcommand == "report":
         
@@ -195,30 +195,33 @@ def execute(args):
         
     elif args.subcommand == "clean":    
         
-        w = args.workspace
+        s = args.studies
         t = args.tests
         d = args.dependencies
         
-        if w or t or d:
+        if s or t or d:
             if args.all:
                 infomsg("option '--all' may not be combined with other options, so is ignored")
         elif args.all:
-            w = "<default>"
+            s = "<default>"
             t = True
             d = True
         else:
-            w = "<default>"
+            s = "<default>"
             
-        tester.clean(w, t, d)
+        tester.clean(s, t, d)
 
         
     elif args.subcommand == "spack":
         
         tester.spack(" ".join(args.spackcmd))
-        
+    
+    
     elif args.subcommand == "miniapps":
         
             tester.miniapps()
+            
+            
     else:
         
         fatalmsg("in main.execute, unexpected subcommand name")

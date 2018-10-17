@@ -180,7 +180,7 @@ class HPCTest():
             
 
 
-    def clean(self, workspace, tests, dependencies):
+    def clean(self, workpath, tests, dependencies):
         
         from os        import listdir
         from os.path   import join, isdir
@@ -188,21 +188,20 @@ class HPCTest():
         import spackle        
         import common
         from common    import options, yesno, infomsg, verbosemsg, debugmsg
-        from workspace import Workspace
+        from study     import Study
 
         def confirm(what):
             ask    = "Really delete all {}?".format(what)
             cancel = "Ok, will not delete them."
             return ("force" in options) or yesno(ask, cancel)
             
-        # clean workspace if desired
-        if workspace and confirm("study directories"):
-            workpath = common.workpath if workspace == "<default>" else workspace
+        # delete studies if desired
+        if workpath and confirm("study directories"):
+            if workpath == "<default>": workpath = common.workpath         ## TODO: pass None instead of "<default>" to keep command-line details out of here
             debugmsg("cleaning work directory {}".format(workpath))
             for name in listdir(workpath):
                 path = join(workpath, name)
-                if Workspace.isStudyDir(path):
-                    Workspace(path).clean()
+                if Study.isStudyDir(path): Study(path).clean()
         
         # uninstall tests if desired
         # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
