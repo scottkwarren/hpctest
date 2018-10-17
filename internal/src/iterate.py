@@ -66,7 +66,7 @@ class Iterate():
             debugmsg("iterating over experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
                     .   format(dims, args, options, study.path))
 
-            for test, config, hpctoolkit, hpctoolkitparams in product(dims["tests"], dims["configs"], dims["hpctoolkits"], dims["hpctoolkitparams"]):
+            for test, config, hpctoolkit, hpctoolkitparams in product(dims["tests"], dims["build"], dims["hpctoolkits"], dims["hpctoolkitparams"]):
                 run = Run(test, config, hpctoolkit, hpctoolkitparams, numrepeats, study)
                 status = run.run()
             

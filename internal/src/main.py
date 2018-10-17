@@ -84,12 +84,12 @@ def parseCommandLine():
     
     
     # -------------------------------------------------------------------------------------------------------
-    # hpctest run [tspec | --tests tspec] [--configs cspec] [--hpctoolkits cspec] [--profile cspec] [--study study] <options>
+    # hpctest run [tspec | --tests tspec] [--build cspec] [--hpctoolkits cspec] [--profile cspec] [--study study] <options>
     # -------------------------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
     runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to be run")
-    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of build configs on which to test")
-    runParser.add_argument("--configs",          "-c", type=str,  default="default",  help="buildspec for the set of build configs on which to test")
+    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of test cases on which to test")
+    runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for the set of build configs on which to test")
     runParser.add_argument("--hpctoolkits",      "-H", type=str,  default="default",  help="paths to hpctoolkit instances with which to test")
     runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters passed to hpctoolkit tools")
     runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to make study directory for this study")
@@ -170,9 +170,9 @@ def execute(args):
             else:
                 dims["tests"] = args.tests
                 del args.tests
-        if args.configs != "default":
-            dims["configs"] = args.configs
-            del args.configs
+        if args.build != "default":
+            dims["build"] = args.build
+            del args.build
         if args.hpctoolkits != "default":
             dims["hpctoolkits"] = args.hpctoolkits
             del args.hpctoolkits
