@@ -76,10 +76,10 @@ run:
 #   x:  unlimited   # file locks                      (-x) unlimited
 
 profile:
-  hpctoolkit bin path:  null
-  hpcrun params:        "-e REALTIME@10000"
-  hpcstruct params:     ""
-  hpcprof params:       ""
+  hpctoolkit path:   null
+  hpcrun params:     "-e REALTIME@10000"
+  hpcstruct params:  ""
+  hpcprof params:    ""
 
 
 

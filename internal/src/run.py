@@ -52,7 +52,7 @@ class Run():
     
     def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study):
         
-        from os.path import basename
+        from os.path import basename, join
         from resultdir import ResultDir
         
         # general params
@@ -62,7 +62,7 @@ class Run():
         self.name    = basename(self.testdir)
 
         # hpctoolkit params
-        self.hpctoolkitBinPath = hpctoolkit
+        self.hpctoolkitBinPath = join(hpctoolkit, "bin")
         self.hpctoolkitParams  = profile
         paramList = profile.split(";")
         self.hpcrunParams      = paramList[0]

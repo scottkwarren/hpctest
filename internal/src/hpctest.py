@@ -116,7 +116,7 @@ class HPCTest():
         dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit bin path", whichPath("hpcrun")) ), 
+                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit path", whichPath("hpcrun")) ), 
                             "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")

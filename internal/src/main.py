@@ -90,7 +90,7 @@ def parseCommandLine():
     runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to use")
     runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of test cases to use")
     runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for the set of build configs on which to use")
-    runParser.add_argument("--hpctoolkit",       "-k", type=str,  default="default",  help="paths to hpctoolkit instances ('bin' dirs) to use")
+    runParser.add_argument("--hpctoolkit",       "-k", type=str,  default="default",  help="paths to hpctoolkit instances to use")
     runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters to pass to hpctoolkit tools")
     runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to put study directory for this study")
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
