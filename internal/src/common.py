@@ -251,7 +251,7 @@ class ExecuteFailed(HPCTestError):
 class CheckFailed(HPCTestError):
     pass
 
-class BadWorkspacePath(HPCTestError):
+class BadStudyPath(HPCTestError):
     pass
 
 

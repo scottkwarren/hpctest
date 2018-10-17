@@ -129,12 +129,10 @@ class HPCTest():
         from common     import debugmsg, options
         from testspec   import TestSpec
         from configspec import ConfigSpec
-        from workspace  import Workspace
+        from study      import Study
         from iterate    import Iterate
         from report     import Report
         global dimensions, dimspecDefaults, dimspecClasses
-
-        if not workpath: workpath = common.workpath
                 
         # decode the odict of dimension strings into a complete odict of dimension specs, with default specs for missing dimensions
         dims = {}
@@ -145,16 +143,17 @@ class HPCTest():
                 str = dimspecDefaults[dimName]
             dims[dimName] = dimspecClasses[dimName](str)
         
-        workspace = Workspace(workpath)
+        if not workpath: workpath = common.workpath
+        study = Study(workpath)
         
         # run all the tests
-        nonempty = Iterate.doForAll(dims, args, numrepeats, workspace)
+        nonempty = Iterate.doForAll(dims, args, numrepeats, study)
         print "\n"
         
         # report results
         if nonempty:
             reporter = Report()
-            reporter.printReport(workspace, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
+            reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
         
         return 0
         
@@ -165,15 +164,15 @@ class HPCTest():
         from os.path    import join, isdir
         from common     import workpath, errormsg
         from report     import Report
-        from workspace  import Workspace
+        from study      import Study
 
         if not studypath:
             studies   = sorted(listdir(workpath), reverse=True)
             studypath = join(workpath, studies[0]) if len(studies) else None
         if studypath:
-            if Workspace.isStudyDir(studypath):
+            if Study.isStudyDir(studypath):
                 reporter  = Report()
-                reporter.printReport(studypath, reportspec, sortKeys)
+                reporter.printReport(Study(studypath), reportspec, sortKeys)
             else:
                 errormsg("path does not point to a study directory: {}".format(studypath))
         else:

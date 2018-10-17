@@ -51,7 +51,7 @@
 class Report():
 
     
-    def printReport(self, studypath, whichspec, sortKeys):
+    def printReport(self, study, whichspec, sortKeys):
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
@@ -67,6 +67,7 @@ class Report():
                 keylist.append(get_nested(result["input"], list(keypath)))  # copy keypath b/c get_nested destroys its second argument
             return keylist
     
+        studypath = study.path
         tableWidth = 113    # width of table row manually determined    # TODO: better
         
         debugmsg("reporting on study at {} with options {}".format(studypath, options))

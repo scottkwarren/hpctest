@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  workspace.py                                                                #
-#  storage in a file system directory for a collection of per-test work dirs   #
+#  study.py                                                                    #
+#  a collection of experimental runs with storage for their results            #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -49,17 +49,18 @@
 # TEMPORARY: simplest possible thing: hold a path to the dir & just make run subdirs on request
 
 
+# Naming convention for study top-level directories
 _prefix = "study-"
 
 
-class Workspace():   
+class Study():   
     
     def __init__(self, path):
         
         from os import makedirs
         from os.path import basename, isfile, isdir, join 
         from time import strftime
-        from common import BadWorkspacePath
+        from common import BadStudyPath
 
         if isdir(path) and basename(path).startswith(_prefix):
                 self.path = path
@@ -68,12 +69,12 @@ class Workspace():
             self.path = join(path, _prefix + timestamp)
             makedirs(self.path)
         else:
-            raise BadWorkspacePath(path)
+            raise BadStudyPath(path)
 
 
     def __str__(self):
 
-        return "Workspace@{}".format(self.path)
+        return "Study@{}".format(self.path)
         
 
     @classmethod

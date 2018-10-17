@@ -52,7 +52,7 @@
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, dims, args, numrepeats, workspace):
+    def doForAll(myClass, dims, args, numrepeats, study):
         
         from itertools import product
         from common import infomsg, debugmsg, options
@@ -63,11 +63,11 @@ class Iterate():
             return False
         else:
             
-            debugmsg("iterating over experiment space = crossproduct( {} ) with args = {} and options = {} in workspace = {}"
-                    .   format(dims, args, options, workspace))
+            debugmsg("iterating over experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
+                    .   format(dims, args, options, study.path))
 
             for test, config, hpctoolkit, hpctoolkitparams in product(dims["tests"], dims["configs"], dims["hpctoolkits"], dims["hpctoolkitparams"]):
-                run = Run(test, config, hpctoolkit, hpctoolkitparams, numrepeats, workspace)
+                run = Run(test, config, hpctoolkit, hpctoolkitparams, numrepeats, study)
                 status = run.run()
             
             return True
