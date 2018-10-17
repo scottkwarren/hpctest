@@ -4,7 +4,6 @@ HPCTEST TO DO
 ============================
 README deltas
 
-- rename '--workspace' to '--study'
 - rename test 'app/amgmk' to 'app/AMGmk'
 ============================
 
