@@ -81,7 +81,13 @@ def parseCommandLine():
     # info ...
 
     # settings ...
-    
+
+
+    # -------------------------------------------------------------------------------------------------------
+    # hpctest init
+    # -------------------------------------------------------------------------------------------------------
+    initParser = subparsers.add_parser("init", help="initialize HPCTest")
+    _addOptionArgs(initParser)   # useless, but avoids special case in 'execute'
     
     # -------------------------------------------------------------------------------------------------------
     # hpctest run [tspec | --tests tspec] [--build cspec] [--hpctoolkit tkspec] [--profile pspec] [--study study] <options>
@@ -156,9 +162,13 @@ def execute(args):
     global tester
     from collections import OrderedDict
     from os.path import join
-    from common import options, errormsg
+    from common import options, errormsg, fatalmsg
 
-    if args.subcommand == "run":
+    if args.subcommand == "init":
+        
+        pass    # HPCTest instance initializes on construction -- no other action needed
+        
+    elif args.subcommand == "run":
         
         dims = OrderedDict()
         if args.tests_arg != "default":
