@@ -72,8 +72,8 @@ class TestSpec():
                     for pattern in specString.split(',')
                         for path in glob( join(testsDir, pattern.strip()) )
                 ]
-    
-                                
+
+
     def paths(self):
             
         return frozenset(self.pathlist)
