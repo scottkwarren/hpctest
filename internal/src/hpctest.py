@@ -66,7 +66,7 @@ class HPCTest():
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
-        from common import whichPath
+        from common import whichDir
         global dimensions, dimspecDefaults, dimspecClasses, _testDirChecksum
     
         # determine important paths
@@ -116,7 +116,7 @@ class HPCTest():
         dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit path", whichPath("hpcrun")) ), 
+                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit path", dirname(whichDir("hpcrun"))) ),  # 'dirname' to get hpctoolkit install dir from 'bin' dir
                             "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")

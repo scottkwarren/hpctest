@@ -218,7 +218,7 @@ class ElapsedTimer(object):
 
 # Finding executables on $PATH
 
-def whichPath(exename):
+def whichDir(exename):
     
     
     import os
