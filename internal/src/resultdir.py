@@ -59,7 +59,7 @@ class ResultDir():
         from os.path import join
 
         self.name = name
-        self.dir = join(parentdir, "_" + self.name)
+        self.dir = join(parentdir, self.name)
         makedirs(self.dir)
         self.outdict = OrderedDict()
         self.numOutfiles = 0

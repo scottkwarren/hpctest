@@ -78,7 +78,7 @@ class Report():
         results = list()
         for runname in listdir(studypath):
             runPath = join(studypath, runname)
-            outPath = join(runPath, "_OUT", "OUT.yaml")
+            outPath = join(runPath, "OUT", "OUT.yaml")
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)
                 if error: fatalmsg("result file OUT.yaml cannot be read for test run {}".format(runPath))
