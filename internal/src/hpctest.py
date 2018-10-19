@@ -111,12 +111,16 @@ class HPCTest():
         # set up private repo
         self._ensureRepo()
         
+        # get install dir of hpctoolkit on $PATH, if any
+        hpctk = whichDir("hpcrun")
+        hpctk = dirname(hpctk) if hpctk else ""  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+        
         # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "build", "hpctoolkit", "profile"))
         dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit path", dirname(whichDir("hpcrun"))) ),  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit path", hpctk) ),
                             "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
@@ -142,20 +146,23 @@ class HPCTest():
             else:
                 str = dimspecDefaults[dimName]
             dims[dimName] = dimspecClasses[dimName](str)
-        
-        if not workpath: workpath = common.workpath
-        study = Study(workpath)
-        
-        # run all the tests
-        nonempty = Iterate.doForAll(dims, args, numrepeats, study)
-        print "\n"
-        
-        # report results
-        if nonempty:
-            reporter = Report()
-            reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
-        
-        return 0
+            
+        # check preconditions and run tests if ok
+        ok = dims["hpctoolkit"] != ""   # TODO: shouldn't require an HPCToolkit if no test wants profiling
+        if ok:
+            
+            # run all the tests
+            study = Study(workpath if workpath else common.workpath)
+            nonempty = Iterate.doForAll(dims, args, numrepeats, study)
+            print "\n"
+            
+            # report results
+            if nonempty:
+                reporter = Report()
+                reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
+                
+        else:
+            errormsg("no HPCToolkit available for profiling")
         
         
     def report(self, studypath, reportspec="", sortKeys=[]):
