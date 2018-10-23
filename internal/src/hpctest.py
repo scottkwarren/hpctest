@@ -112,15 +112,17 @@ class HPCTest():
         self._ensureRepo()
         
         # get install dir of hpctoolkit on $PATH, if any
-        hpctk = whichDir("hpcrun")
-        hpctk = dirname(hpctk) if hpctk else ""  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+        hpctkFromPATH = whichDir("hpcrun")
+        hpctkFromPATH = dirname(hpctkFromPATH) if hpctkFromPATH else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+        hpctkDefault  = configuration.get("profile.hpctoolkit path", hpctkFromPATH)
+        hpctkDefault  = expanduser(hpctkDefault) if hpctkDefault else None
         
         # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "build", "hpctoolkit", "profile"))
         dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkit":        expanduser( configuration.get("profile.hpctoolkit path", hpctk) ),
+                            "hpctoolkit":        hpctkDefault,
                             "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
@@ -130,7 +132,7 @@ class HPCTest():
     def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], workpath=None):
         
         import common
-        from common     import debugmsg, options
+        from common     import debugmsg, options, errormsg
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from study      import Study
@@ -145,11 +147,10 @@ class HPCTest():
                 str = dimStrings[dimName]
             else:
                 str = dimspecDefaults[dimName]
-            dims[dimName] = dimspecClasses[dimName](str)
+            dims[dimName] = dimspecClasses[dimName](str) if str else None
             
         # check preconditions and run tests if ok
-        ok = dims["hpctoolkit"] != ""   # TODO: shouldn't require an HPCToolkit if no test wants profiling
-        if ok:
+        if dims["hpctoolkit"]:   # TODO: shouldn't require an HPCToolkit if no test wants profiling
             
             # run all the tests
             study = Study(workpath if workpath else common.workpath)
