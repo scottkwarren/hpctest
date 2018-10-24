@@ -81,6 +81,11 @@ def debugmsg(message, always=False):
           infomsg(">>> " + message)
 
 
+def warnmsg(message):
+    
+    infomsg("warning: " + message)
+
+
 def errormsg(message):
     
     import traceback
