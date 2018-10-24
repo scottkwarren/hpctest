@@ -62,7 +62,7 @@ class HPCTest():
         from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
         import sys
         import common, configuration, spackle, util
-        from common import infomsg
+        from common import infomsg, warnmsg
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
