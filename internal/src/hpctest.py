@@ -116,6 +116,16 @@ class HPCTest():
         hpctkFromPATH = dirname(hpctkFromPATH) if hpctkFromPATH else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
         hpctkDefault  = configuration.get("profile.hpctoolkit path", hpctkFromPATH)
         hpctkDefault  = expanduser(hpctkDefault) if hpctkDefault else None
+
+        if not hpctkDefault:
+            warnmsg("no default HPCToolkit specified for profiling.\n"
+                    "\n"
+                    "To run profiling tests, specify '--hpctookit <path-to-bin-dir>' on each 'hpctest run' command line.\n"
+                    "To specify a default, do one of the following:\n"
+                    "- edit hpctest/config.py to specify a default path\n"
+                    "- ensure that an HPCToolkit instance is on your $PATH.\n"
+                    "\n"
+                    )
         
         # dimension info (requires paths and config to be set up)
         dimensions      = set(("tests", "build", "hpctoolkit", "profile"))
@@ -163,8 +173,15 @@ class HPCTest():
                 reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
                 
         else:
-            errormsg("no HPCToolkit available for profiling")
-        
+            errormsg("no HPCToolkit specified for profiling.\n"
+                     "\n"
+                     "To fix this do one of the following:\n"
+                     "- use '--hpctookit <path-to-bin-dir>' on command line\n"
+                     "- edit hpctest/config.py to specify a default path\n"
+                     "- ensure that an HPCToolkit instance is on your $PATH.\n"
+                     "\n"
+                    )
+         
         
     def report(self, studypath, reportspec="", sortKeys=[]):
         
