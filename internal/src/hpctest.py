@@ -119,7 +119,6 @@ class HPCTest():
 
         if not hpctkDefault:
             warnmsg("no default HPCToolkit specified for profiling.\n"
-                    "\n"
                     "To run profiling tests, specify '--hpctookit <path-to-bin-dir>' on each 'hpctest run' command line.\n"
                     "To specify a default, do one of the following:\n"
                     "- edit hpctest/config.py to specify a default path\n"
@@ -174,7 +173,6 @@ class HPCTest():
                 
         else:
             errormsg("no HPCToolkit specified for profiling.\n"
-                     "\n"
                      "To fix this do one of the following:\n"
                      "- use '--hpctookit <path-to-bin-dir>' on command line\n"
                      "- edit hpctest/config.py to specify a default path\n"
