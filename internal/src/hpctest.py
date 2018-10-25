@@ -94,7 +94,7 @@ class HPCTest():
             
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
-            infomsg("To add existing or new compilers, use 'hpctest spack <spack-cmd>' and")
+            infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
             infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
 
         # adjust environment accordingly
