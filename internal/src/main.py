@@ -139,6 +139,7 @@ def parseCommandLine():
     # parse the command line
     args = parser.parse_args()
     if args.options is None: args.options = {}          # can argparse do this automagically?
+    common.subcommand = args.subcommand
     common.options = args.options
     common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
 
@@ -166,7 +167,7 @@ def execute(args):
 
     if args.subcommand == "init":
         
-        pass    # HPCTest instance initializes on construction -- no other action needed
+        tester.init()
         
     elif args.subcommand == "run":
         

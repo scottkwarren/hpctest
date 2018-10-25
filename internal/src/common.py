@@ -50,6 +50,7 @@
 
 # Shared variables, set in HPCTest at startup
 
+subcommand           = ""       # name of subcommand being executed
 options              = []       # list of options parsed from command line
 numErrors            = 0        # count of errors in this test run
 homepath             = None     # path to this HPCTest installation
