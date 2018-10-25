@@ -121,10 +121,10 @@ class HPCTest():
         if (not hpctkDefault) and msgfunc:
             msgfunc("no default HPCToolkit specified for profiling.\n"
                     "\n"
-                    "To run profiling tests, specify '--hpctookit <path-to-bin-dir>' on the 'hpctest run' command line.\n"
-                    "To specify a default, do one of the following:\n"
-                    "- edit hpctest/config.py to specify a default path\n"
-                    "- ensure that an HPCToolkit instance is on your $PATH.\n"
+                    "To run profiling tests, specify '--hpctookit <path to bin dir>' on each 'hpctest run' command line.\n"
+                    "To avoid specifying '--hpctoolkit' every time, do one of the following:\n"
+                    "- edit hpctest/config.py to specify a default HPCToolkit path\n"
+                    "- ensure that an HPCToolkit instance is on your $PATH to serve as default.\n"
                     "\n"
                     )
         
