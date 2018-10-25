@@ -62,7 +62,7 @@ class HPCTest():
         from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
         import sys
         import common, configuration, spackle, util
-        from common import infomsg, warnmsg
+        from common import infomsg, warnmsg, errormsg
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
@@ -117,9 +117,10 @@ class HPCTest():
         hpctkDefault  = configuration.get("profile.hpctoolkit path", hpctkFromPATH)
         hpctkDefault  = expanduser(hpctkDefault) if hpctkDefault else None
 
-        msgfunc = infomsg if common.subcommand == "init" else warnmsg if common.subcommand == "run" else None
+        msgfunc = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
         if (not hpctkDefault) and msgfunc:
             msgfunc("no default HPCToolkit specified for profiling.\n"
+                    "\n"
                     "To run profiling tests, specify '--hpctookit <path-to-bin-dir>' on the 'hpctest run' command line.\n"
                     "To specify a default, do one of the following:\n"
                     "- edit hpctest/config.py to specify a default path\n"

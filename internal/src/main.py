@@ -51,11 +51,6 @@
 
 from hpctest import HPCTest
 
-global tester
-tester = HPCTest()      # must come early b/c initializes paths in common.*
-
-
-
 
 def main():
         
@@ -71,16 +66,9 @@ def parseCommandLine():
     import common
     global tester
     
-    # default values
-    workpath = join(common.homepath, "work")
-    
     # parsers
     parser = argparse.ArgumentParser(prog="hpctest")
     subparsers = parser.add_subparsers(dest="subcommand")
-
-    # info ...
-
-    # settings ...
 
 
     # -------------------------------------------------------------------------------------------------------
@@ -164,6 +152,8 @@ def execute(args):
     from collections import OrderedDict
     from os.path import join
     from common import options, errormsg, fatalmsg
+
+    tester = HPCTest()      # must come early b/c initializes paths in common.*
 
     if args.subcommand == "init":
         
