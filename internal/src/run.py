@@ -87,7 +87,7 @@ class Run():
         from os.path import join, relpath
         import time
         from common import homepath, infomsg, sepmsg
-        from common import BadTestDescription, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
+        from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         
         startTime = time.time()
         self.hpcrunParams.replace(" ", ".")
@@ -101,6 +101,7 @@ class Run():
         try:
             
             self._readYaml()
+            self._makeBuildSpec()
             self._prepareJobDirs()
             self._buildTest()
             self._runBuiltTest()
@@ -109,6 +110,8 @@ class Run():
             
         except BadTestDescription as e:
             msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
+        except BadBuildSpec as e:
+            msg = "build spec invalid per Spack ({}):\n{}".format(self.spec, e.message)
         except PrepareFailed as e:
             msg = "setup for test build failed"
         except BuildFailed as e:
@@ -157,23 +160,30 @@ class Run():
         self.builtin = (self.yaml["config"] == "spack-builtin")
         self.wantProfiling = self.yaml.get("profile", True)
         self.output.add("input", "wantProfiling", str(self.wantProfiling))
+
+
+    def _makeBuildSpec(self):
+
+        import spackle
+        from common import BadBuildSpec
         
-        # get a spec for this test in specified configuration
         namespace = "builtin" if self.builtin else "tests"
-        specString = "{}@{}{}".format(namespace + "." + self.name, self.version, self.config)
+        spackString = "{}@{}{}".format(namespace + "." + self.name, self.version, self.config)
         try:
-            self.spec = spack.cmd.parse_specs(specString)[0]                # TODO: deal better with possibility that returned list length != 1
+            
+            self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
             self.output.add("input", "spack spec", str(self.spec))
             if "+mpi" in self.spec:
-                specString += " +mpi"
-                self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
+                spackString += " +mpi"
+                self.spec = spackle.parseSpec(spackString)[0]            # TODO: deal better with possibility that returned list length != 1
             if "+openmp" in self.spec:
-                specString += " +openmp"
-                self.spec = spack.cmd.parse_specs(specString)[0]            # TODO: deal better with possibility that returned list length != 1
-            self.spec.concretize()                                          # TODO: check that this succeeds
+                spackString += " +openmp"
+                self.spec = spackle.parseSpec(spackString)[0]            # TODO: deal better with possibility that returned list length != 1
+            spackle.concretizeSpec(self.spec)
+            
         except Exception as e:
             self.output.addSummaryStatus("TEST CONFIG INVALID", e.message)
-            raise BadTestDescription(e.message)
+            raise BadBuildSpec(e.message)
 
 
     def _prepareJobDirs(self):

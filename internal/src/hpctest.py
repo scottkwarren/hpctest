@@ -51,7 +51,6 @@
 class HPCTest():
     
     import common
-    import util
     
     global checksumName
     checksumName = ".checksum"
@@ -67,7 +66,7 @@ class HPCTest():
         from configspec import ConfigSpec
         from stringspec   import StringSpec
         from common import whichDir
-        global dimensions, dimspecDefaults, dimspecClasses, _testDirChecksum
+        global dimensions, dimspecDefaults, dimspecClasses
     
         # determine important paths
         common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
@@ -106,7 +105,7 @@ class HPCTest():
                         ]
 
         # set up configuration system
-        configuration.initConfig()    # must come after paths, spack,and environ are initialized
+        configuration.initConfig()    # must come after paths, spack, and environ are initialized
 
         # set up private repo
         self._ensureRepo()
@@ -149,9 +148,6 @@ class HPCTest():
     def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], workpath=None):
         
         import common
-        from common     import debugmsg, options, errormsg
-        from testspec   import TestSpec
-        from configspec import ConfigSpec
         from study      import Study
         from iterate    import Iterate
         from report     import Report
@@ -180,19 +176,14 @@ class HPCTest():
                 reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
                 
         else:
-            errormsg("no HPCToolkit specified for profiling.\n"
-                     "To fix this do one of the following:\n"
-                     "- use '--hpctookit <path-to-bin-dir>' on command line\n"
-                     "- edit hpctest/config.py to specify a default path\n"
-                     "- ensure that an HPCToolkit instance is on your $PATH.\n"
-                     "\n"
-                    )
+            # error message was printed during self._init_
+            pass
          
         
     def report(self, studypath, reportspec="", sortKeys=[]):
         
         from os         import listdir
-        from os.path    import join, isdir
+        from os.path    import join
         from common     import workpath, errormsg
         from report     import Report
         from study      import Study
@@ -214,12 +205,11 @@ class HPCTest():
     def clean(self, workpath, tests, dependencies):
         
         from os        import listdir
-        from os.path   import join, isdir
-        import spack
+        from os.path   import join
         import spackle        
         import common
-        from common    import options, yesno, infomsg, verbosemsg, debugmsg
-        from study     import Study
+        from common    import options, yesno, verbosemsg, debugmsg
+        from study     import Study                                      
 
         def confirm(what):
             ask    = "Really delete all {}?".format(what)
@@ -278,7 +268,7 @@ class HPCTest():
     
     def _ensureRepo(self):
 
-        import os, spack
+        import spack
         import common
         
         # customize settings of builtin repo
@@ -318,7 +308,7 @@ class HPCTest():
     def _addInternalRepo(self, repoPath):
 
         import spack
-        from spack.repository import Repo, FastPackageChecker
+        from spack.repository import Repo
 
         # adding while preserving RepoPath representation invariant is messy
         # ...no single operation for this is available in current Spack code
@@ -352,7 +342,6 @@ class HPCTest():
         from os.path import join, exists
         from util.checksumdir import dirhash
         from common import options, homepath, forTestsInDirTree, repopath
-        import spack
     
         def ensureTest(testDir, testYaml):
             
@@ -388,10 +377,9 @@ class HPCTest():
 
     def _addPackageForTest(self, testPath, name):
         
-        from os import mkdir, devnull
+        from os import mkdir
         from os.path import exists, join
         from shutil import copy, rmtree
-        import spack
         import spackle
         from common import debugmsg, repopath
         

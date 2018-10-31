@@ -143,6 +143,17 @@ def uninstall(name):
     spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")
     
 
+def parseSpec(specString):
+    
+    import spack
+    return spack.cmd.parse_specs(specString)
+    
+
+def concretizeSpec(spec):
+    
+    spec.concretize()       # TODO: check that this succeeds
+
+
 # Transputting a YAML file
 
 def readYamlFile(path):

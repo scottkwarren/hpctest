@@ -89,6 +89,7 @@ def warnmsg(message):
 
 def errormsg(message):
     
+    import sys
     import traceback
     
     global numErrors
@@ -96,8 +97,8 @@ def errormsg(message):
     
     infomsg("error: " + message)
     if "traceback" in options or "debug" in options:
-        traceback.print_exc()
-
+        traceback.print_stack()
+            
 
 def fatalmsg(message):
     
@@ -243,6 +244,9 @@ class HPCTestError(Exception):
     pass
 
 class BadTestDescription(HPCTestError):
+    pass
+
+class BadBuildSpec(HPCTestError):
     pass
 
 class PrepareFailed(HPCTestError):
