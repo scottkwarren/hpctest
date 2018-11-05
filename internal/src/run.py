@@ -137,7 +137,6 @@ class Run():
     def _readYaml(self):
 
         from os.path import join, basename
-        import spack
         from common import readYamlforTest, BadTestDescription
         
         self.yaml, msg = readYamlforTest(self.testdir)
@@ -226,24 +225,20 @@ class Run():
         from os.path import basename, join, isfile
         from shutil import copyfileobj
         from sys import stdout
-        import spack
-        from spack.build_environment import ChildError
-        from spack.stage import DIYStage
-        from spack.package import InstallError
         from llnl.util.tty.log import log_output
+        import spackle
 
         from common import noneOrMore, options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
 
         # build the package if necessary
-        self.package = spack.repo.get(self.spec)
+        self.package = spackle.packageFromSpec(self.spec)
         if self.package.installed:
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
             buildTime = 0.0
         else:
             if not self.builtin:
-                self.package.stage = DIYStage(self.builddir)  # TODO: cf separable vs inseparable builds
-            spack.do_checksum = False   # see spack.cmd.diy lines 91-92
+                spackle.setDIY(self.package, self.builddir)     # TODO: cf separable vs inseparable builds
             
             outputPath = self.output.makePath("{}-output.txt", "build")
             with log_output(outputPath, echo="verbose" in options):

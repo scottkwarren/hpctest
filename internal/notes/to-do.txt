@@ -2,6 +2,11 @@ HPCTEST TO DO
 
 
 Bugs
+
+- Must print additional report line w/ hpctk path if matrix has > 1 hpctk
+
+- Too many blank lines before report (4)
+
 -------------------------------------------------------------------------------------
 
 - Clusterfuck when no yaml file in a test! Want polite error message.
@@ -28,9 +33,6 @@ Bugs
 		    if self.wantProfiling and self.output.get("run") != "NA":
 		AttributeError: Run instance has no attribute 'wantProfiling'
 		$ 
-
-
-
 
 - "Executing normal test:" vs "run:normal" in yaml =>
    - "normal" is inapt

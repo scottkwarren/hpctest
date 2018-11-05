@@ -67,7 +67,7 @@ class HPCTest():
         from stringspec   import StringSpec
         from common import whichDir
         global dimensions, dimspecDefaults, dimspecClasses
-    
+            
         # determine important paths
         common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
         internalpath = join(common.homepath, "internal")
@@ -78,6 +78,14 @@ class HPCTest():
         common.repopath  = join(internalpath, "repos", "tests")
         common.workpath  = join(common.homepath, "work")
         if not isdir(common.workpath): makedirs(common.workpath)
+
+        # adjust environment accordingly
+        environ["HPCTEST_HOME"] = common.homepath
+        sys.path[1:0] = [ common.own_spack_module_dir,
+                          join(common.own_spack_module_dir, "external"),
+                          join(common.own_spack_module_dir, "external", "yaml", "lib"),
+                          join(common.own_spack_module_dir, "llnl"),
+                        ]
 
         # set up local spack if necessary
         if not isdir(common.own_spack_home):
@@ -90,19 +98,12 @@ class HPCTest():
             spack_dest      = join(internalpath, "spack")
             system("cd {}; tar xzf {}".format(internalpath, spack_tarball))
             rename(spack_extracted, spack_dest)
-            
+            spackle.initSpack()
+        
             infomsg("Spack found these compilers automatically:")
             spackle.do("compilers")
             infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
             infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
-
-        # adjust environment accordingly
-        environ["HPCTEST_HOME"] = common.homepath
-        sys.path[1:0] = [ common.own_spack_module_dir,
-                          join(common.own_spack_module_dir, "external"),
-                          join(common.own_spack_module_dir, "external", "yaml", "lib"),
-                          join(common.own_spack_module_dir, "llnl"),
-                        ]
 
         # set up configuration system
         configuration.initConfig()    # must come after paths, spack, and environ are initialized
@@ -122,7 +123,7 @@ class HPCTest():
                     "\n"
                     "To run profiling tests, specify '--hpctookit <path to bin dir>' on each 'hpctest run' command line.\n"
                     "To avoid specifying '--hpctoolkit' every time, do one of the following:\n"
-                    "- edit hpctest/config.py to specify a default HPCToolkit path\n"
+                    "- edit hpctest/config.yaml to specify a default HPCToolkit path\n"
                     "- ensure that an HPCToolkit instance is on your $PATH to serve as default.\n"
                     "\n"
                     )

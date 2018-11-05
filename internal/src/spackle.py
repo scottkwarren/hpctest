@@ -46,12 +46,23 @@
 ################################################################################
 
 
-
-
 import sys
 
 
-# Executing a Spack command
+#------------------#
+#  Initialization  #
+#------------------#
+
+def initSpack():
+
+    # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
+    import spack
+    spack.do_checksum = False   # see spack.cmd.diy lines 91-92
+
+
+#------------#
+#  Commands  #
+#------------#
 
 def do(cmdstring, stdout="", stderr=""):
 
@@ -99,15 +110,14 @@ def execute(cmd, cwd=None, env=None, output=None, error=None):
     # raises spack.util.executable.ProcessError if execution fails
 
 
-# Spack-based operations needed by HPCTest
+#---------#
+#  Specs  #
+#---------#
 
-def allPackageNames(namespace):
-    
-    # for HPCTest, namespace must be "builtin" or "tests"
-    # result is a set of strings for all packages in given namespace, installed or not
+def parseSpec(specString):
     
     import spack
-    return spack.repo.get_repo(namespace).all_package_names()
+    return spack.cmd.parse_specs(specString)
 
 
 def isInstalled(spec):
@@ -135,26 +145,47 @@ def hasDependents(spec):
     return len( spackle.getDependents(spec) ) > 0
     
 
+def concretizeSpec(spec):
+    
+    spec.concretize()       # TODO: check that this succeeds
+
+
+#------------#
+#  Packages  #
+#------------#
+
+def allPackageNames(namespace):
+    
+    # for HPCTest, namespace must be "builtin" or "tests"
+    # result is a set of strings for all packages in given namespace, installed or not
+    
+    import spack
+    return spack.repo.get_repo(namespace).all_package_names()
+
+
+def packageFromSpec(spec):
+    
+    import spack
+    return spack.repo.get(spec)
+
+
+def setDIY(package, diyPath):
+    
+    from spack.stage import DIYStage
+    package.stage = DIYStage(diyPath)
+
+
 def uninstall(name):
     
     import spackle
     
     cmd = "uninstall --all --force --yes-to-all {}".format(name)
     spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")
-    
-
-def parseSpec(specString):
-    
-    import spack
-    return spack.cmd.parse_specs(specString)
-    
-
-def concretizeSpec(spec):
-    
-    spec.concretize()       # TODO: check that this succeeds
 
 
-# Transputting a YAML file
+#--------------#
+#  YAML files  #
+#--------------#
 
 def readYamlFile(path):
     
