@@ -141,24 +141,27 @@ class Run():
         
         self.yaml, msg = readYamlforTest(self.testdir)
         if msg:
-            self.output.addSummaryStatus("TEST YAML FAILED", msg)
+            self.wantProfiling = False
+            self.output.add("input", "wantProfiling", "False")
+            self.output.addSummaryStatus("READING YAML FAILED", msg)
             raise BadTestDescription(msg)
-
-        # ensure necessary fields are present, by adding them if necessary
-        ## info.homepage -- optional
-        ## info.url -- optional
-        ## config.'default vsriants' -- default is the config.variants.base... one
-        ## config.flags.* -- optional
-        ## build.makefilename-- default is "Makefile"
-        ## build.separate -- default is []
-        ## run.threads -- default is 1, or no OPENMP_NUMTHREADS set
-        
-        # extract important values for easy reference
-        self.name = self.yaml["info"]["name"]                               # name of test case
-        self.version = self.yaml["info"]["version"]                         # TODO: let 'info.version' be missing, and use package default in such cases
-        self.builtin = (self.yaml["config"] == "spack-builtin")
-        self.wantProfiling = self.yaml.get("profile", True)
-        self.output.add("input", "wantProfiling", str(self.wantProfiling))
+        else:
+            
+            # ensure necessary fields are present, by adding them if necessary
+            ## info.homepage -- optional
+            ## info.url -- optional
+            ## config.'default vsriants' -- default is the config.variants.base... one
+            ## config.flags.* -- optional
+            ## build.makefilename-- default is "Makefile"
+            ## build.separate -- default is []
+            ## run.threads -- default is 1, or no OPENMP_NUMTHREADS set
+            
+            # extract important values for easy reference
+            self.name = self.yaml["info"]["name"]                               # name of test case
+            self.version = self.yaml["info"]["version"]                         # TODO: let 'info.version' be missing, and use package default in such cases
+            self.builtin = (self.yaml["config"] == "spack-builtin")
+            self.wantProfiling = self.yaml.get("profile", True)
+            self.output.add("input", "wantProfiling", str(self.wantProfiling))
 
 
     def _makeBuildSpec(self):
@@ -532,6 +535,8 @@ class Run():
             self.output.add("build", "NA")
         if "run" not in self.output.get():
             self.output.add("run", "NA")
+        if "wantProfiling" not in self.output.get("input"):
+            self.output.add("input", "wantProfiling", "False")
         if self.wantProfiling and self.output.get("run") != "NA":   ## TODO: 'wantProfiling' WANKS IF THERE WAS NO YAML FILE
             if "hpcstruct" not in self.output.get("run"):
                 self.output.add("run", "hpcstruct", "NA")
