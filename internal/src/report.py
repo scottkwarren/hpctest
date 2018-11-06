@@ -105,7 +105,7 @@ class Report():
             if len(dimkeys):
                 results.sort(key=sortKeyFunc)      # key func returns list of result fields corresponding to dimkey_list
 
-            print "\n"
+            print
             for result in results:
                 
                 info = self.extractRunInfo(result)

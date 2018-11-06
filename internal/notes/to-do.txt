@@ -5,8 +5,6 @@ Bugs
 
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
-- Too many blank lines before report (4)
-
 - "Executing normal test:" vs "run:normal" in yaml =>
    - "normal" is inapt
    - "run" vs "test" is inconsistent
@@ -19,6 +17,7 @@ Bugs
   - miniamr
   - pkg-config
   - util-macros
+
 
 -------------------------------------------------------------------------------------
 

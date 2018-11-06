@@ -169,7 +169,7 @@ class HPCTest():
             # run all the tests
             study = Study(workpath if workpath else common.workpath)
             nonempty = Iterate.doForAll(dims, args, numrepeats, study)
-            print "\n"
+            print
             
             # report results
             if nonempty:
