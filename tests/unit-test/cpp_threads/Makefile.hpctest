@@ -1,7 +1,7 @@
 # Edited for HPCTest by SKW 7/26/18
 
 CXX         = g++
-HPCRUN      = hpxrun
+HPCRUN      = hpcrun
 HPCSTRUCT   = hpcstruct
 HPCPROF     = hpcprof
 HPCPROF_MPI = hpcprof
