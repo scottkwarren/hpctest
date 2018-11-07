@@ -14,7 +14,7 @@ check:
 	time ./fib 8 3
 	time $(HPCRUN) -dd LINUX_PERF -e cycles -t ./fib 8 3
 	time $(HPCSTRUCT) fib
-	time mpirun -np 4 $(HPCPROF_MPI) -S fib.hpcstruct  hpctoolkit-fib-measurements/
+	time mpiexec -np 4 $(HPCPROF_MPI) -S fib.hpcstruct  hpctoolkit-fib-measurements/
 
 clean:
 	rm *.o

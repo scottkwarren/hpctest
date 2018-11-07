@@ -19,8 +19,8 @@ config:
       languages: [ cxx ]
       conflicts: "%gcc@:4.8.4"
       flags:
-        CXXFLAGS: "-std=gnu++11"
-        when:     "%gcc"
+        - CXXFLAGS: "-std=gnu++11"
+          when:     "%gcc"
         
 build:
   kind: makefile
