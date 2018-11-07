@@ -28,7 +28,7 @@ build:
   install: fib
 
 run:
-  cmd: make check
+  cmd: make -f Makefile.hpctest check
 
 profile: no
 
