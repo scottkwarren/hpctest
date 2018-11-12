@@ -3,9 +3,6 @@ HPCTEST TO DO
 
 Bugs
 
-- Apparently 'hpctest run' does not verify checksums of tests, or at least does not
-  rebuild them correctly.
-  
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
 - "Executing normal test:" vs "run:normal" in yaml =>
