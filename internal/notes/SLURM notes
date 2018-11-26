@@ -2,7 +2,53 @@ SLURM NOTES
 
 Doumentation at https://slurm.schedmd.com
 
-s
+--------------------------------------------------------------------------
+The application appears to have been direct launched using "srun",
+but OMPI was not built with SLURM support. This usually happens
+when OMPI was not configured --with-slurm and we weren't able
+to discover a SLURM installation in the usual places.
+
+Please configure as appropriate and try again.
+--------------------------------------------------------------------------
+
+
+
+...............................................................................
+--PTY option
+...............................................................................
+12. How can I get shell prompts in interactive mode?
+srun --pty bash -i
+Srun's --pty option runs task zero in pseudo terminal mode. Bash's -i option tells it to run in interactive mode (with prompts). 
+You can also configure SallocDefaultCommand in slurm.conf to automatically launch a shell, e.g.:
+
+SallocDefaultCommand="srun -n1 -N1 --mem-per-cpu=0 --pty --preserve-env --cpu-bind=no --mpi=none $SHELL"
+And then run salloc directly which will provide you an allocation with an interactive shell console.
+
+
+13. How can I get the task ID in the output or error file name for a batch job?
+
+If you want separate output by task, you will need to build a script containing this specification. For example:
+
+$ cat test
+#!/bin/sh
+echo begin_test
+srun -o out_%j_%t hostname
+
+$ sbatch -n7 -o out_%j test
+sbatch: Submitted batch job 65541
+
+$ ls -l out*
+-rw-rw-r--  1 jette jette 11 Jun 15 09:15 out_65541
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_0
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_1
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_2
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_3
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_4
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_5
+-rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_6
+...............................................................................
+
+
 ...............................................................................
 #!/bin/bash
 #SBATCH --job-name=YourJobNameHere
@@ -22,6 +68,25 @@ s
 #SBATCH --mail-type=ALL
  
 <shell code for the job>
+...............................................................................
+#!/bin/bash
+#SBATCH --job-name=AMG2013
+#SBATCH --account=commons
+#SBATCH --partition=commons
+#### #SBATCH --partition=interactive
+#### #SBATCH --export=ALL
+#### #SBATCH --nodes=2
+#### #SBATCH --exclusive				# optional
+#SBATCH --ntasks=8
+#### #SBATCH --ntasks-per-node=4
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=1000m
+#SBATCH --time=00:30:00
+#### #SBATCH --output=mypath
+#### #SBATCH --error=mypath
+#SBATCH --mail-user=scott@rice.edu
+#SBATCH --mail-type=ALL
+hpctest run app/AMG2013 --verbose --debug
 ...............................................................................
 
 

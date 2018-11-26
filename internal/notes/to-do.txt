@@ -3,6 +3,23 @@ HPCTEST TO DO
 
 Bugs
 
+- Intermittent bug!
+    [scott@les ~]$ hpctest run app/lulesh
+    ----------------------------------------------------------------------
+    running test app/lulesh with config %gcc and -e REALTIME@10000
+    ----------------------------------------------------------------------
+    unexpected error AttributeError ('ElapsedTimer' object has no attribute 'secs')
+
+
+- Execution failures display only 'ProcessError' rather than error printed on stdout:
+        ------------------------------------------------------------------------
+        | APP / AMGMK with %GCC and -e REALTIME@10000                           
+        | HPCRUN FAILED: ProcessError (Exit status 127)                         
+        ------------------------------------------------------------------------
+
+- Reporting failures due to incomplete run info often print as just the string "status"
+   - info.extractRunInfoMsg = e.message # TODO: 'KeyError' => "status"; e.message and str(e) no better
+
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
 - "Executing normal test:" vs "run:normal" in yaml =>
@@ -17,6 +34,67 @@ Bugs
   - miniamr
   - pkg-config
   - util-macros
+
+
+----------------
+OUT.yaml ISSUES
+----------------
+		input:
+		  date: 2018-11-20 23:25
+		  test: app/amgmk
+		  config spec: '%gcc'
+		  hpctoolkit: /home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin
+		  hpctoolkit params:
+		    hpcrun: -e REALTIME@10000
+		    hpcstruct: ''
+		    hpcprof: ''
+		  num repeats: 1
+		  study dir: /home/scott/hpctest/work/study-2018-11-20--23-25-10
+		  wantProfiling: 'True'
+		  spack spec: amgmk@1.0%gcc
+		build:
+		  prefix: /home/scott/hpctest/internal/spack/opt/spack/linux-centos7-x86_64/gcc-4.8.5/amgmk-1.0-goaesak3c32dc6e7mjjrubwr4bdqzpkq
+		  cpu time: 0.0
+		  status: OK
+		  status msg: already built
+		run:
+		  normal:
+		    command: ' /bin/bash -c ''ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400
+		      -t unlimited ; export TIMEFORMAT=''%R %S %U''; time AMGMk 2> /home/scott/hpctest/work/study-2018-11-20--23-25-10/amgmk-%gcc--e.REALTIME@10000/OUT/02-normal-time.txt'' '
+		    cpu time: null
+		    status: OK
+		    status msg: '... couldn''t determine normal cpu time'
+		  profiled:
+		    command: ' /bin/bash -c ''ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400
+		      -t unlimited ; export TIMEFORMAT=''%R %S %U''; time /home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcrun
+		      -o /home/scott/hpctest/work/study-2018-11-20--23-25-10/amgmk-%gcc--e.REALTIME@10000/OUT/05-hpctoolkit-AMGMk-measurements
+		      -t -e REALTIME@10000 AMGMk 2> /home/scott/hpctest/work/study-2018-11-20--23-25-10/amgmk-%gcc--e.REALTIME@10000/OUT/04-profiled-time.txt'' '
+		    cpu time: null
+		    status: OK
+		    status msg: '... couldn''t determine profiled cpu time'
+		    hpcrun overhead %: NA
+		    hpcrun summary: NA
+>>>>	  hpcrun:
+>>>>	    output checks: OK
+>>>>	    output msg: null
+>>>>	  hpcstruct:
+>>>>	    output checks: FAILED
+>>>>	    output msg: '... couldn''t determine hpcstruct cpu time'
+>>>>	  hpcprof: NA
+>>>>	hpcstruct:
+>>>>	  command: ' /bin/bash -c ''ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400
+>>>>	    -t unlimited ; export TIMEFORMAT=''%R %S %U''; time /home/scott/hpctoolkit-current/hpctoolkit/INSTALL/bin/hpcstruct
+>>>>	    -o /home/scott/hpctest/work/study-2018-11-20--23-25-10/amgmk-%gcc--e.REALTIME@10000/OUT/06-AMGMk.hpcstruct  -I
+>>>>	    ./+ /home/scott/hpctest/internal/spack/opt/spack/linux-centos7-x86_64/gcc-4.8.5/amgmk-1.0-goaesak3c32dc6e7mjjrubwr4bdqzpkq/bin/AMGMk
+>>>>	    2> /home/scott/hpctest/work/study-2018-11-20--23-25-10/amgmk-%gcc--e.REALTIME@10000/OUT/08-hpcstruct-time.txt'' '
+>>>>	  cpu time: null
+>>>>	  status: OK
+>>>>	  status msg: '... couldn''t determine hpcstruct cpu time'
+		summary:
+		  status: NORMAL RUN FAILED
+		  status msg: '... couldn''t determine normal cpu time'
+		  elapsed time: 0.47
+----------------
 
 
 -------------------------------------------------------------------------------------
