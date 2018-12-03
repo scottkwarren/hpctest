@@ -2,6 +2,8 @@ SLURM NOTES
 
 Doumentation at https://slurm.schedmd.com
 
+davinci.rice.edu
+srun -p interactive -t 30 -N 1 --ntasks=8   /bin/bash -c "module load GCC/4.8.5 OpenMPI/1.8.6 Python/2.7.9 cURL/7.40.0 CMake/2.8.12.2; ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; cd /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/AMG2013-1.0-5w6rciet5wrftgj7mnyo5dfxpb6qiylp/bin/; /usr/bin/time -f '%e %S %U' -o gort-normal-time.txt ./amg2013 -P 1 2 2  -r 24 24 24" 
 --------------------------------------------------------------------------
 The application appears to have been direct launched using "srun",
 but OMPI was not built with SLURM support. This usually happens
@@ -12,41 +14,6 @@ Please configure as appropriate and try again.
 --------------------------------------------------------------------------
 
 
-
-...............................................................................
---PTY option
-...............................................................................
-12. How can I get shell prompts in interactive mode?
-srun --pty bash -i
-Srun's --pty option runs task zero in pseudo terminal mode. Bash's -i option tells it to run in interactive mode (with prompts). 
-You can also configure SallocDefaultCommand in slurm.conf to automatically launch a shell, e.g.:
-
-SallocDefaultCommand="srun -n1 -N1 --mem-per-cpu=0 --pty --preserve-env --cpu-bind=no --mpi=none $SHELL"
-And then run salloc directly which will provide you an allocation with an interactive shell console.
-
-
-13. How can I get the task ID in the output or error file name for a batch job?
-
-If you want separate output by task, you will need to build a script containing this specification. For example:
-
-$ cat test
-#!/bin/sh
-echo begin_test
-srun -o out_%j_%t hostname
-
-$ sbatch -n7 -o out_%j test
-sbatch: Submitted batch job 65541
-
-$ ls -l out*
--rw-rw-r--  1 jette jette 11 Jun 15 09:15 out_65541
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_0
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_1
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_2
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_3
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_4
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_5
--rw-rw-r--  1 jette jette  6 Jun 15 09:15 out_65541_6
-...............................................................................
 
 
 ...............................................................................

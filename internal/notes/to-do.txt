@@ -100,6 +100,12 @@ OUT.yaml ISSUES
 -------------------------------------------------------------------------------------
 
 
+- New commands:
+    - list [ --tests | --studies ]
+    - build <testspec>
+    - [ cd | location ] [ --study <name> ??? ] [ --test <testspec> [ --source | --repo | --install ]
+    
+    
 - Reporting:
 	- Add variable-weight separators to report to indicate group changes
  	- optional summaries
