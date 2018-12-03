@@ -57,7 +57,11 @@ def initSpack():
 
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
     import spack
+    
+    # TODO: is any of the following redundant?
     spack.do_checksum = False   # see spack.cmd.diy lines 91-92
+    spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
+    spack.insecure = True
 
 
 #------------#
@@ -181,6 +185,58 @@ def uninstall(name):
     
     cmd = "uninstall --all --force --yes-to-all {}".format(name)
     spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")
+
+
+#----------------#
+#  Repositories  #
+#----------------#
+
+def createRepo(dirname):
+
+    from os.path import join, isdir
+    from shutil import rmtree
+    import spack
+    from spack.repository import create_repo
+    from common import homepath
+
+    # this just makes a repo directory -- it must be added to Spack once populated
+    repoPath = join(homepath, "internal", "repos", dirname)
+    if isdir(repoPath): rmtree(repoPath, ignore_errors=True)
+    namespace = dirname
+    _ = create_repo(repoPath, namespace)
+
+
+def updateRepoPath(repoPath):
+
+    import spack
+    from spack.repository import Repo
+    from common import assertmsg
+
+    # update Spack's current RepoPath
+    assertmsg(len(spack.repo.repos) == 2, "unexpected RepoPath length while updating Spack for changed internal repo")
+    spack.repo.repos[0] = Repo(repoPath)
+
+
+def addRepo(repoPath):
+
+    import spack
+    from spack.repository import Repo
+
+    # We need to add a repo *while Spack is running*, which existing Spack code never does.
+    # Adding while preserving RepoPath representation invariant is messy
+    # ...no single operation for this is available in current Spack code
+    
+    # update Spack's config
+    repos = spack.config.get_config('repos', "site")
+    if isinstance(repos, list):
+        repos.insert(0, repoPath)
+    else:
+        repos = [ repoPath ]
+    spack.config.update_config('repos', repos, "site")
+    
+    # add to Spack's RepoPath
+    repo = Repo(repoPath)
+    spack.repo.put_first(repo)
 
 
 #--------------#

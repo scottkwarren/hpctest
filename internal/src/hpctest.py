@@ -285,73 +285,20 @@ class HPCTest():
     
     def _ensureRepo(self):
 
-        import spack
         import common
+        import spackle
         
-        # customize settings of builtin repo
-        spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
-        spack.insecure = True
-
         # create new private repo for building test cases
         noRepo = spack.repo.get_repo("tests", default=None) is None
-        if noRepo: self._makeInternalRepo("tests")
+        if noRepo: spackle.createRepo("tests")
         self._ensureTests()
         if noRepo:
-            self._addInternalRepo(common.repopath)
+            spackle.addRepo(common.repopath)
         else:
-            self._internalRepoChanged(common.repopath)
+            spackle.updateRepoPath(common.repopath)
 
         # extend external repo if one was specified
         pass
-
-
-    def _makeInternalRepo(self, dirname):
-        
-        from os.path import join, isdir
-        from shutil import rmtree
-        import spack
-        from spack.repository import create_repo
-        from common import homepath
-
-        # this just makes a repo directory -- it must be added to Spack once populated
-        repoPath = join(homepath, "internal", "repos", dirname)
-        if isdir(repoPath): rmtree(repoPath, ignore_errors=True)
-        namespace = dirname
-        _ = create_repo(repoPath, namespace)
-        
-        return repoPath
-
-
-    def _addInternalRepo(self, repoPath):
-
-        import spack
-        from spack.repository import Repo
-
-        # adding while preserving RepoPath representation invariant is messy
-        # ...no single operation for this is available in current Spack code
-        
-        # update Spack's config
-        repos = spack.config.get_config('repos', "site")
-        if isinstance(repos, list):
-            repos.insert(0, repoPath)
-        else:
-            repos = [ repoPath ]
-        spack.config.update_config('repos', repos, "site")
-        
-        # add to Spack's RepoPath
-        repo = Repo(repoPath)
-        spack.repo.put_first(repo)
-
-
-    def _internalRepoChanged(self, repoPath):
-
-        import spack
-        from spack.repository import Repo
-        from common import assertmsg
-
-        # update Spack's current RepoPath
-        assertmsg(len(spack.repo.repos) == 2, "unexpected RepoPath length while updating Spack for changed internal repo")
-        spack.repo.repos[0] = Repo(repoPath)
 
 
     def _ensureTests(self):
