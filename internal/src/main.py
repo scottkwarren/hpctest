@@ -81,9 +81,9 @@ def parseCommandLine():
     # hpctest run [tspec | --tests tspec] [--build cspec] [--hpctoolkit tkspec] [--profile pspec] [--study study] <options>
     # -------------------------------------------------------------------------------------------------------
     runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
-    runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for the set of test cases to use")
-    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for the set of test cases to use")
-    runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for the set of build configs on which to use")
+    runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for which test cases to run")
+    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for which test cases to rum")
+    runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for which build configs on which to use")
     runParser.add_argument("--hpctoolkit",       "-k", type=str,  default="default",  help="paths to hpctoolkit instances to use")
     runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters to pass to hpctoolkit tools")
     runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to put study directory for this study")
@@ -119,10 +119,20 @@ def parseCommandLine():
     _addOptionArgs(spackParser)
 
     # -------------------------------------------------------------------------------------------------------
+    # hpctest selftest <options>
+    # -------------------------------------------------------------------------------------------------------
+    selftestParser = subparsers.add_parser("selftest", help="run HPCTest's builtin self tests")
+    selftestParser.add_argument("tests_arg", nargs="?", type=str, default="default",  help="testspec for which self tests to run")
+    selftestParser.add_argument("--tests", "-t", type=str,  default="default",  help="testspec for which self tests to run")
+    selftestParser.add_argument("--study", "-s", type=str,  default="default",  help="where to put study directory for this study")
+    _addOptionArgs(selftestParser)
+
+    # -------------------------------------------------------------------------------------------------------
     # hpctest _miniapps <options>
     # -------------------------------------------------------------------------------------------------------
-    miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
-    _addOptionArgs(miniappsParser)
+
+#     miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
+#     _addOptionArgs(miniappsParser)
 
     # parse the command line
     args = parser.parse_args()
@@ -185,7 +195,7 @@ def execute(args):
         otherargs  = args
         reportspec = args.report if args.report != "default" else "all"
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        tester.run(dims, args, numrepeats, reportspec, sortKeys, studyPath)
+        tester.run(dims, otherargs, numrepeats, reportspec, sortKeys, studyPath)
         
     elif args.subcommand == "report":
         
@@ -217,6 +227,22 @@ def execute(args):
         
         tester.spack(" ".join(args.spackcmd))
     
+        
+    elif args.subcommand == "selftest":
+        
+        if args.tests_arg != "default":
+            testspec = args.tests_arg
+            del args.tests_arg
+        if args.tests != "default":
+            if args.tests_arg != "default":
+                errormsg("'--tests' cannot be combined with <tests> positional argument (ignored).")
+            else:
+                testspec = args.tests
+                del args.tests
+        studyPath = args.study if args.study != "default" else None; del args.study
+        otherargs  = args
+        reportspec = args.report if args.report != "default" else "all"
+        tester.selftest(testspec, otherargs, reportspec, studyPath)
     
     elif args.subcommand == "miniapps":
         

@@ -252,6 +252,22 @@ class HPCTest():
         import spackle
         spackle.do(cmdstring)
 
+
+    def selftest(testspec="all", otherargs="", reportspec="", studyPath=None):
+        
+        import common
+        from study      import Study
+        from iterate    import Iterate
+        from report     import Report
+        global dimensions, dimspecDefaults, dimspecClasses
+                
+        infomsg("selftest not implemented")
+        
+#         # run tests, reporting results as we go
+#         study = Study(studyPath if studyPath else common.workpath, prefix="selftest")
+#         xxxxxxxxx
+#         print
+
         
 #     def miniapps(self):
 #         
