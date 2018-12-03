@@ -136,6 +136,11 @@ def truncate(s, n):
     return (s[:n-3] + '...') if len(s) > n else s
 
 
+def escape(s):
+
+    return s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
+    
+
 # Stack traceback
 
 def traceback():
@@ -230,10 +235,10 @@ def whichDir(exename):
     
     import os
     from os.path import dirname
-    from util.which import which as utilWhich
+    from util.which import which
     
     try:
-        return dirname( utilWhich(exename) )
+        return dirname( which(exename) )
     except:
         return None
     
