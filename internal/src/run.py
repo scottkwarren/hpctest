@@ -95,7 +95,7 @@ class Run():
         sepmsg(True)
         
         name = relpath(self.testdir, join(homepath, "tests"))
-        infomsg("running test {} with config {} and {}".format(name, self.config, self.hpcrunParams))
+        infomsg("running test {} with {} and {}".format(name, self.config, self.hpcrunParams))
         sepmsg(True)
         
         try:
@@ -184,7 +184,7 @@ class Run():
             spackle.concretizeSpec(self.spec)
             
         except Exception as e:
-            self.output.addSummaryStatus("TEST CONFIG INVALID", e.message)
+            self.output.addSummaryStatus("CONFIG INVALID", e.message)
             raise BadBuildSpec(e.message)
 
 
@@ -218,7 +218,7 @@ class Run():
                 self.rundir = self.builddir
                 
         except Exception as e:
-            self.output.addSummaryStatus("TEST INIT FAILED", e.message)
+            self.output.addSummaryStatus("SETUP FAILED", e.message)
             raise PrepareFailed(e.message)
         
 
@@ -261,8 +261,8 @@ class Run():
                     except Exception as e:
                         status, msg =  "FAILED", e.message
                         
-                buildTime = t.secs
-
+                    ildTime = t.secs
+        
         # Make alias(es) in build directory to the built product(s)    #### TODO: support more than one product
         products = self.yaml["build"]["install"] if "build" in self.yaml and "install" in self.yaml["build"] else None
         self.prefix    = self.package.prefix      # prefix path is valid even if package failed to install
@@ -370,7 +370,7 @@ class Run():
         import sys
         from spack.util.executable import ProcessError
         from spackle import execute
-        from common import options, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg, ExecuteFailed
+        from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg, ExecuteFailed
         from configuration import currentConfig
         
         wantProfile = profile if profile else False
@@ -409,14 +409,14 @@ class Run():
             notimplemented("batch scheduling")   # TODO: implement this
         
         # ... always add timing code
-        cmd = "/usr/bin/time -f '%e\\\\\\\\t%S\\\\\\\\t%U' -o {} {}".format(timePath, cmd)   # backslashes are 
+        cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
         
         # ... always add resource limiting code
         limitstring = self._makeLimitString()
-        cmd = " /bin/bash -c 'ulimit {}; {}' ".format(limitstring, cmd)
+        cmd = "/bin/bash -c \"ulimit {}; {}\" ".format(limitstring, escape(cmd))
         
         self.output.add(label, "command", cmd, subroot=root)
-
+            
         # execute the command
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
@@ -436,10 +436,13 @@ class Run():
         cputime = self._readTotalCpuTime(timePath)
         if cputime:
             infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
+        else:
+            msg = "... couldn't determine {} cpu time".format(label)
+            infomsg(msg)
         
         # save results
         os.system("cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir()))
-        self.output.add(label, "cpu time", cputime, subroot=root, format="{:0.2f}")
+        self.output.add(label, "cpu time", cputime, subroot=root, format="{:0.2f}" if cputime else None)
         self.output.add(label, "status", "FAILED" if failed else "OK", subroot=root)
         self.output.add(label, "status msg", msg, subroot=root)
         
@@ -491,12 +494,13 @@ class Run():
             
         import csv
         from os.path import join
+        from common import ExecuteFailed
         
         try:
             
             with open(timePath, "r") as f:
                 line = f.read()
-                times = csv.reader([line], delimiter="\t").next()
+                times = csv.reader([line], delimiter=" ").next()
                 cpuTime = float(times[1]) + float(times[2])
                 
         except Exception as e:
@@ -552,6 +556,8 @@ class Run():
         if normalFailMsg or profiledFailMsg:
             infomsg("... hpcrun overhead not computed due to execution failure")
             self.output.add("run", "profiled" + suffix, "hpcrun overhead %", "NA")
+        elif not (normalTime and profiledTime):
+            overheadPercent = "NA"
         else:
             overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
             infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
@@ -573,43 +579,48 @@ class Run():
     def _summarizeHpcrunLog(self):
         
         from os import listdir
-        from os.path import join, isfile, basename, splitext
+        from os.path import join, isdir, isfile, basename, splitext
         import re, string
         from common import debugmsg, errormsg
         from spackle import writeYamlFile
 
-        pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
-                    "         frames: D (trolled: D)\n"
-                    "         intervals: D (suspicious: D)\n"
-                  )
-        fieldNames = [ "samples", "recorded", "blocked", "errant", "trolled", "yielded", "frames", "trolled", "intervals", "suspicious" ]
-        pattern = string.replace(pattern, r"(", r"\(")
-        pattern = string.replace(pattern, r")", r"\)")
-        pattern = string.replace(pattern, r"D", r"(\d+)")
-        rex = re.compile(pattern)
-
-        scrapedResultTupleList = []
-        
-        for item in listdir(self.measurementsPath):
-            itemPath = join(self.measurementsPath, item)
-            if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
-                with open(itemPath, "r") as f:
-                    
-                    last3lines  = f.readlines()[-3:]
-                    summaryLine = "".join(last3lines)
-                    match = rex.match(summaryLine)
-                    if match:
-                        scrapedResultTuple = map(int, match.groups())   # convert matched strings to ints
-                        scrapedResultTupleList.append(scrapedResultTuple)
-                    else:
-                        errormsg("hpcrun log '{}' has summary with unexpected format:\n{}".format(item, summaryLine))
+        if isdir(self.measurementsPath):
+            
+            pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
+                        "         frames: D (trolled: D)\n"
+                        "         intervals: D (suspicious: D)\n"
+                      )
+            fieldNames = [ "samples", "recorded", "blocked", "errant", "trolled", "yielded", "frames", "trolled", "intervals", "suspicious" ]
+            pattern = string.replace(pattern, r"(", r"\(")
+            pattern = string.replace(pattern, r")", r"\)")
+            pattern = string.replace(pattern, r"D", r"(\d+)")
+            rex = re.compile(pattern)
+    
+            scrapedResultTupleList = []
+            
+            for item in listdir(self.measurementsPath):
+                itemPath = join(self.measurementsPath, item)
+                if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
+                    with open(itemPath, "r") as f:
                         
-        summedResultTuple = map(sum, zip(*scrapedResultTupleList))
-        summedResultDict  = dict(zip(fieldNames, summedResultTuple))
-        sumPath = self.output.makePath("hpcrun-summary.yaml")
-        writeYamlFile(sumPath, summedResultDict)
-        debugmsg("hpcrun summary = {}".format(summedResultDict))
+                        last3lines  = f.readlines()[-3:]
+                        summaryLine = "".join(last3lines)
+                        match = rex.match(summaryLine)
+                        if match:
+                            scrapedResultTuple = map(int, match.groups())   # convert matched strings to ints
+                            scrapedResultTupleList.append(scrapedResultTuple)
+                        else:
+                            errormsg("hpcrun log '{}' has summary with unexpected format:\n{}".format(item, summaryLine))
+                            
+            summedResultTuple = map(sum, zip(*scrapedResultTupleList))
+            summedResultDict  = dict(zip(fieldNames, summedResultTuple))
+            sumPath = self.output.makePath("hpcrun-summary.yaml")
+            writeYamlFile(sumPath, summedResultDict)
+            debugmsg("hpcrun summary = {}".format(summedResultDict))
         
+        else:
+            summedResultDict = "NA"
+            
         return summedResultDict
 
 
