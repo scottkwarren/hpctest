@@ -289,7 +289,7 @@ class HPCTest():
         import spackle
         
         # create new private repo for building test cases
-        noRepo = spack.repo.get_repo("tests", default=None) is None
+        noRepo = spackle.getRepo("tests") is None
         if noRepo: spackle.createRepo("tests")
         self._ensureTests()
         if noRepo:

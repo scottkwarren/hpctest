@@ -191,6 +191,12 @@ def uninstall(name):
 #  Repositories  #
 #----------------#
 
+def getRepo(name):
+    
+    import spack
+    return spack.repo.get_repo(name, default=None)
+    
+    
 def createRepo(dirname):
 
     from os.path import join, isdir
