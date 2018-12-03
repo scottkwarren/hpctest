@@ -116,8 +116,8 @@ class Report():
                     testLabel += " and {}".format(info.params)  # TODO: display hpctoolkit path but make sure line's not too long
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
-                if info.rundataMsg:
-                    line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.rundataMsg, 100))         
+                if info.extractRunInfoMsg:
+                    line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.extractRunInfoMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 elif info.wantProfiling and info.status == "OK":
                     line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
@@ -151,7 +151,7 @@ class Report():
 
         info = Namespace()
         
-        info.rundataMsg = None
+        info.extractRunInfoMsg = None
         
         try:
             
@@ -193,7 +193,7 @@ class Report():
                 info.yielded    = None
             
         except Exception as e:
-            info.rundataMsg     = e.message
+            info.extractRunInfoMsg = e.message      # TODO: 'KeyError' => "status"; e.message and str(e) no better
     
         return info
 
