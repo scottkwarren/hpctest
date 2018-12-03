@@ -1,0 +1,134 @@
+[skw0897@login1 ~]$ cat slurm-4955112.out
+>>> parsed args = Namespace(build='default', hpctoolkit='default', options=['verbose', 'debug'], profile='default', report='default', sort='default', study='default', subcommand='run', tests='default', tests_arg='app/lulesh')
+>>> START OF HPCTEST EXECUTION
+>>> reading yaml file at /home/skw0897/hpctest/internal/src/config-builtin.yaml
+>>> ...finished reading yaml file with result object {'profile': {'hpctoolkit path': None, 'hpcrun params': '-e REALTIME@10000', 'hpcprof params': '', 'hpcstruct params': ''}, 'run': {'ulimit': {'c': '200K', 'u': 500, 'd': '2M', 'f': '2M', 's': '100K', 't': 3000}, 'batch': False}, 'build': {'default compiler': 'gcc'}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/config.yaml
+>>> ...finished reading yaml file with result object {'run': {'ulimit': {'t': 'unlimited'}}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/amgmk/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://asc.llnl.gov/CORAL-benchmarks/Micro/amgmk-v1.0.tar.gz', 'version': 1.0, 'homepage': 'https://asc.llnl.gov/CORAL-benchmarks/', 'name': 'amgmk', 'description': 'This microkernel contains three compute-intensive sections of the larger AMG benchmark. Optimizing performance for these three sections will improve the figure of merit of AMG. AMGmk, like the full AMG benchmark, is written in C. The three sections chosen to create this benchmark perform compressed sparse row (CSR) matrix vector multiply, algebraic multigrid (AMG) mesh relaxation, and a simple a * X + Y vector operation. OpenMP directives allow additional increases in performance. AMGmk uses no MPI parallelism and is meant to be studied as a single-CPU benchmark or OpenMP benchmark only. The run time of this benchmark is not linearly related to the figure of merit of the larger AMG  benchmark because the exact proportion of time spent performing these three operations varies depending on the size of the problem and the specific linear system being solved.\n'}, 'config': {'variants': [{'languages': ['c'], 'base': 'serial', 'flags': {'CXXFLAGS': '-g -O2', 'LDFLAGS': '-lm'}, 'description': 'Build as a serial program'}, {'languages': ['c'], 'variant': 'openmp', 'flags': {'+LDFLAGS': '$OPENMP_FLAG', '+CFLAGS': '$OPENMP_FLAG'}, 'description': 'Build with OpenMP support'}], 'default variants': ['openmp mpi']}, 'run': {'cmd': 'AMGMk', 'threads': 2}, 'build': {'makefilename': 'Makefile.hpctest', 'kind': 'makefile', 'install': 'AMGMk', 'separate': []}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/AMG2013/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/HPCToolkit-tests', 'version': 1.0, 'homepage': 'https://codesign.llnl.gov/amg2013.php', 'name': 'AMG2013', 'description': 'AMG2013 is a parallel algebraic multigrid solver for linear systems arising from problems on unstructured grids.  The driver provided with AMG2013 builds linear  systems for various 3-dimensional problems. AMG2013 is written in ISO-C.  It is an SPMD code which uses MPI and OpenMP  threading within MPI tasks. Parallelism is achieved by data decomposition. The  driver provided with AMG2013 achieves this decomposition by simply subdividing  the grid into logical P x Q x R (in 3D) chunks of equal size. \n'}, 'config': {'variants': [{'languages': ['c'], 'base': 'serial', 'flags': {'CXXFLAGS': '-g -O2', 'LDFLAGS': '-lm', 'env': ['INCLUDE_CFLAGS = $CFLAGS', 'INCLUDE_LFLAGS = $LDFLAGS']}, 'description': 'Build as a serial program'}, {'variant': 'openmp', 'flags': {'+LDFLAGS': '$OPENMP_FLAG', '+CFLAGS': '$OPENMP_FLAG', 'env': ['-DHYPRE_USING_OPENMP']}, 'description': 'Build with OpenMP support'}, {'languages': ['mpicc'], 'variant': 'mpi', 'depends': ['mpi'], 'flags': {'env': ['-DTIMER_USE_MPI']}, 'description': 'Build with MPI support'}], 'default variants': ['openmp mpi']}, 'run': {'ranks': 4, 'cmd': 'amg2013 -P 1 2 2  -r 24 24 24', 'threads': 4, 'dir': 'test'}, 'build': {'kind': 'makefile', 'install': ['test/amg2013', 'test/sstruct.in.MG.FD'], 'separate': []}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/nekbone/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/HPCToolkit', 'version': 1.0, 'homepage': 'https://cesar.mcs.anl.gov/content/software/thermal hydraulics', 'name': 'nekbone', 'description': 'Nekbone is captures the basic structure and user interface of the extensive Nek5000 software. Nek5000 is a high order, incompressible Navier-Stokes solver based on the spectral element method. It has a wide range of applications and intricate customizations available to users. Nekbone, on the other hand, solves a Helmholtz equation in a box, using the spectral element method. It is pared down to include only the necessary features to compile, run, and solve the applications found in the test/ directory. Since almost all practical applications are in the three dimensional space, the solver is set to work with three dimensional geometries as default. Nekbone solves a standard Poisson equation using a conjugate gradient iteration with a simple preconditioner on a block or linear geometry (set within the test directory of the simulation). Nekbone exposes the principal computational kernel to reveal the essential elements of the algorithmic-architectural coupling that is pertinent to Nek5000. \n'}, 'config': {'variants': [{'languages': ['c f90'], 'base': 'serial', 'flags': {'CFLAGS': '-g -O3', 'LDFLAGS': '-g -O3', 'env': ['-DF77=$F90']}, 'description': 'Build as a serial program'}, {'variant': 'openmp', 'flags': {'+LDFLAGS': '$OPENMP_FLAG', '+CFLAGS': '$OPENMP_FLAG'}, 'description': 'Build with OpenMP support'}, {'languages': ['mpicc mpif77'], 'variant': 'mpi', 'flags': {'env': 'USE_MPI=1'}, 'description': 'Build with MPI support'}], 'default variants': ['openmp mpi']}, 'run': {'ranks': 2, 'numthreads': 4, 'cmd': 'nekbone ex1 2', 'dir': 'test/example1'}, 'build': {'kind': 'command', 'cmd': 'makenek ex1', 'install': ['test/example1/nekbone', 'test/example1/data.rea', 'test/example1/SIZE'], 'separate': []}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/AMG2006/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/HPCToolkit', 'version': 1.0, 'homepage': 'https://svn.mcs.anl.gov/repos/performance/benchmarks/AMG2006', 'name': 'AMG2006', 'description': 'AMG2006 is a parallel algebraic multigrid solver for linear systems arising from problems on unstructured grids. \n'}, 'config': {'variants': [{'languages': ['c'], 'base': 'serial', 'flags': {'CXXFLAGS': '-g -O2', 'LDFLAGS': '-lm', 'env': ['INCLUDE_CFLAGS = $CFLAGS', 'INCLUDE_LFLAGS = $LDFLAGS']}, 'description': 'Build as a serial program'}, {'variant': 'openmp', 'flags': {'+LDFLAGS': '$OPENMP_FLAG', '+CFLAGS': '$OPENMP_FLAG', 'env': ['-DHYPRE_USING_OPENMP']}, 'description': 'Build with OpenMP support'}], 'default variants': ['openmp mpi']}, 'run': {'ranks': 4, 'cmd': 'amg2006 -P 1 2 2  -r 16 16 16', 'threads': 4, 'dir': 'test'}, 'build': {'kind': 'makefile', 'install': ['test/amg2013', 'test/sstruct.in.AMG.FD'], 'separate': []}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/lulesh/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/HPCToolkit', 'version': 1.0, 'homepage': 'https://codesign.llnl.gov/lulesh.php', 'name': 'lulesh', 'description': 'Many important simulation problems of interest to DOE involve complex multi-material systems that undergo large deformations. LULESH is a highly simplified application that represents the numerical algorithms, data motion, and programming style typical in scientific C or C++ based hydrodynamic applications. The Shock Hydrodynamics Challenge Problem was originally defined and implemented by LLNL as one of five challenge problems in the DARPA UHPC program and has since become a widely studied proxy application in DOE co-design efforts for exascale. It has been ported to a number of programming models and optimized for a number of advanced platforms. \n'}, 'config': {'variants': [{'languages': ['cxx'], 'base': 'serial', 'flags': {'CXXFLAGS': '-g -O3', 'LDFLAGS': '-g -O3', 'env': ['-DF77=$F90']}, 'description': 'Build as a serial program'}, {'variant': 'openmp', 'flags': {'+LDFLAGS': '$OPENMP_FLAG', '+CXXFLAGS': '$OPENMP_FLAG'}, 'description': 'Build with OpenMP support'}, {'languages': ['mpicxx'], 'variant': 'mpi', 'flags': {'env': ['-DUSE_MPI=1', 'MPI_INC = $MPI_INC', 'MPI_LIB = $MPI_LIB']}, 'description': 'Build with MPI support'}], 'default variants': ['openmp mpi']}, 'run': {'ranks': 8, 'cmd': 'lulesh2.0 -s 10', 'threads': 4}, 'build': {'kind': 'makefile', 'install': 'lulesh2.0', 'separate': []}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/miniAMR/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/Mantevo/miniAMR/archive/v1.4.0.tar.gz', 'version': '1.4.0', 'homepage': 'https://mantevo.org', 'name': 'miniamr', 'description': 'miniAMR applies a stencil calculation on a unit cube computational domain, which is divided into blocks. The blocks all have the same number of cells in each direction and communicate ghost values with neighboring blocks. With adaptive mesh refinement, the blocks can represent different levels of refinement in the larger mesh. Neighboring blocks can be at the same level or one level different, which means that the length of cells in neighboring blocks can differ by only a factor of two in each direction. The calculations on the variables in each cell is an averaging of the values in the chosen stencil. The refinement and coarsening of the blocks is driven by objects that are pushed through the mesh. If a block intersects with the surface or the volume of an object, then that block can be refined. There is also an option to uniformly refine the mesh. Each cell contains a number of variables, each of which is evaluated indepently.\n'}, 'config': 'spack-builtin', 'run': {'ranks': 16, 'cmd': 'ma.x --num_refine 4 --max_blocks 4000 --init_x 1 --init_y 1 --init_z 1 --npx 4 --npy 2 --npz 2 --nx 2 --ny 2 --nz 2 --num_objects 2 --object 2 0 -1.10 -1.10 -1.10 0.030 0.030 0.030 1.5 1.5 1.5 0.0 0.0 0.0 --object 2 0 0.5 0.5 1.76 0.0 0.0 -0.025 0.75 0.75 0.75 0.0 0.0 0.0 --num_tsteps 100 --checksum_freq 4 --stages_per_ts 8'}} and msg None
+>>> reading yaml file at /home/skw0897/hpctest/tests/unit-test/cpp_threads/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/HPCToolkit-tests', 'version': 1.0, 'name': 'cpp_threads', 'description': 'TBD\n'}, 'profile': False, 'config': {'variants': [{'languages': ['cxx'], 'conflicts': '%gcc@:4.8.4', 'base': 'plain', 'flags': [{'CXXFLAGS': '-std=gnu++11', 'when': '%gcc'}], 'description': 'Uses pthreads controlled manually.'}]}, 'run': {'cmd': 'make -f Makefile.hpctest check'}, 'build': {'makefilename': 'Makefile.hpctest', 'kind': 'makefile', 'install': 'fib'}} and msg None
+>>>>>  /home/skw0897/hpctest/work
+['study-2018-11-24--16-14-36', 'study-2018-11-24--16-26-38', 'study-2018-11-24--16-23-37', 'study-2018-11-24--17-01-57', 'study-2018-11-24--17-51-37', 'study-2018-11-24--17-38-56']
+>>> iterating over experiment space = crossproduct( {'profile': <stringspec.StringSpec instance at 0x2aaab87f1638>, 'tests': <testspec.TestSpec instance at 0x2aaab87f15f0>, 'build': <configspec.ConfigSpec instance at 0x2aaab87f1710>, 'hpctoolkit': <stringspec.StringSpec instance at 0x2aaab87f16c8>} ) with args = Namespace(build='default', hpctoolkit='default', options=['verbose', 'debug'], profile='default', report='default', sort='default', subcommand='run', tests='default') and options = ['verbose', 'debug'] in study dir = /home/skw0897/hpctest/work/study-2018-11-24--19-17-56
+----------------------------------------------------------------------
+running test app/lulesh with config %gcc and -e REALTIME@10000
+----------------------------------------------------------------------
+>>> reading yaml file at /home/skw0897/hpctest/tests/app/lulesh/hpctest.yaml
+>>> ...finished reading yaml file with result object {'info': {'url': 'https://github.com/HPCToolkit', 'version': 1.0, 'homepage': 'https://codesign.llnl.gov/lulesh.php', 'name': 'lulesh', 'description': 'Many important simulation problems of interest to DOE involve complex multi-material systems that undergo large deformations. LULESH is a highly simplified application that represents the numerical algorithms, data motion, and programming style typical in scientific C or C++ based hydrodynamic applications. The Shock Hydrodynamics Challenge Problem was originally defined and implemented by LLNL as one of five challenge problems in the DARPA UHPC program and has since become a widely studied proxy application in DOE co-design efforts for exascale. It has been ported to a number of programming models and optimized for a number of advanced platforms. \n'}, 'config': {'variants': [{'languages': ['cxx'], 'base': 'serial', 'flags': {'CXXFLAGS': '-g -O3', 'LDFLAGS': '-g -O3', 'env': ['-DF77=$F90']}, 'description': 'Build as a serial program'}, {'variant': 'openmp', 'flags': {'+LDFLAGS': '$OPENMP_FLAG', '+CXXFLAGS': '$OPENMP_FLAG'}, 'description': 'Build with OpenMP support'}, {'languages': ['mpicxx'], 'variant': 'mpi', 'flags': {'env': ['-DUSE_MPI=1', 'MPI_INC = $MPI_INC', 'MPI_LIB = $MPI_LIB']}, 'description': 'Build with MPI support'}], 'default variants': ['openmp mpi']}, 'run': {'ranks': 8, 'cmd': 'lulesh2.0 -s 10', 'threads': 4}, 'build': {'kind': 'makefile', 'install': 'lulesh2.0', 'separate': []}} and msg None
+skipping build, test already installed
+... build time = 0.00 seconds
+Executing normal test:
+ /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\t%S\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/02-normal-time.txt /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/bin/mpiexec -np 8 -verbose lulesh2.0 -s 10' 
+Running problem size 10^3 per domain until completion
+Num processors: 8
+Num threads: 4
+Total number of elements: 8000
+
+To run other sizes, use -s <integer>.
+To run a fixed number of iterations, use -i <integer>.
+To run a more or less balanced region set, use -b <integer>.
+To change the relative costs of regions, use -c <integer>.
+To print out progress, use -p
+To write an output file for VisIt, use -v
+See help (-h) for more options
+
+Run completed:  
+   Problem size        =  10 
+   MPI tasks           =  8 
+   Iteration count     =  575 
+   Final Origin Energy = 9.668856e+04 
+   Testing Plane 0 of Energy Array on rank 0:
+        MaxAbsDiff   = 1.637090e-11
+        TotalAbsDiff = 1.530225e-10
+        MaxRelDiff   = 4.735350e-15
+
+
+Elapsed time         =      61.92 (s)
+Grind time (us/z/c)  =  107.68473 (per dom)  ( 13.460591 overall)
+FOM                  =  74.290942 (z/s)
+
+
+... normal cpu time = 865.35 seconds
+Executing profiled test:
+ /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\t%S\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/04-profiled-time.txt /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/bin/mpiexec -np 8 -verbose /home/skw0897/hpctoolkit/INSTALL/bin/hpcrun -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/05-hpctoolkit-lulesh2.0-measurements -t -e REALTIME@10000 lulesh2.0 -s 10' 
+Running problem size 10^3 per domain until completion
+Num processors: 8
+Num threads: 4
+Total number of elements: 8000
+
+To run other sizes, use -s <integer>.
+To run a fixed number of iterations, use -i <integer>.
+To run a more or less balanced region set, use -b <integer>.
+To change the relative costs of regions, use -c <integer>.
+To print out progress, use -p
+To write an output file for VisIt, use -v
+See help (-h) for more options
+
+Run completed:  
+   Problem size        =  10 
+   MPI tasks           =  8 
+   Iteration count     =  575 
+   Final Origin Energy = 9.668856e+04 
+   Testing Plane 0 of Energy Array on rank 0:
+        MaxAbsDiff   = 1.637090e-11
+        TotalAbsDiff = 1.530225e-10
+        MaxRelDiff   = 4.735350e-15
+
+
+Elapsed time         =      60.87 (s)
+Grind time (us/z/c)  =  105.86526 (per dom)  ( 13.233157 overall)
+FOM                  =  75.567756 (z/s)
+
+
+... profiled cpu time = 871.52 seconds
+... hpcrun overhead = 0.71 %
+>>> writing yaml file at /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/06-hpcrun-summary.yaml
+>>> ...finished writing yaml file with msg None
+>>> hpcrun summary = {'suspicious': 0, 'recorded': 282816, 'yielded': 0, 'intervals': 13277, 'samples': 282833, 'frames': 1205415, 'trolled': 0, 'errant': 1, 'blocked': 17}
+-----------------------------------
+Executing hpcstruct test:
+ /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\t%S\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/09-hpcstruct-time.txt /home/skw0897/hpctoolkit/INSTALL/bin/hpcstruct -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/07-lulesh2.0.hpcstruct  -I ./+ /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/lulesh-1.0-hub7drgsjsyoq3xccjamfvtcypbwmi43/bin/lulesh2.0' 
+
+... hpcstruct cpu time = 0.65 seconds
+Executing hpcprof test:
+ /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\t%S\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/12-hpcprof-time.txt /home/skw0897/hpctoolkit/INSTALL/bin/hpcprof -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/10-hpctoolkit-lulesh2.0-database -S /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/07-lulesh2.0.hpcstruct  -I ./+ /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/05-hpctoolkit-lulesh2.0-measurements' 
+msg: STRUCTURE: /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/lulesh-1.0-hub7drgsjsyoq3xccjamfvtcypbwmi43/bin/lulesh2.0
+msg: Line map : /home/skw0897/hpctoolkit/INSTALL/lib/hpctoolkit/ext-libs/libmonitor.so.0.0.0
+msg: Line map : /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/lib/libmpi.so.40.0.0
+msg: Line map : /lib64/libm-2.12.so
+msg: Line map : /opt/apps/software/Core/GCC/4.8.5/lib64/libgomp.so.1.0.0
+msg: Line map : /lib64/libpthread-2.12.so
+msg: Line map : /lib64/libc-2.12.so
+msg: Line map : /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/lib/libopen-rte.so.40.0.0
+msg: Line map : /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/lib/libopen-pal.so.40.0.0
+msg: Line map : /usr/lib64/libibverbs.so.1.0.0
+msg: Line map : /usr/lib64/libmlx4-rdmav2.so
+msg: Populating Experiment database: /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/10-hpctoolkit-lulesh2.0-database
+
+... hpcprof cpu time = 1.28 seconds
+>>> writing yaml file at /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/OUT.yaml
+>>> ...finished writing yaml file with msg None
+
+>>> reporting on study at /home/skw0897/hpctest/work/study-2018-11-24--19-17-56 with options ['verbose', 'debug']
+>>> reading yaml file at /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/OUT.yaml
+>>> ...finished reading yaml file with result object {'build': {'status': 'OK', 'prefix': '/home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/lulesh-1.0-hub7drgsjsyoq3xccjamfvtcypbwmi43', 'status msg': 'already built', 'cpu time': 0.0}, 'run': {'profiled': {'status': 'OK', 'command': " /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\\\\\t%S\\\\\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/04-profiled-time.txt /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/bin/mpiexec -np 8 -verbose /home/skw0897/hpctoolkit/INSTALL/bin/hpcrun -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/05-hpctoolkit-lulesh2.0-measurements -t -e REALTIME@10000 lulesh2.0 -s 10' ", 'cpu time': 871.52, 'hpcrun overhead %': 0.71, 'status msg': None, 'hpcrun summary': {'suspicious': 0, 'recorded': 282816, 'yielded': 0, 'intervals': 13277, 'samples': 282833, 'frames': 1205415, 'trolled': 0, 'errant': 1, 'blocked': 17}}, 'normal': {'status': 'OK', 'status msg': None, 'command': " /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\\\\\t%S\\\\\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/02-normal-time.txt /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/openmpi-3.0.0-glxi4ifzqdafsjteywrcqqdqya3sbtoh/bin/mpiexec -np 8 -verbose lulesh2.0 -s 10' ", 'cpu time': 865.35}, 'hpcrun': {'output msg': None, 'output checks': 'OK'}, 'hpcprof': {'output msg': None, 'output checks': 'OK'}, 'hpcstruct': {'output msg': None, 'output checks': 'OK'}}, 'hpcstruct': {'status': 'OK', 'status msg': None, 'command': " /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\\\\\t%S\\\\\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/09-hpcstruct-time.txt /home/skw0897/hpctoolkit/INSTALL/bin/hpcstruct -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/07-lulesh2.0.hpcstruct  -I ./+ /home/skw0897/hpctest/internal/spack/opt/spack/linux-rhel6-x86_64/gcc-4.8.5/lulesh-1.0-hub7drgsjsyoq3xccjamfvtcypbwmi43/bin/lulesh2.0' ", 'cpu time': 0.65}, 'input': {'num repeats': 1, 'hpctoolkit': '/home/skw0897/hpctoolkit/INSTALL/bin', 'hpctoolkit params': {'hpcrun': '-e REALTIME@10000', 'hpcstruct': '', 'hpcprof': ''}, 'spack spec': 'lulesh@1.0%gcc', 'date': '2018-11-24 19:17', 'config spec': '%gcc', 'test': 'app/lulesh', 'wantProfiling': 'True', 'study dir': '/home/skw0897/hpctest/work/study-2018-11-24--19-17-56'}, 'hpcprof': {'status': 'OK', 'status msg': None, 'command': " /bin/bash -c 'ulimit -c 204800 -u 500 -d 2097152 -f 2097152 -s 102400 -t unlimited ; /usr/bin/time -f '%e\\\\\\\\t%S\\\\\\\\t%U' -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/12-hpcprof-time.txt /home/skw0897/hpctoolkit/INSTALL/bin/hpcprof -o /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/10-hpctoolkit-lulesh2.0-database -S /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/07-lulesh2.0.hpcstruct  -I ./+ /home/skw0897/hpctest/work/study-2018-11-24--19-17-56/lulesh-%gcc--e.REALTIME@10000/OUT/05-hpctoolkit-lulesh2.0-measurements' ", 'cpu time': 1.28}, 'summary': {'status': 'OK', 'status msg': None, 'elapsed time': 131.19}} and msg None
+
+-----------------------------------------------------------------------------------------------------------------
+| APP / LULESH with %GCC and -e REALTIME@10000                                                                  |
+| overhead: < 1  % | recorded: 100.0% | blocked: < 0.1% | errant: < 0.1% | suspicious:   0    | trolled:   0    |
+-----------------------------------------------------------------------------------------------------------------
+
+
+[skw0897@login1 ~]$ 

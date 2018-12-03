@@ -1,0 +1,19 @@
+[skw0897@login1 ~]$ cat test.slurm
+#!/bin/bash
+#SBATCH --job-name=AMG2013
+#SBATCH --account=commons
+#SBATCH --partition=commons
+#### #SBATCH --partition=interactive
+#### #SBATCH --export=ALL
+#### #SBATCH --nodes=2
+#### #SBATCH --exclusive				# optional
+#SBATCH --ntasks=8
+#### #SBATCH --ntasks-per-node=4
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=1000m
+#SBATCH --time=00:30:00
+#### #SBATCH --output=mypath
+#### #SBATCH --error=mypath
+#SBATCH --mail-user=scott@rice.edu
+#SBATCH --mail-type=ALL
+hpctest run app/AMG2013 --verbose --debug

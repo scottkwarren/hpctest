@@ -1,0 +1,21 @@
+[skw0897@login1 ~]$ cat test.slurm-SAVE 
+#!/bin/bash
+#SBATCH --job-name=lulesh
+#SBATCH --account=commons
+#SBATCH --partition=commons
+#### #SBATCH --partition=interactive
+#SBATCH --export=ALL
+#SBATCH --nodes=2
+#### #SBATCH --exclusive				# optional
+#SBATCH --ntasks=8
+#SBATCH --ntasks-per-node=4
+#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=1000m
+#SBATCH --time=00:30:00
+#### #SBATCH --output=mypath
+#### #SBATCH --error=mypath
+#SBATCH --mail-user=scott@rice.edu
+#SBATCH --mail-type=ALL
+ 
+./hpctest run app/lulesh --verbose --debug
+[skw0897@login1 ~]$ 
