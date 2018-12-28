@@ -1,0 +1,204 @@
+################################################################################
+#                                                                              #
+#  machine.yaml                                                                #
+#  per-machine settings                                                        #
+#                                                                              #
+#  $HeadURL$                                                                   #
+#  $Id$                                                                        #
+#                                                                              #
+#  --------------------------------------------------------------------------- #
+#  Part of HPCToolkit (hpctoolkit.org)                                         #
+#                                                                              #
+#  Information about sources of support for research and development of        #
+#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
+#  --------------------------------------------------------------------------- #
+#                                                                              #
+#  Copyright ((c)) 2002-2017, Rice University                                  #
+#  All rights reserved.                                                        #
+#                                                                              #
+#  Redistribution and use in source and binary forms, with or without          #
+#  modification, are permitted provided that the following conditions are      #
+#  met:                                                                        #
+#                                                                              #
+#  * Redistributions of source code must retain the above copyright            #
+#    notice, this list of conditions and the following disclaimer.             #
+#                                                                              #
+#  * Redistributions in binary form must reproduce the above copyright         #
+#    notice, this list of conditions and the following disclaimer in the       #
+#    documentation and/or other materials provided with the distribution.      #
+#                                                                              #
+#  * Neither the name of Rice University (RICE) nor the names of its           #
+#    contributors may be used to endorse or promote products derived from      #
+#    this software without specific prior written permission.                  #
+#                                                                              #
+#  This software is provided by RICE and contributors "as is" and any          #
+#  express or implied warranties, including, but not limited to, the           #
+#  implied warranties of merchantability and fitness for a particular          #
+#  purpose are disclaimed. In no event shall RICE or contributors be           #
+#  liable for any direct, indirect, incidental, special, exemplary, or         #
+#  consequential damages (including, but not limited to, procurement of        #
+#  substitute goods or services; loss of use, data, or profits; or             #
+#  business interruption) however caused and on any theory of liability,       #
+#  whether in contract, strict liability, or tort (including negligence        #
+#  or otherwise) arising in any way out of the use of this software, even      #
+#  if advised of the possibility of such damage.                               #
+#                                                                              #
+################################################################################
+
+
+################################################################################
+# This file provides default local settings for particular computer systems on #
+# which HPCTest may run. A group of settings is selected by the hostname of a  #
+# system. The selector "default" is used when no matching hostname is found.   #
+################################################################################
+
+
+default:
+  compilers: []
+  packages:  []
+
+
+davinci.rice.edu:
+
+#---------------------------------------
+#  OpenMPI: OpenMPI/1.6.5
+#---------------------------------------
+#      GCC/4.4.7
+#      GCC/4.8.5
+#      icc/2015.2.164
+#      ifort/2015.2.164
+#---------------------------------------
+#  OpenMPI: OpenMPI/1.8.6
+#---------------------------------------
+#      GCC/4.4.7
+#      GCC/4.4.7  CUDA/7.0.28
+#      GCC/4.8.5
+#      GCC/4.9.3
+#      icc/2015.2.164
+#      icc/2015.2.164  CUDA/7.0.28
+#      ifort/2015.2.164
+#      ifort/2015.2.164  CUDA/7.0.28
+#---------------------------------------
+#  OpenMPI: OpenMPI/1.10.3
+#---------------------------------------
+#      GCC/5.4.0
+#      GCC/5.4.0  CUDA/6.5.14
+#      GCC/5.4.0  CUDA/7.5.18
+#      GCC/6.2.0
+#      GCC/6.2.0  CUDA/7.5.18
+#      PGI/16.5
+#      icc/2016.3.210
+#      icc/2016.3.210  CUDA/7.5.18
+#      ifort/2016.3.210
+#      ifort/2016.3.210  CUDA/7.5.18
+#---------------------------------------
+#  OpenMPI: OpenMPI/2.1.3
+#---------------------------------------
+#      GCC/6.4.0
+#      icc/2018.2.199-GCC-6.4.0
+#      ifort/2018.2.199-GCC-6.4.0
+
+  compilers:
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: [GCC/4.4.7]        # supports OpenMPI/1.6.5 and OpenMPI/1.8.6
+      operating_system: rhel6
+      paths:
+        cc:  /usr/bin/gcc
+        cxx: /usr/bin/g++
+        f77: /usr/bin/gfortran
+        fc:  /usr/bin/gfortran
+      spec: gcc@4.4.7
+      target: x86_64
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: [GCC/4.8.5]        # supports OpenMPI/1.6.5 and OpenMPI/1.8.6
+      operating_system: rhel6
+      paths:
+        cc:  /opt/apps/software/Core/GCC/4.8.5/bin/gcc
+        cxx: /opt/apps/software/Core/GCC/4.8.5/bin/g++
+        f77: /opt/apps/software/Core/GCC/4.8.5/bin/gfortran
+        fc:  /opt/apps/software/Core/GCC/4.8.5/bin/gfortran
+      spec: gcc@4.8.5
+      target: x86_64
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: [GCC/4.9.3]        # supports OpenMPI/1.8.6
+      operating_system: rhel6
+      paths:
+        cc:  /opt/apps/software/Core/GCC/4.9.3/bin/gcc
+        cxx: /opt/apps/software/Core/GCC/4.9.3/bin/g++
+        f77: /opt/apps/software/Core/GCC/4.9.3/bin/gfortran
+        fc:  /opt/apps/software/Core/GCC/4.9.3/bin/gfortran
+      spec: gcc@4.9.3
+      target: x86_64
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: [GCC/5.4.0]        # supports OpenMPI/1.10.3
+      operating_system: rhel6
+      paths:
+        cc:  /opt/apps/software/Core/GCC/5.4.0/bin/gcc
+        cxx: /opt/apps/software/Core/GCC/5.4.0/bin/g++
+        f77: /opt/apps/software/Core/GCC/5.4.0/bin/gfortran
+        fc:  /opt/apps/software/Core/GCC/5.4.0/bin/gfortran
+      spec: gcc@5.4.0
+      target: x86_64
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: [GCC/6.2.0]        # supports OpenMPI/1.10.3
+      operating_system: rhel6
+      paths:
+        cc:  /opt/apps/software/Core/GCC/6.2.0/bin/gcc
+        cxx: /opt/apps/software/Core/GCC/6.2.0/bin/g++
+        f77: /opt/apps/software/Core/GCC/6.2.0/bin/gfortran
+        fc:  /opt/apps/software/Core/GCC/6.2.0/bin/gfortran
+      spec: gcc@6.2.0
+      target: x86_64
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: [GCC/6.4.0]        # supports OpenMPI/2.1.3 
+      operating_system: rhel6
+      paths:
+        cc:  /opt/apps/software/Core/GCC/6.4.0/bin/gcc
+        cxx: /opt/apps/software/Core/GCC/6.4.0/bin/g++
+        f77: /opt/apps/software/Core/GCC/6.4.0/bin/gfortran
+        fc:  /opt/apps/software/Core/GCC/6.4.0/bin/gfortran
+      spec: gcc@6.4.0
+      target: x86_64
+      
+  system packages:
+    openmpi:
+      modules:
+        openmpi@1.6.5:  OpenMPI/1.6.5
+        openmpi@1.8.6:  OpenMPI/1.8.6
+        openmpi@1.10.3: OpenMPI/1.10.3
+        openmpi@2.1.3:  OpenMPI/2.1.3
+      paths:
+        openmpi@1.6.5:  /opt/apps/software/Compiler/GCC/4.4.7/OpenMPI/1.6.5
+        openmpi@1.8.6:  /opt/apps/software/Compiler/GCC/4.8.5/OpenMPI/1.8.6
+        openmpi@1.10.3: /opt/apps/software/Compiler/GCC/5.4.0/OpenMPI/1.10.3
+        openmpi@2.1.3:  /opt/apps/software/Compiler/GCC/6.4.0/OpenMPI/2.1.3
+      buildable: False
+
+
+po.rice.edu:
+  compilers: []
+  system packages:
+
+
+
+
+
+
