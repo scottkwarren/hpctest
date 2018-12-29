@@ -1,0 +1,116 @@
+################################################################################
+#                                                                              #
+#  template.yaml                                                               #
+#                                                                              #
+#  $HeadURL$                                                                   #
+#  $Id$                                                                        #
+#                                                                              #
+#  --------------------------------------------------------------------------- #
+#  Part of HPCToolkit (hpctoolkit.org)                                         #
+#                                                                              #
+#  Information about sources of support for research and development of        #
+#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
+#  --------------------------------------------------------------------------- #
+#                                                                              #
+#  Copyright ((c)) 2002-2017, Rice University                                  #
+#  All rights reserved.                                                        #
+#                                                                              #
+#  Redistribution and use in source and binary forms, with or without          #
+#  modification, are permitted provided that the following conditions are      #
+#  met:                                                                        #
+#                                                                              #
+#  * Redistributions of source code must retain the above copyright            #
+#    notice, this list of conditions and the following disclaimer.             #
+#                                                                              #
+#  * Redistributions in binary form must reproduce the above copyright         #
+#    notice, this list of conditions and the following disclaimer in the       #
+#    documentation and/or other materials provided with the distribution.      #
+#                                                                              #
+#  * Neither the name of Rice University (RICE) nor the names of its           #
+#    contributors may be used to endorse or promote products derived from      #
+#    this software without specific prior written permission.                  #
+#                                                                              #
+#  This software is provided by RICE and contributors "as is" and any          #
+#  express or implied warranties, including, but not limited to, the           #
+#  implied warranties of merchantability and fitness for a particular          #
+#  purpose are disclaimed. In no event shall RICE or contributors be           #
+#  liable for any direct, indirect, incidental, special, exemplary, or         #
+#  consequential damages (including, but not limited to, procurement of        #
+#  substitute goods or services; loss of use, data, or profits; or             #
+#  business interruption) however caused and on any theory of liability,       #
+#  whether in contract, strict liability, or tort (including negligence        #
+#  or otherwise) arising in any way out of the use of this software, even      #
+#  if advised of the possibility of such damage.                               #
+#                                                                              #
+################################################################################
+
+
+################################################################################
+# This file holds default local settings for a particular computer system on   #
+# which HPCTest may run. A group of settings is selected by the hostname of a  #
+# system. The selector "default" is used when no matching hostname is found.   #
+################################################################################
+
+
+##############
+#            #
+#  HOSTNAME  #
+#            #
+##############
+
+
+config:
+#  machine:
+#    name: DAVinCI
+#    os: rhel6
+#    arch: x86_64
+#    cpus per node: 1
+#    threads per cpu: 12
+#  batch:                         # or just 'batch: no' (the default)
+#    manager: slurm
+#    partitions:
+#      common:
+#        interactive: no
+#        max nodes: 48
+#        max threads: 576
+#        max time: 8:00:00
+#        max jobs: 500
+#      interactive:
+#        interactive: yes
+#        max nodes: 4
+#        max threads: 48
+#        max time: 30:00
+#        max jobs: 500
+
+
+compilers:
+
+- compiler:
+#    environment: {}
+#    extra_rpaths: []
+#    flags: {}
+#    modules: []
+#    operating_system: rhel6
+#    paths:
+#      cc:  /usr/bin/gcc
+#      cxx: /usr/bin/g++
+#      f77: /usr/bin/gfortran
+#      fc:  /usr/bin/gfortran
+#    spec: gcc@4.4.7
+#    target: x86_64
+
+
+packages:
+
+  openmpi:
+    buildable: False
+    modules:
+#      openmpi@1.6.5:  OpenMPI/1.6.5
+    paths:
+#      openmpi@1.6.5:  /opt/apps/software/Compiler/GCC/4.4.7/OpenMPI/1.6.5
+
+
+
+
+
+

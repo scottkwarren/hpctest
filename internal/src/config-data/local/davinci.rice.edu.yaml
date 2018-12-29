@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  machine.yaml                                                                #
-#  per-machine settings                                                        #
+#  davinci.rice.edu.yaml                                                       #
+#  per-system settings                                                        #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -53,12 +53,12 @@
 ################################################################################
 
 
-default:
-  compilers: []
-  packages:  []
+######################
+#                    #
+#  DAVINCI.RICE.EDU  #
+#                    #
+######################
 
-
-davinci.rice.edu:
 
 #---------------------------------------
 #  OpenMPI: OpenMPI/1.6.5
@@ -98,106 +98,132 @@ davinci.rice.edu:
 #      icc/2018.2.199-GCC-6.4.0
 #      ifort/2018.2.199-GCC-6.4.0
 
-  compilers:
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: [GCC/4.4.7]        # supports OpenMPI/1.6.5 and OpenMPI/1.8.6
-      operating_system: rhel6
-      paths:
-        cc:  /usr/bin/gcc
-        cxx: /usr/bin/g++
-        f77: /usr/bin/gfortran
-        fc:  /usr/bin/gfortran
-      spec: gcc@4.4.7
-      target: x86_64
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: [GCC/4.8.5]        # supports OpenMPI/1.6.5 and OpenMPI/1.8.6
-      operating_system: rhel6
-      paths:
-        cc:  /opt/apps/software/Core/GCC/4.8.5/bin/gcc
-        cxx: /opt/apps/software/Core/GCC/4.8.5/bin/g++
-        f77: /opt/apps/software/Core/GCC/4.8.5/bin/gfortran
-        fc:  /opt/apps/software/Core/GCC/4.8.5/bin/gfortran
-      spec: gcc@4.8.5
-      target: x86_64
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: [GCC/4.9.3]        # supports OpenMPI/1.8.6
-      operating_system: rhel6
-      paths:
-        cc:  /opt/apps/software/Core/GCC/4.9.3/bin/gcc
-        cxx: /opt/apps/software/Core/GCC/4.9.3/bin/g++
-        f77: /opt/apps/software/Core/GCC/4.9.3/bin/gfortran
-        fc:  /opt/apps/software/Core/GCC/4.9.3/bin/gfortran
-      spec: gcc@4.9.3
-      target: x86_64
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: [GCC/5.4.0]        # supports OpenMPI/1.10.3
-      operating_system: rhel6
-      paths:
-        cc:  /opt/apps/software/Core/GCC/5.4.0/bin/gcc
-        cxx: /opt/apps/software/Core/GCC/5.4.0/bin/g++
-        f77: /opt/apps/software/Core/GCC/5.4.0/bin/gfortran
-        fc:  /opt/apps/software/Core/GCC/5.4.0/bin/gfortran
-      spec: gcc@5.4.0
-      target: x86_64
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: [GCC/6.2.0]        # supports OpenMPI/1.10.3
-      operating_system: rhel6
-      paths:
-        cc:  /opt/apps/software/Core/GCC/6.2.0/bin/gcc
-        cxx: /opt/apps/software/Core/GCC/6.2.0/bin/g++
-        f77: /opt/apps/software/Core/GCC/6.2.0/bin/gfortran
-        fc:  /opt/apps/software/Core/GCC/6.2.0/bin/gfortran
-      spec: gcc@6.2.0
-      target: x86_64
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: [GCC/6.4.0]        # supports OpenMPI/2.1.3 
-      operating_system: rhel6
-      paths:
-        cc:  /opt/apps/software/Core/GCC/6.4.0/bin/gcc
-        cxx: /opt/apps/software/Core/GCC/6.4.0/bin/g++
-        f77: /opt/apps/software/Core/GCC/6.4.0/bin/gfortran
-        fc:  /opt/apps/software/Core/GCC/6.4.0/bin/gfortran
-      spec: gcc@6.4.0
-      target: x86_64
-      
-  system packages:
-    openmpi:
-      modules:
-        openmpi@1.6.5:  OpenMPI/1.6.5
-        openmpi@1.8.6:  OpenMPI/1.8.6
-        openmpi@1.10.3: OpenMPI/1.10.3
-        openmpi@2.1.3:  OpenMPI/2.1.3
-      paths:
-        openmpi@1.6.5:  /opt/apps/software/Compiler/GCC/4.4.7/OpenMPI/1.6.5
-        openmpi@1.8.6:  /opt/apps/software/Compiler/GCC/4.8.5/OpenMPI/1.8.6
-        openmpi@1.10.3: /opt/apps/software/Compiler/GCC/5.4.0/OpenMPI/1.10.3
-        openmpi@2.1.3:  /opt/apps/software/Compiler/GCC/6.4.0/OpenMPI/2.1.3
-      buildable: False
+
+config:
+  machine:
+    name: DAVinCI
+    os: rhel6
+    arch: x86_64
+    cpus per node: 1
+    threads per cpu: 12
+  batch:                         # or just 'batch: no' (the default)
+    manager: slurm
+    partitions:
+      common:
+        interactive: no
+        max nodes: 48
+        max threads: 576
+        max time: 8:00:00
+        max jobs: 500
+      interactive:
+        interactive: yes
+        max nodes: 4
+        max threads: 48
+        max time: 30:00
+        max jobs: 500
 
 
-po.rice.edu:
-  compilers: []
-  system packages:
+compilers:
+
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: [GCC/4.4.7]        # supports OpenMPI/1.6.5 and OpenMPI/1.8.6
+    operating_system: rhel6
+    paths:
+      cc:  /usr/bin/gcc
+      cxx: /usr/bin/g++
+      f77: /usr/bin/gfortran
+      fc:  /usr/bin/gfortran
+    spec: gcc@4.4.7
+    target: x86_64
+    
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: [GCC/4.8.5]        # supports OpenMPI/1.6.5 and OpenMPI/1.8.6
+    operating_system: rhel6
+    paths:
+      cc:  /opt/apps/software/Core/GCC/4.8.5/bin/gcc
+      cxx: /opt/apps/software/Core/GCC/4.8.5/bin/g++
+      f77: /opt/apps/software/Core/GCC/4.8.5/bin/gfortran
+      fc:  /opt/apps/software/Core/GCC/4.8.5/bin/gfortran
+    spec: gcc@4.8.5
+    target: x86_64
+    
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: [GCC/4.9.3]        # supports OpenMPI/1.8.6
+    operating_system: rhel6
+    paths:
+      cc:  /opt/apps/software/Core/GCC/4.9.3/bin/gcc
+      cxx: /opt/apps/software/Core/GCC/4.9.3/bin/g++
+      f77: /opt/apps/software/Core/GCC/4.9.3/bin/gfortran
+      fc:  /opt/apps/software/Core/GCC/4.9.3/bin/gfortran
+    spec: gcc@4.9.3
+    target: x86_64
+    
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: [GCC/5.4.0]        # supports OpenMPI/1.10.3
+    operating_system: rhel6
+    paths:
+      cc:  /opt/apps/software/Core/GCC/5.4.0/bin/gcc
+      cxx: /opt/apps/software/Core/GCC/5.4.0/bin/g++
+      f77: /opt/apps/software/Core/GCC/5.4.0/bin/gfortran
+      fc:  /opt/apps/software/Core/GCC/5.4.0/bin/gfortran
+    spec: gcc@5.4.0
+    target: x86_64
+    
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: [GCC/6.2.0]        # supports OpenMPI/1.10.3
+    operating_system: rhel6
+    paths:
+      cc:  /opt/apps/software/Core/GCC/6.2.0/bin/gcc
+      cxx: /opt/apps/software/Core/GCC/6.2.0/bin/g++
+      f77: /opt/apps/software/Core/GCC/6.2.0/bin/gfortran
+      fc:  /opt/apps/software/Core/GCC/6.2.0/bin/gfortran
+    spec: gcc@6.2.0
+    target: x86_64
+    
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: [GCC/6.4.0]        # supports OpenMPI/2.1.3 
+    operating_system: rhel6
+    paths:
+      cc:  /opt/apps/software/Core/GCC/6.4.0/bin/gcc
+      cxx: /opt/apps/software/Core/GCC/6.4.0/bin/g++
+      f77: /opt/apps/software/Core/GCC/6.4.0/bin/gfortran
+      fc:  /opt/apps/software/Core/GCC/6.4.0/bin/gfortran
+    spec: gcc@6.4.0
+    target: x86_64
 
 
+packages:
+
+  openmpi:
+    buildable: False
+    modules:
+      openmpi@1.6.5:  OpenMPI/1.6.5
+      openmpi@1.8.6:  OpenMPI/1.8.6
+      openmpi@1.10.3: OpenMPI/1.10.3
+      openmpi@2.1.3:  OpenMPI/2.1.3
+    paths:
+      openmpi@1.6.5:  /opt/apps/software/Compiler/GCC/4.4.7/OpenMPI/1.6.5
+      openmpi@1.8.6:  /opt/apps/software/Compiler/GCC/4.8.5/OpenMPI/1.8.6
+      openmpi@1.10.3: /opt/apps/software/Compiler/GCC/5.4.0/OpenMPI/1.10.3
+      openmpi@2.1.3:  /opt/apps/software/Compiler/GCC/6.4.0/OpenMPI/2.1.3
 
 
 

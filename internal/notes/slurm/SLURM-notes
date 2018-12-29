@@ -1,5 +1,16 @@
 SLURM NOTES
 
+
+--------------------------------------------------------------------------
+SYSTEM COMPILERS & PACKAGES:
+
+
+
+etc/spack/packages.yaml
+--------------------------------------------------------------------------
+
+
+
 Doumentation at https://slurm.schedmd.com
 
 davinci.rice.edu
@@ -13,10 +24,17 @@ to discover a SLURM installation in the usual places.
 Please configure as appropriate and try again.
 --------------------------------------------------------------------------
 
+sbatch hostname.slurm 
+Submitted batch job 5072479
+[skw0897@login1 ~]$ ls -lt
+total 52
+-rw-r--r--  1 skw0897 hpc 1171 Dec 29 16:04 slurm-5072479.out
 
+$ hostname
+cn-115.davinci.rice.edu
+$ 
 
-
-...............................................................................
+--------------------------------------------------------------------------
 #!/bin/bash
 #SBATCH --job-name=YourJobNameHere
 #SBATCH --account=commons

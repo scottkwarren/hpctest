@@ -1,0 +1,33 @@
+srun: launching 5072501.0 on host cn-091, 4 tasks: [0-3]
+srun: route default plugin loaded
+srun: Node cn-091, 4 tasks started
+=============================================
+SStruct Interface:
+=============================================
+SStruct Interface:
+SStruct Interface  wall clock time = 4.110000 seconds
+SStruct Interface  cpu clock time  = 4.160000 seconds
+=============================================
+Setup phase times:
+=============================================
+PCG Setup:
+PCG Setup  wall clock time = 32.720000 seconds
+PCG Setup  cpu clock time  = 54.740000 seconds
+
+System Size / Setup Phase Time: 8.652675e+05
+
+=============================================
+Solve phase times:
+=============================================
+PCG Solve:
+PCG Solve  wall clock time = 13.520000 seconds
+PCG Solve  cpu clock time  = 25.690000 seconds
+
+AMG2013 Benchmark version 1.0
+Iterations = 10
+Final Relative Residual Norm = 4.297256e-07
+
+System Size * Iterations / Solve Phase Time: 2.094050e+07
+
+srun: Received task exit notification for 4 tasks (status=0x0000).
+srun: cn-091: tasks 0-3: Completed
