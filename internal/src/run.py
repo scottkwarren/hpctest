@@ -396,6 +396,9 @@ class Run():
             if "threads" in self.yaml["run"]:
                 openMPNumThreads = str( self.yaml["run"]["threads"] )
                 env["OMP_NUM_THREADS"] = openMPNumThreads
+            else:
+                # TODO: some default thing?
+                pass
         
         # ... add MPI launching code if wanted
         if wantMPI:
@@ -447,8 +450,8 @@ class Run():
         self.output.add(label, "status msg", msg, subroot=root)
         
         return cputime, msg
+            
     
-
     def _makeLimitString(self, limitDict=None):
         
         import configuration
