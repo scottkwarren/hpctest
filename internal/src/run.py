@@ -260,8 +260,10 @@ class Run():
                         status, msg = "OK", None
                     except Exception as e:
                         status, msg =  "FAILED", e.message
+                    except BaseException as e:
+                        print "HOLY SHIT!!! This happened: {}".format(e.message)
                         
-                    ildTime = t.secs
+                    buildTime = t.secs
         
         # Make alias(es) in build directory to the built product(s)    #### TODO: support more than one product
         products = self.yaml["build"]["install"] if "build" in self.yaml and "install" in self.yaml["build"] else None
