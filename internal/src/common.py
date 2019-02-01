@@ -119,6 +119,11 @@ def notimplemented(what):
     fatalmsg(what + " is not implemented")
 
 
+def subclassResponsibility(cls, method):
+    
+    fatalmsg("{}.{} should be implemented a subclass, but was called instead".format(cls, method))
+
+
 def sepmsg(long=False):
     
     if type(long) is int:
@@ -214,17 +219,15 @@ def forTestsInDirTree(dirtree, action):
 class ElapsedTimer(object):
         
     def __init__(self, verbose=False):
-
         import time
         self.timer = time.time
+        self.secs  = 0.0
 
     def __enter__(self):
-
         self.start = self.timer()
         return self
 
     def __exit__(self, *args):
-        
         self.secs = self.timer() - self.start
 
 

@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  iterate.py                                                                  #
-#  robustly iterates over build configs and test cases using a testdir         #
-#      to store iteration state across failed partial iterations               #
+#  batch.py                                                                    #
+#  knows whether current system uses batch scheduling, which batch scheduler   #
+#  if so, and how to use each supported scheduler                              #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,56 +48,190 @@
 
 
 
+#######################
+# ABSTRACT SUPERCLASS #
+#######################
 
-class Iterate():
+
+class Executor():
+
+    
+    # System inquiries
+
+    @classmethod
+    def batchInUse(cls):
+        
+        import configuration
+        return configuration.get("local.batch", None) is not None
+    
     
     @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study):
+    def scheduler(cls, wantBatch):
         
-        from itertools import product
-        from common import infomsg, debugmsg, options
-        from run import Run
-        from executor import Executor
+        import configuration
+        
+        name = configuration.get("local.batch", None)
 
-        if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
-            infomsg("test spec matches no tests")
-            return False
+        if name == "Shell":
+            scheduler = ShellBatch if wantBatch else ShellImmediate
+        elif name == "Slurm":
+            scheduler = SlurmBatch if wantBatch else SlurmImmediate
         else:
+            scheduler = None
             
-            if Executor.batchInUse():
-            
-                # run tests asynchronously via batch system
-                # TODO: throttle to some max # batch jobs scheduled at a time
+        return scheduler
 
-                debugmsg("submitting batch jobs for runs over experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                            .format(dims, args, options, study.path))
 
-                # schedule all the tests for batch execution
-                launchedBatchRuns = set()
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.launchBatchRun(test, config, hpctoolkit, profile, numrepeats, study)
-                    launchedBatchRuns.add(jobID)
-                    
-                # poll for completed batch jobs
-                while not launchedBatchRuns.empty():
-                    completed = Run.pollForFinishedRuns()
-                    launchedBatchRuns.symmetric_difference_update(completed)  # since doneRuns containedIn launchedRuns, same as set subtract (not in Python)
-                    for jobID in completed:
-                        infomsg("...batch run of test {} finished".format(Run.descriptionForBatchJob(jobID)))
-            else:
-                
-                # no batch system, run tests synchronously via shell
-                # TODO: run tests concurrently in background throttled to some max # processes at a time
+    # Scheduling operations
+    
+    def __init__(self):
+        
+        pass
+    
+    
+    def launch(self, cmd):
+        
+        from common import subclassResponsibility
+        subclassResponsibility("Batch", "launch")
+    
+    
+    def isFinished(self, jobID):
+        
+        from common import subclassResponsibility
+        subclassResponsibility("Batch", "isFinished")
+    
+    
+    def waitFinished(self, jobID):
+        
+        import time
+        while not self.isFinished(jobID): time.sleep(5)     # seconds
+    
+    
+    def pollForFinishedRuns(self):
+        
+        from common import subclassResponsibility
+        subclassResponsibility("Batch", "pollForFinishedRuns")
 
-                debugmsg("performing runs over experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                            .format(dims, args, options, study.path))
 
-                # run all the tests sequentially
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study)
-                    status = run.run()
-            
-            
+
+
+###########################
+# SHEL IMMEDIATE EXECUTOR #
+###########################
+
+
+class ShellImmediate():
+
+    
+    def __init__(self):
+        
+        super().__init__()
+    
+    
+    def launch(self, cmd):
+        
+        pass
+    
+    
+    def isFinished(self, jobID):
+        
+        return True
+    
+    
+    def pollForFinishedRuns(self):
+        
+        return { }
+
+
+
+
+########################
+# SHELL BATCH EXECUTOR #
+########################
+
+
+class ShellBatch(Executor):
+
+    
+    def __init__(self):
+        
+        super().__init__()
+    
+    
+    def launch(self, cmd):
+        
+        pass
+    
+    
+    def isFinished(self, jobID):
+        
+        return True
+    
+    
+    def pollForFinishedRuns(self):
+        
+        return { }
+
+
+
+
+############################
+# SLURM IMMEDIATE EXECUTOR #
+############################
+
+
+class SlurmImmediate(Executor):
+
+    
+    def __init__(self):
+        
+        super().__init__()
+    
+    
+    def launch(self, cmd):
+        
+        pass
+    
+    
+    def isFinished(self, jobID):
+        
+        return True
+    
+    
+    def pollForFinishedRuns(self):
+        
+        return { }
+
+
+
+
+########################
+# SLURM BATCH EXECUTOR #
+########################
+
+
+class SlurmBatch(Executor):
+
+    
+    def __init__(self):
+        assertMessage(Executor.batchInUse(), "tried to make a SlurmBatch executor but batch is not im use.")
+        super().__init__()
+    
+    
+    def launch(self, cmd):
+        
+        pass
+    
+    
+    def isFinished(self, jobID):
+        
+        return True
+    
+    
+    def pollForFinishedRuns(self):
+        
+        return { }
+
 
 
 

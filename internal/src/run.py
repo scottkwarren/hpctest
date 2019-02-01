@@ -48,13 +48,17 @@
 
 
 
+global _batchScheduler, _batchJobDescriptions
+
+
 class Run():
     
     def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study):
         
         from os.path import basename, join
         from resultdir import ResultDir
-        
+        from executor import Executor
+
         # general params
         self.testdir = testdir                        # path to test case's directory
         self.config  = config                         # Spack spec for desired build configuration
@@ -77,11 +81,18 @@ class Run():
         configdesc  = self.config
         self.jobdir = self.study.addRunDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
         
-         # storage for hpctest inputs and outputs
+        # storage for hpctest inputs and outputs
         self.output = ResultDir(self.jobdir, "OUT")
         self._writeInputs()
     
-
+        # batch job submission
+        if Executor.batchInUse():
+            _batchScheduler = Executor.scheduler()
+            _batchJobDescriptions = dict()
+        else:
+            _batchScheduler, _batchJobDescriptions = None
+        
+    
     def run(self):
         
         from os.path import join, relpath
@@ -670,7 +681,69 @@ class Run():
                 
         else:
             msg = "no {} was produced".format(fileblurb)
+    
+
+
+   
+##########################################
+# SUPPORT FOR DEFERRED EXECUTION (BATCH) #
+##########################################
+
+
+    @classmethod
+    def launchBatchRun(cls, test, config, hpctoolkit, profile, numrepeats, study):
+        
+        initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
+
+        cmd = "hpctest _runOne {}".format(initArgs)     # creation args for a Run object
+        jobID = _batchScheduler.launch(cmd)
+        
+        _batchJobDescriptions[jobID] = description
+        
+        return jobID
+    
+    
+    @classmethod
+    def descriptionForBatchJob(cls, jobID):
+    
+        return _batchJobDescriptions[jobID]
+    
+    
+    @classmethod
+    def isFinished(cls, jobID):
+        
+        return _batchScheduler.isFinished(jobID)
+    
+    
+    @classmethod
+    def waitFinished(cls, jobID):
+        
+        _batchScheduler.waitFinished(jobID)
+    
+    
+    @classmethod
+    def pollForFinishedRuns(cls):
+
+        return _batchScheduler.pollForFinishedRuns()
+    
+    
+    @classmethod
+    def _encodeInitArgs(cls, testdir, config, hpctoolkit, profile, numrepeats, study):
+        
+        initArgs    = "xxx".format(testdir, config, hpctoolkit, profile, numrepeats, study.path)
+        description = ""
+        return initArgs, description
+    
+    
+    @classmethod
+    def decodeInitArgs(cls, encodedArgs):
+        
+        # ... 
+        return (testdir, config, hpctoolkit, profile, numrepeats, study)
 
 
 
-                                                                                                                                    
+
+
+
+                                                                                     

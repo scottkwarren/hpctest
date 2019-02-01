@@ -168,13 +168,12 @@ class HPCTest():
             
             # run all the tests
             study = Study(workpath if workpath else common.workpath)
-            nonempty = Iterate.doForAll(dims, args, numrepeats, study)
+            Iterate.doForAll(dims, args, numrepeats, study)
             print
             
             # report results
-            if nonempty:
-                reporter = Report()
-                reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
+            reporter = Report()
+            reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
                 
         else:
             # error message was printed during self._init_
