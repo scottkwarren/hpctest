@@ -68,7 +68,7 @@ config:
     nodes: 7
     cpus per node: 2
     threads per cpu: 12
-  batch:                         # or just 'batch: no' (the default)
+  batch:                         # or just 'batch: False' (the default)
     manager: slurm
     partitions:
       common:

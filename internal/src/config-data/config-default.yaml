@@ -52,11 +52,13 @@
 ################################################################################
 
 
+config:
+  batch: None
+
 build:
   default compiler: gcc
   
 run:
-  batch: False
   ulimit:
     c:  200K        # core file size          (blocks, -c) 0
     d:  2M          # data seg size           (kbytes, -d) unlimited

@@ -52,7 +52,7 @@
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study):
+    def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
         
         from itertools import product
         from common import infomsg, debugmsg, options
@@ -64,37 +64,35 @@ class Iterate():
             return False
         else:
             
-            if Executor.batchInUse():
+            debugmsg("experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
+                        .format(dims, args, options, study.path))
+
+            if wantBatch:
             
-                # run tests asynchronously via batch system
-                # TODO: throttle to some max # batch jobs scheduled at a time
-
-                debugmsg("submitting batch jobs for runs over experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                            .format(dims, args, options, study.path))
-
-                # schedule all the tests for batch execution
-                launchedBatchRuns = set()
+                # TODO: if requested, limit number of batch jobs in flight at once
+                
+                # schedule all tests for batch execution
+                infomsg("submitting batch jobs for all tests...")
+                submittedJobs = {}
                 for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.launchBatchRun(test, config, hpctoolkit, profile, numrepeats, study)
-                    launchedBatchRuns.add(jobID)
+                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
+                    submittedJobs.add(jobID)
+                infomsg("...done")
                     
-                # poll for completed batch jobs
-                while not launchedBatchRuns.empty():
-                    completed = Run.pollForFinishedRuns()
-                    launchedBatchRuns.symmetric_difference_update(completed)  # since doneRuns containedIn launchedRuns, same as set subtract (not in Python)
-                    for jobID in completed:
-                        infomsg("...batch run of test {} finished".format(Run.descriptionForBatchJob(jobID)))
+                # poll for finished jobs until all done
+                while not submittedJobs.empty():
+                    finished = Run.pollForFinishedJobs()
+                    submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
+                    for jobID in finished:
+                        infomsg("test {} finished".format(Run.descriptionForBatchJob(jobID)))
+                    
+                infomsg("all tests finished".format(Run.descriptionForBatchJob(jobID)))
+
             else:
                 
-                # no batch system, run tests synchronously via shell
-                # TODO: run tests concurrently in background throttled to some max # processes at a time
-
-                debugmsg("performing runs over experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                            .format(dims, args, options, study.path))
-
-                # run all the tests sequentially
+                # run all tests sequentially via shell commands
                 for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study)
+                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
                     status = run.run()
             
             

@@ -48,189 +48,217 @@
 
 
 
-#######################
-# ABSTRACT SUPERCLASS #
-#######################
+#################################################
+#  ABSTRACT SUPERCLASS                          #
+#################################################
 
 
-class Executor():
+class Executor(object):
 
     
     # System inquiries
 
     @classmethod
-    def batchInUse(cls):
+    def create(cls):
         
         import configuration
-        return configuration.get("local.batch", None) is not None
-    
-    
-    @classmethod
-    def scheduler(cls, wantBatch):
-        
-        import configuration
-        
-        name = configuration.get("local.batch", None)
+                
+        # local configuration specifies the job launcher if any
+        name = configuration.get("config.batch.manager", "Shell")
 
+        # make corresponding executor
         if name == "Shell":
-            scheduler = ShellBatch if wantBatch else ShellImmediate
+            ex = ShellExecutor()
         elif name == "Slurm":
-            scheduler = SlurmBatch if wantBatch else SlurmImmediate
+            ex = SlurmExecutor()
         else:
-            scheduler = None
+            fatalmsg("config.yaml gives invalid name '{}' for config.batch.manager".format(name))
             
-        return scheduler
+        return ex
 
 
     # Scheduling operations
     
     def __init__(self):
-        
-        pass
+         pass
     
-    
-    def launch(self, cmd):
-        
+    def defaultToBackground(cls):
         from common import subclassResponsibility
-        subclassResponsibility("Batch", "launch")
+        subclassResponsibility("Executor", "defaultTobackground")
+
+    def run(self, cmd, runDirPath, env, outPath):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "launch")
     
+    def submitJob(self, cmd, runDirPath, env, outPath):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "submit")
     
     def isFinished(self, jobID):
-        
         from common import subclassResponsibility
-        subclassResponsibility("Batch", "isFinished")
-    
+        subclassResponsibility("Executor", "isFinished")
     
     def waitFinished(self, jobID):
-        
         import time
         while not self.isFinished(jobID): time.sleep(5)     # seconds
     
-    
-    def pollForFinishedRuns(self):
-        
+    def pollForFinishedJobs(self):
         from common import subclassResponsibility
-        subclassResponsibility("Batch", "pollForFinishedRuns")
-
-
-
-
-###########################
-# SHEL IMMEDIATE EXECUTOR #
-###########################
-
-
-class ShellImmediate():
-
+        subclassResponsibility("Executor", "pollForFinishedJobs")
     
-    def __init__(self):
-        
-        super().__init__()
+    def kill(self, process):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "kill")
     
-    
-    def launch(self, cmd):
-        
-        pass
-    
-    
-    def isFinished(self, jobID):
-        
-        return True
-    
-    
-    def pollForFinishedRuns(self):
-        
-        return { }
+    def killAllJobs(self):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "killAllJobs")
 
 
 
 
-########################
-# SHELL BATCH EXECUTOR #
-########################
+#################################################
+#  SHELL EXECUTOR                               #
+#################################################
 
 
-class ShellBatch(Executor):
+class ShellExecutor(Executor):
 
     
     def __init__(self):
         
-        super().__init__()
+        super(ShellExecutor, self).__init__()
+        self.runningProcesses = {}
+
     
-    
-    def launch(self, cmd):
+    def defaultToBackground(cls):
+
+        return False
+
+
+    def run(self, cmd, runDirPath, env, outPath):
         
-        pass
-    
-    
-    def isFinished(self, jobID):
+        import os
+        from subprocess import call, CalledProcessError
+        from common import ExecuteFailed
+           
+        try:
+               
+            if runDirPath:
+                oldwd  = os.getcwd()
+                os.chdir(runDirPath)
+                
+            with open(outPath, "w") as output:
+                call(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
+              
+        except CalledProcessError as e:
+            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
+        except OSError as e:
+            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
+        except Exception as e:
+            raise ExecuteFailed(e.message)
         
-        return True
+        finally:
+            if runDirPath: os.chdir(oldwd)
     
     
-    def pollForFinishedRuns(self):
+    def submitJob(self, cmd, runDirPath, env, outPath):
         
-        return { }
+        import os.subprocess
+        from subprocess import Popen, CalledProcessError
+        from common import ExecuteFailed
+           
+        try:
+               
+            if runDirPath:
+                oldwd  = os.getcwd()
+                os.chdir(runDirPath)
+                
+            with open(outPath, "w") as output:
+                process = Popen(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
+              
+        except OSError as e:
+            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
+        except CalledProcessError as e:
+            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
+        
+        finally:
+            if runDirPath: os.chdir(oldwd)
+            
+        return process
+    
+    
+    def isFinished(self, process):
+        
+        return process.poll()
+    
+    
+    def pollForFinishedJobs(self):
+        
+        finished = {}
+        for p in self.runningProcesses:
+            if p.poll():
+                self.runningProcesses.remove(p)
+                finished.add(p)
+        return finished
+    
+    
+    def kill(self, process):
+        
+        return process.kill()
+    
+    
+    def killAllJobs(self):
+        
+        for p in self.runningProcesses: p.kill()
+        self.runningProcesses = {}
 
 
 
 
-############################
-# SLURM IMMEDIATE EXECUTOR #
-############################
+#################################################
+#  SLURM EXECUTOR                               #
+#################################################
 
 
-class SlurmImmediate(Executor):
+class SlurmExecutor(Executor):
 
     
     def __init__(self):
         
-        super().__init__()
+        super(SlurmExecutor, self).__init__()
     
     
-    def launch(self, cmd):
-        
-        pass
+    def defaultToBackground(cls):
+
+        return True
+
+
+    def run(self, cmd, runDirPath, env, outPath):
+        from common import notImplemented
+        notImplemented("SlurmExecutor.run")
     
+    def submitJob(self, cmd, runDirPath, env, outPath):
+        from common import notImplemented
+        notImplemented("SlurmExecutor.submit")
     
     def isFinished(self, jobID):
-        
+        from common import notImplemented
+        notImplemented("SlurmExecutor.isFinished")
         return True
     
-    
-    def pollForFinishedRuns(self):
-        
+    def pollForFinishedJobs(self):
+        from common import notImplemented
+        notImplemented("SlurmExecutor.pollForFinishedJobs")
         return { }
-
-
-
-
-########################
-# SLURM BATCH EXECUTOR #
-########################
-
-
-class SlurmBatch(Executor):
-
     
-    def __init__(self):
-        assertMessage(Executor.batchInUse(), "tried to make a SlurmBatch executor but batch is not im use.")
-        super().__init__()
+    def kill(self, process):
+        from common import notImplemented
+        notImplemented("SlurmExecutor.kill")
     
-    
-    def launch(self, cmd):
-        
-        pass
-    
-    
-    def isFinished(self, jobID):
-        
-        return True
-    
-    
-    def pollForFinishedRuns(self):
-        
-        return { }
+    def killAllJobs(self):
+        from common import notImplemented
+        notImplemented("SlurmExecutor.killAllJobs")
 
 
 

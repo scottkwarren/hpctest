@@ -70,7 +70,7 @@ def initSpack():
 
 def do(cmdstring, stdout="", stderr=""):
 
-    # cmdstring contents can and must be shell-escaped by caller, including the 'stdout' & 'stderr' args
+    # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
     import os, common
     
@@ -96,20 +96,20 @@ def execute(cmd, cwd=None, env=None, output=None, error=None):
             oldwd  = os.getcwd()
             os.chdir(cwd)
    
-        proc = subprocess.Popen(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
-        out, err = proc.communicate()
+        process = subprocess.Popen(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
+        out, err = process.communicate()
    
-        if proc.returncode != 0:
-            raise ProcessError('Exit status %d:' % proc.returncode)
+        if process.returncode != 0:
+            raise ProcessError('Exit status %d:' % process.returncode)
    
     except OSError as e:
         raise ProcessError('%s: %s' % (self.exe[0], e.strerror))
    
     except subprocess.CalledProcessError as e:
-        raise ProcessError(str(e), "exit status %d" % proc.returncode)
+        raise ProcessError(str(e), "exit status %d" % process.returncode)
    
     finally:
-        if env: os.chdir(oldwd)
+        if cwd: os.chdir(oldwd)
            
     # raises spack.util.executable.ProcessError if execution fails
 

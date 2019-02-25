@@ -48,16 +48,20 @@
 
 
 
-global _batchScheduler, _batchJobDescriptions
+# global variables -- used by class methods, so can't be members of Run
+from hpctest import HPCTest
+_executor        = HPCTest.executor
+_jobDescriptions = HPCTest.jobDescriptions
 
 
 class Run():
     
-    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study):
+    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study, wantBatch):
         
         from os.path import basename, join
         from resultdir import ResultDir
         from executor import Executor
+        global _executor, _jobDescriptions
 
         # general params
         self.testdir = testdir                        # path to test case's directory
@@ -86,11 +90,8 @@ class Run():
         self._writeInputs()
     
         # batch job submission
-        if Executor.batchInUse():
-            _batchScheduler = Executor.scheduler()
-            _batchJobDescriptions = dict()
-        else:
-            _batchScheduler, _batchJobDescriptions = None
+        _executor = Executor.create()
+        _jobDescriptions = dict()
         
     
     def run(self):
@@ -272,7 +273,7 @@ class Run():
                     except Exception as e:
                         status, msg =  "FAILED", e.message
                         
-                    ildTime = t.secs
+                    buildTime = t.secs
         
         # Make alias(es) in build directory to the built product(s)    #### TODO: support more than one product
         products = self.yaml["build"]["install"] if "build" in self.yaml and "install" in self.yaml["build"] else None
@@ -374,20 +375,18 @@ class Run():
                 raise ExecuteFailed
             
     
-    def _execute(self, cmd, root, label, suffix, profile=None, mpi=None, openmp=None, batch=None):
+    def _execute(self, cmd, root, label, suffix, profile=None, mpi=None, openmp=None):
 
         import os
         from os.path import join
         import sys
-        from spack.util.executable import ProcessError
-        from spackle import execute
+        from subprocess import CalledProcessError
         from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg, ExecuteFailed
         from configuration import currentConfig
         
         wantProfile = profile if profile else False
         wantMPI     = mpi     if mpi    is not None else '+mpi' in self.spec
         wantOpenMP  = openmp  if openmp is not None else '+openmp' in self.spec
-        wantBatch   = batch   if batch  is not None else False     # TODO: figure out from options & package info
 
         # compute command to be executed
         # ... start with test's run command
@@ -418,10 +417,6 @@ class Run():
             mpiOptions  = "-verbose" if "verbose" in options else ""
             cmd = "{}/mpiexec -np {} {} {}".format(mpiBinPath, mpiNumRanks, mpiOptions, cmd)
         
-        # ... add batch scheduling code if wanted
-        if wantBatch:
-            notimplemented("batch scheduling")   # TODO: implement this
-        
         # ... always add timing code
         cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
         
@@ -435,11 +430,10 @@ class Run():
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
-            with open(outPath, "w") as outf:
-                execute(cmd, cwd=runPath, env=env, output=outf, error=outf)
+            _executor.run(cmd, runPath, env, outPath)
                 
         except Exception as e:
-            failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c ProcessError.message ends in ':' fsr
+            failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
             infomsg("{} execution failed: {}".format(label, msg))
         else:
             failed, msg = False, None
@@ -691,40 +685,37 @@ class Run():
 
 
     @classmethod
-    def launchBatchRun(cls, test, config, hpctoolkit, profile, numrepeats, study):
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):
         
-        initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
+        global _executor, _jobDescriptions
 
+        initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "hpctest _runOne {}".format(initArgs)     # creation args for a Run object
-        jobID = _batchScheduler.launch(cmd)
-        
-        _batchJobDescriptions[jobID] = description
+        jobID = _executor.submitJob(cmd)
+        _jobDescriptions[jobID] = description
         
         return jobID
     
     
     @classmethod
-    def descriptionForBatchJob(cls, jobID):
-    
-        return _batchJobDescriptions[jobID]
-    
-    
-    @classmethod
     def isFinished(cls, jobID):
         
-        return _batchScheduler.isFinished(jobID)
+        global _executor
+        return _executor.isFinished(jobID)
     
     
     @classmethod
     def waitFinished(cls, jobID):
         
-        _batchScheduler.waitFinished(jobID)
+        global _executor
+        _executor.waitFinished(jobID)
     
     
     @classmethod
-    def pollForFinishedRuns(cls):
+    def pollForFinishedJobs(cls):
 
-        return _batchScheduler.pollForFinishedRuns()
+        global _executor
+        return _executor.pollForFinishedJobs()
     
     
     @classmethod
@@ -740,6 +731,13 @@ class Run():
         
         # ... 
         return (testdir, config, hpctoolkit, profile, numrepeats, study)
+    
+    
+    @classmethod
+    def descriptionForBatchRun(cls, jobID):
+    
+        global _jobDescriptions
+        return _jobDescriptions[jobID]
 
 
 

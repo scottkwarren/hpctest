@@ -46,17 +46,22 @@
 ##############################################################################
 
 
+checksumName = ".checksum"
 
 
 class HPCTest():
     
     import common
+
+    # class variables
+    executor = None             # set __init__
+    jobDescriptions = None      # set __init__
     
-    global checksumName
-    checksumName = ".checksum"
         
     def __init__(self, extspackpath=None, homepath=None):
         
+        global executor, jobDescriptions, dimensions, dimspecDefaults, dimspecClasses
+
         from os import environ, makedirs, system, rename
         from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
         import sys
@@ -66,8 +71,8 @@ class HPCTest():
         from configspec import ConfigSpec
         from stringspec   import StringSpec
         from common import whichDir
-        global dimensions, dimspecDefaults, dimspecClasses
-            
+        from executor import Executor
+                
         # determine important paths
         common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
         internalpath = join(common.homepath, "internal")
@@ -108,16 +113,15 @@ class HPCTest():
         # set up configuration system
         configuration.initConfig()    # must come after paths, spack, and environ are initialized
 
-        # set up private repo
+        # private repo
         self._ensureRepo()
         
-        # get install dir of hpctoolkit on $PATH, if any
+        # install dir of hpctoolkit on $PATH, if any
         hpctkFromPATH = whichDir("hpcrun")
         hpctkFromPATH = dirname(hpctkFromPATH) if hpctkFromPATH else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
         hpctkDefault  = configuration.get("profile.hpctoolkit path", hpctkFromPATH)
         hpctkDefault  = expanduser(hpctkDefault) if hpctkDefault else None
-
-        msgfunc = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
+        msgfunc       = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
         if (not hpctkDefault) and msgfunc:
             msgfunc("no default HPCToolkit specified for profiling.\n"
                     "\n"
@@ -139,14 +143,18 @@ class HPCTest():
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
                           }
     
-    
+        # batch job management
+        self.executor = Executor.create()
+        self.jobDescriptions = {}
+
+
     def init(self):
     
         # all the necessary work is done in __init__, so nothing here
         pass
 
         
-    def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], workpath=None):
+    def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], workpath=None, wantBatch=False):
         
         import common
         from study      import Study
@@ -168,7 +176,8 @@ class HPCTest():
             
             # run all the tests
             study = Study(workpath if workpath else common.workpath)
-            Iterate.doForAll(dims, args, numrepeats, study)
+            if wantBatch == "default":  wantBatch = self.executor.defaultToBackground()
+            Iterate.doForAll(dims, args, numrepeats, study, wantBatch)
             print
             
             # report results

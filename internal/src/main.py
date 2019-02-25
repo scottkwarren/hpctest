@@ -90,6 +90,8 @@ def parseCommandLine():
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
     runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to print")
     runParser.add_argument("--sort",             "-S", type=str,  default="default",  help="sequence of dimensions to sort report by")
+    runParser.add_argument("--background",       "-Z", type=str,  default="default",  help="run in the background")
+    runParser.add_argument("--batch",            "-B", type=str,  default="default",  help="run as batch jobs")
     _addOptionArgs(runParser)
 
     # -------------------------------------------------------------------------------------------------------
@@ -195,7 +197,8 @@ def execute(args):
         otherargs  = args
         reportspec = args.report if args.report != "default" else "all"
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        tester.run(dims, otherargs, numrepeats, reportspec, sortKeys, studyPath)
+        wantBatch  = args.batch or args.background
+        tester.run(dims, otherargs, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
         
     elif args.subcommand == "report":
         
