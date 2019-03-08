@@ -52,12 +52,11 @@
 class Iterate():
     
     @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
+    def doForAll(myClass, dims, args, numrepeats, study, wantBatch, executor):
         
         from itertools import product
         from common import infomsg, debugmsg, options
         from run import Run
-        from executor import Executor
 
         if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
             infomsg("test spec matches no tests")
@@ -72,27 +71,26 @@ class Iterate():
                 # TODO: if requested, limit number of batch jobs in flight at once
                 
                 # schedule all tests for batch execution
-                infomsg("submitting batch jobs for all tests...")
-                submittedJobs = {}
+                infomsg("running all tests as batch jobs...")
+                submittedJobs = set()
                 for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
+                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study, executor)
                     submittedJobs.add(jobID)
-                infomsg("...done")
                     
                 # poll for finished jobs until all done
-                while not submittedJobs.empty():
-                    finished = Run.pollForFinishedJobs()
+                while submittedJobs:
+                    finished = Run.pollForFinishedJobs(executor)
                     submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
                     for jobID in finished:
-                        infomsg("test {} finished".format(Run.descriptionForBatchJob(jobID)))
+                        infomsg("{} finished".format(Run.descriptionForJob(jobID, executor)))
                     
-                infomsg("all tests finished".format(Run.descriptionForBatchJob(jobID)))
+                infomsg("all done")
 
             else:
                 
                 # run all tests sequentially via shell commands
                 for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
+                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False, executor)
                     status = run.run()
             
             

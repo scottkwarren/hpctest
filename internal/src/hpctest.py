@@ -53,14 +53,9 @@ class HPCTest():
     
     import common
 
-    # class variables
-    executor = None             # set __init__
-    jobDescriptions = None      # set __init__
-    
-        
     def __init__(self, extspackpath=None, homepath=None):
         
-        global executor, jobDescriptions, dimensions, dimspecDefaults, dimspecClasses
+        global dimensions, dimspecDefaults, dimspecClasses
 
         from os import environ, makedirs, system, rename
         from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
@@ -145,7 +140,6 @@ class HPCTest():
     
         # batch job management
         self.executor = Executor.create()
-        self.jobDescriptions = {}
 
 
     def init(self):
@@ -154,16 +148,17 @@ class HPCTest():
         pass
 
         
-    def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], workpath=None, wantBatch=False):
+    def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], studyPath=None, wantBatch=False):
         
         import common
+        import configuration
         from study      import Study
         from iterate    import Iterate
         from report     import Report
         global dimensions, dimspecDefaults, dimspecClasses
                 
         # decode the odict of dimension strings into a complete odict of dimension specs, with default specs for missing dimensions
-        dims = {}
+        dims = dict()
         for dimName in dimensions:
             if dimName in dimStrings:
                 str = dimStrings[dimName]
@@ -175,9 +170,10 @@ class HPCTest():
         if dims["hpctoolkit"]:   # TODO: shouldn't require an HPCToolkit if no test wants profiling
             
             # run all the tests
-            study = Study(workpath if workpath else common.workpath)
-            if wantBatch == "default":  wantBatch = self.executor.defaultToBackground()
-            Iterate.doForAll(dims, args, numrepeats, study, wantBatch)
+            study = Study(studyPath if studyPath else common.workpath)
+            if not wantBatch:
+                wantBatch = configuration.get("config.batch.default", self.executor.defaultToBackground())
+            Iterate.doForAll(dims, args, numrepeats, study, wantBatch, self.executor)
             print
             
             # report results
@@ -384,6 +380,25 @@ class HPCTest():
         
         from common import notimplemented
         notimplemented("hpctest._generatePackagePy")
+    
+
+
+   
+##########################################
+# SUPPORT FOR DEFERRED EXECUTION (BATCH) #
+##########################################
+
+
+    def _runOne(self, encodedArgs):
+        
+        from run import Run
+        
+        runArgs = Run.decodeInitArgs(encodedArgs) + (False, )  # + wantBatch
+        runOb   = Run(*runArgs)
+        runOb.run(echoStdout=False)
+
+
+
 
 
 

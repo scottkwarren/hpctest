@@ -70,6 +70,8 @@ class Study():
             makedirs(self.path)
         else:
             raise BadStudyPath(path)
+        
+        self.resultDirs = dict()
 
 
     def __str__(self):
@@ -98,11 +100,24 @@ class Study():
         os.makedirs(rundir)
         
         return rundir
+
+
+    def addResultDir(self, rundir, name):
         
+        from resultdir import ResultDir
+        
+        rd = ResultDir(rundir, name)
+        self.resultDirs[rundir] = rd
+        return rd
+    
         
     def clean(self):
         
         from shutil import rmtree
         rmtree(self.path, ignore_errors=True)
 
+
+    def pathToRunDir(self, testName, build, profile):
+        
+        pass
     

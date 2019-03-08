@@ -50,6 +50,10 @@
 
 
 from hpctest import HPCTest
+global HPCTestOb
+HPCTestOb = None
+
+
 
 
 def main():
@@ -64,7 +68,7 @@ def parseCommandLine():
     import argparse
     from os.path import join
     import common
-    global tester
+    global HPCTestOb
     
     # parsers
     parser = argparse.ArgumentParser(prog="hpctest")
@@ -90,8 +94,8 @@ def parseCommandLine():
 ##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
     runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to print")
     runParser.add_argument("--sort",             "-S", type=str,  default="default",  help="sequence of dimensions to sort report by")
-    runParser.add_argument("--background",       "-Z", type=str,  default="default",  help="run in the background")
-    runParser.add_argument("--batch",            "-B", type=str,  default="default",  help="run as batch jobs")
+    runParser.add_argument("--background",       "-Z", dest="options", action="append_const", const="background", help="run in the background")
+    runParser.add_argument("--batch",            "-B", dest="options", action="append_const", const="batch",      help="run in batch jobs")
     _addOptionArgs(runParser)
 
     # -------------------------------------------------------------------------------------------------------
@@ -121,7 +125,7 @@ def parseCommandLine():
     _addOptionArgs(spackParser)
 
     # -------------------------------------------------------------------------------------------------------
-    # hpctest selftest <options>
+    # hpctest selftest ... <options>
     # -------------------------------------------------------------------------------------------------------
     selftestParser = subparsers.add_parser("selftest", help="run HPCTest's builtin self tests")
     selftestParser.add_argument("tests_arg", nargs="?", type=str, default="default",  help="testspec for which self tests to run")
@@ -135,6 +139,13 @@ def parseCommandLine():
 
 #     miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
 #     _addOptionArgs(miniappsParser)
+
+    # -------------------------------------------------------------------------------------------------------
+    # hpctest runOne <encodedArgs>
+    # -------------------------------------------------------------------------------------------------------
+    runOneParser = subparsers.add_parser("_runOne", help="private subcommand to perform one batch run")
+    runOneParser.add_argument("encodedArgs", nargs="?", type=str, default="default",  help="encoded tuple of args for Run.__init__")
+    _addOptionArgs(runOneParser)
 
     # parse the command line
     args = parser.parse_args()
@@ -160,16 +171,16 @@ def execute(args):
     # perform the requested operation by calling methods of HPCTest
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
 
-    global tester
+    global HPCTestOb
     from collections import OrderedDict
     from os.path import join
     from common import options, errormsg, fatalmsg
 
-    tester = HPCTest()      # must come early b/c initializes paths in common.*
+    HPCTestOb = HPCTest()      # must come early b/c initializes paths in common.*
 
     if args.subcommand == "init":
         
-        tester.init()
+        HPCTestOb.init()
         
     elif args.subcommand == "run":
         
@@ -197,15 +208,15 @@ def execute(args):
         otherargs  = args
         reportspec = args.report if args.report != "default" else "all"
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        wantBatch  = args.batch or args.background
-        tester.run(dims, otherargs, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
+        wantBatch  = ("batch" in options) or ("background" in options)
+        HPCTestOb.run(dims, otherargs, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
         
     elif args.subcommand == "report":
         
         studyPath  = args.study if args.study != "default" else None; del args.study
         whichspec  = args.which if args.which != "default" else "all" 
         sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        tester.report(studyPath, whichspec, sortKeys)
+        HPCTestOb.report(studyPath, whichspec, sortKeys)
         
     elif args.subcommand == "clean":    
         
@@ -223,12 +234,12 @@ def execute(args):
         else:
             s = "<default>"
             
-        tester.clean(s, t, d)
+        HPCTestOb.clean(s, t, d)
 
         
     elif args.subcommand == "spack":
         
-        tester.spack(" ".join(args.spackcmd))
+        HPCTestOb.spack(" ".join(args.spackcmd))
     
         
     elif args.subcommand == "selftest":
@@ -245,11 +256,17 @@ def execute(args):
         studyPath = args.study if args.study != "default" else None; del args.study
         otherargs  = args
         reportspec = args.report if args.report != "default" else "all"
-        tester.selftest(testspec, otherargs, reportspec, studyPath)
+        HPCTestOb.selftest(testspec, otherargs, reportspec, studyPath)
     
     elif args.subcommand == "miniapps":
         
-            tester.miniapps()
+            HPCTestOb.miniapps()
+    
+        
+    elif args.subcommand == "_runOne":
+        
+        encodedArgs = args.encodedArgs
+        HPCTestOb._runOne(encodedArgs)
             
             
     else:

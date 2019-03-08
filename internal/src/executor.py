@@ -80,7 +80,9 @@ class Executor(object):
     # Scheduling operations
     
     def __init__(self):
-         pass
+        
+         self.jobDescriptions = dict()
+         
     
     def defaultToBackground(cls):
         from common import subclassResponsibility
@@ -90,10 +92,16 @@ class Executor(object):
         from common import subclassResponsibility
         subclassResponsibility("Executor", "launch")
     
-    def submitJob(self, cmd, runDirPath, env, outPath):
+    def submitJob(self, cmd, description):
         from common import subclassResponsibility
-        subclassResponsibility("Executor", "submit")
+        subclassResponsibility("Executor", "submitJob")
     
+    def description(self, jobID):
+        return self.jobDescriptions[jobID]
+    
+    def stdout(self, jobID):
+        return self.jobStdouts[jobID]
+                                    
     def isFinished(self, jobID):
         from common import subclassResponsibility
         subclassResponsibility("Executor", "isFinished")
@@ -110,9 +118,9 @@ class Executor(object):
         from common import subclassResponsibility
         subclassResponsibility("Executor", "kill")
     
-    def killAllJobs(self):
+    def killAll(self):
         from common import subclassResponsibility
-        subclassResponsibility("Executor", "killAllJobs")
+        subclassResponsibility("Executor", "killAll")
 
 
 
@@ -128,7 +136,7 @@ class ShellExecutor(Executor):
     def __init__(self):
         
         super(ShellExecutor, self).__init__()
-        self.runningProcesses = {}
+        self.runningProcesses = set()
 
     
     def defaultToBackground(cls):
@@ -162,57 +170,60 @@ class ShellExecutor(Executor):
             if runDirPath: os.chdir(oldwd)
     
     
-    def submitJob(self, cmd, runDirPath, env, outPath):
-        
-        import os.subprocess
+    def submitJob(self, cmd, description):
+                
+        from StringIO import StringIO
+        import subprocess
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
-           
+        
         try:
-               
-            if runDirPath:
-                oldwd  = os.getcwd()
-                os.chdir(runDirPath)
-                
-            with open(outPath, "w") as output:
-                process = Popen(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
-              
+            
+            process = Popen(cmd, shell=True, stdin=None)
+
         except OSError as e:
             raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
         except CalledProcessError as e:
             raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
-        
-        finally:
-            if runDirPath: os.chdir(oldwd)
             
+        self.runningProcesses.add(process)
+        self.jobDescriptions[process] = description        
+
         return process
     
     
     def isFinished(self, process):
         
-        return process.poll()
+        return process.poll() != None
     
     
     def pollForFinishedJobs(self):
         
-        finished = {}
+        finished = set()
         for p in self.runningProcesses:
-            if p.poll():
-                self.runningProcesses.remove(p)
+            if p.poll() != None:
                 finished.add(p)
+        for p in finished:
+            self.runningProcesses.remove(p)
         return finished
     
     
     def kill(self, process):
         
-        return process.kill()
+        process.kill()
+        self._cleanup(process)
     
     
-    def killAllJobs(self):
+    def killAll(self):
         
-        for p in self.runningProcesses: p.kill()
-        self.runningProcesses = {}
+        for p in self.runningProcesses:
+            p.kill()
 
+
+    def _cleanup(self, process):
+
+        self.runningProcesses.remove(process)
+        self.jobDescriptions.pop(process)
 
 
 
@@ -238,9 +249,9 @@ class SlurmExecutor(Executor):
         from common import notImplemented
         notImplemented("SlurmExecutor.run")
     
-    def submitJob(self, cmd, runDirPath, env, outPath):
+    def submitJob(self, cmd, description):
         from common import notImplemented
-        notImplemented("SlurmExecutor.submit")
+        notImplemented("SlurmExecutor.submitJob")
     
     def isFinished(self, jobID):
         from common import notImplemented
@@ -256,9 +267,9 @@ class SlurmExecutor(Executor):
         from common import notImplemented
         notImplemented("SlurmExecutor.kill")
     
-    def killAllJobs(self):
+    def killAll(self):
         from common import notImplemented
-        notImplemented("SlurmExecutor.killAllJobs")
+        notImplemented("SlurmExecutor.killAll")
 
 
 

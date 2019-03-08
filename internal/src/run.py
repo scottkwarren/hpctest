@@ -48,18 +48,14 @@
 
 
 
-# global variables -- used by class methods, so can't be members of Run
 from hpctest import HPCTest
-_executor        = HPCTest.executor
-_jobDescriptions = HPCTest.jobDescriptions
 
 
 class Run():
     
-    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study, wantBatch):
+    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study, wantBatch, executor=None):
         
         from os.path import basename, join
-        from resultdir import ResultDir
         from executor import Executor
         global _executor, _jobDescriptions
 
@@ -76,7 +72,7 @@ class Run():
         self.hpcrunParams      = paramList[0]
         self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
         self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
-        self.testIncs = "./+"
+        self.testIncs          = "./+"
 
         # execution params
         self.numrepeats = numrepeats
@@ -86,64 +82,66 @@ class Run():
         self.jobdir = self.study.addRunDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
         
         # storage for hpctest inputs and outputs
-        self.output = ResultDir(self.jobdir, "OUT")
+        self.output = self.study.addResultDir(self.jobdir, "OUT")
         self._writeInputs()
     
         # batch job submission
-        _executor = Executor.create()
-        _jobDescriptions = dict()
+        self.executor = executor if executor else Executor.create()
         
     
-    def run(self):
+    def run(self, echoStdout=True):
         
         from os.path import join, relpath
         import time
         from common import homepath, infomsg, sepmsg
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
+        from llnl.util.tty.log import log_output
         
-        startTime = time.time()
-        self.hpcrunParams.replace(" ", ".")
-        
-        sepmsg(True)
-        
-        name = relpath(self.testdir, join(homepath, "tests"))
-        infomsg("running test {} with {} and {}".format(name, self.config, self.hpcrunParams))
-        sepmsg(True)
-        
-        try:
+        # save console output in OUT directory
+        outPath = self.output.makePath("console-output.txt")
+        with log_output(outPath, echo=echoStdout):
             
-            self._readYaml()
-            self._makeBuildSpec()
-            self._prepareJobDirs()
-            self._buildTest()
-            self._runBuiltTest()
-            self._checkTestResults()
-            self.output.addSummaryStatus("OK", None)
+            startTime = time.time()
+            self.hpcrunParams.replace(" ", ".")
             
-        except BadTestDescription as e:
-            msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
-        except BadBuildSpec as e:
-            msg = "build spec invalid per Spack ({}):\n{}".format(self.spec, e.message)
-        except PrepareFailed as e:
-            msg = "setup for test build failed"
-        except BuildFailed as e:
-            msg = "test build failed"
-        except ExecuteFailed as e:
-            msg = "test execution failed"
-        except CheckFailed as e:
-            msg = "test result check failed"
-        except Exception as e:
-            msg = "unexpected error {} ({})".format(type(e).__name__, e.message)
-        else:
-            msg = None
-        if msg: infomsg(msg)
-        
-        # finish writing results
-        elapsedTime = time.time() - startTime
-        self._addMissingOutputs()
-        self.output.add("summary", "elapsed time", elapsedTime, format="{:0.2f}")
-        self.output.write()
-
+            sepmsg(True)
+            name = relpath(self.testdir, join(homepath, "tests"))
+            infomsg("running test {} with {} and {}".format(name, self.config, self.hpcrunParams))
+            sepmsg(True)
+            
+            try:
+                
+                self._readYaml()
+                self._makeBuildSpec()
+                self._prepareJobDirs()
+                self._buildTest()
+                self._runBuiltTest()
+                self._checkTestResults()
+                self.output.addSummaryStatus("OK", None)
+                
+            except BadTestDescription as e:
+                msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
+            except BadBuildSpec as e:
+                msg = "build spec invalid per Spack ({}):\n{}".format(self.spec, e.message)
+            except PrepareFailed as e:
+                msg = "setup for test build failed"
+            except BuildFailed as e:
+                msg = "test build failed"
+            except ExecuteFailed as e:
+                msg = "test execution failed"
+            except CheckFailed as e:
+                msg = "test result check failed"
+            except Exception as e:
+                msg = "unexpected error {} ({})".format(type(e).__name__, e.message)
+            else:
+                msg = None
+            if msg: infomsg(msg)
+            
+            # finish writing results
+            elapsedTime = time.time() - startTime
+            self._addMissingOutputs()
+            self.output.add("summary", "elapsed time", elapsedTime, format="{:0.2f}")
+            self.output.write()
 
 
     def _readYaml(self):
@@ -430,7 +428,7 @@ class Run():
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
-            _executor.run(cmd, runPath, env, outPath)
+            self.executor.run(cmd, runPath, env, outPath)
                 
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
@@ -685,59 +683,64 @@ class Run():
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study, executor):
         
-        global _executor, _jobDescriptions
-
         initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
-        cmd = "hpctest _runOne {}".format(initArgs)     # creation args for a Run object
-        jobID = _executor.submitJob(cmd)
-        _jobDescriptions[jobID] = description
+        cmd = "hpctest _runOne '{}'".format(initArgs)     # creation args for a Run object
+        jobID = executor.submitJob(cmd, description)
         
         return jobID
     
     
     @classmethod
-    def isFinished(cls, jobID):
-        
-        global _executor
-        return _executor.isFinished(jobID)
+    def descriptionForJob(cls, jobID, executor):
+    
+        return executor.description(jobID)
     
     
     @classmethod
-    def waitFinished(cls, jobID):
+    def isFinished(cls, jobID, executor):
         
-        global _executor
-        _executor.waitFinished(jobID)
+        return executor.isFinished(jobID)
     
     
     @classmethod
-    def pollForFinishedJobs(cls):
+    def waitFinished(cls, jobID, executor):
+        
+        executor.waitFinished(jobID)
+    
+    
+    @classmethod
+    def pollForFinishedJobs(cls, executor):
 
-        global _executor
-        return _executor.pollForFinishedJobs()
+        return executor.pollForFinishedJobs()
     
     
     @classmethod
     def _encodeInitArgs(cls, testdir, config, hpctoolkit, profile, numrepeats, study):
         
-        initArgs    = "xxx".format(testdir, config, hpctoolkit, profile, numrepeats, study.path)
-        description = ""
-        return initArgs, description
+        from os.path import basename
+        
+        encodedArgs    = ",".join([testdir, config, hpctoolkit, profile, str(numrepeats), study.path])
+        encodedArgs = encodedArgs.replace(" ", "#")
+        description = basename(testdir) + config + ":" + profile     
+        decodedArgs = Run.decodeInitArgs(encodedArgs)  ## DEBUG
+        return encodedArgs, description
     
     
     @classmethod
     def decodeInitArgs(cls, encodedArgs):
         
-        # ... 
+        from study import Study
+        
+        encodedArgs = encodedArgs.replace("#", " ")
+        argStrings = encodedArgs.split(",")
+        
+        testdir, config, hpctoolkit, profile = argStrings[:3+1]
+        numrepeats = int(argStrings[4])
+        study = Study(argStrings[5])
+        
         return (testdir, config, hpctoolkit, profile, numrepeats, study)
-    
-    
-    @classmethod
-    def descriptionForBatchRun(cls, jobID):
-    
-        global _jobDescriptions
-        return _jobDescriptions[jobID]
 
 
 
