@@ -270,6 +270,8 @@ class Run():
                         status, msg = "OK", None
                     except Exception as e:
                         status, msg =  "FAILED", e.message
+                    except BaseException as e:
+                        print "HOLY SHIT!!! This happened: {}".format(e.message)
                         
                     buildTime = t.secs
         
@@ -745,6 +747,3 @@ class Run():
 
 
 
-
-
-                                                                                     

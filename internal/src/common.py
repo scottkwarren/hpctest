@@ -221,7 +221,7 @@ class ElapsedTimer(object):
     def __init__(self, verbose=False):
         import time
         self.timer = time.time
-        self.secs  = 0.0
+        self.secs  = 0.0        # works around mystery bug where < __exit__ not called > => "unexpected error AttributeError ('ElapsedTimer' object has no attribute 'secs')"
 
     def __enter__(self):
         self.start = self.timer()
