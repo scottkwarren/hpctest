@@ -1,8 +1,10 @@
 ################################################################################
 #                                                                              #
-#  iterate.py                                                                  #
-#  robustly iterates over build configs and test cases using a testdir         #
-#      to store iteration state across failed partial iterations               #
+#  executor/  (Python package)                                                 #
+#                                                                              #
+#  Run obs immediately or in batch/background using one of various supported   #
+#  schedulers (defined elsewhere). Knows which schedulers are supported on the #
+#  current system and whether to run jobs immediately or in batch by default.  #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,53 +50,11 @@
 
 
 
+from executor      import Executor
+from shellExecutor import ShellExecutor
+from slurmExecutor import SlurmExecutor
 
-class Iterate():
 
-    
-    @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
-        
-        from itertools import product
-        from common import infomsg, debugmsg, options
-        from run import Run
-
-        if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
-            infomsg("test spec matches no tests")
-            return False
-        else:
-            
-            debugmsg("experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                        .format(dims, args, options, study.path))
-
-            if wantBatch:
-            
-                # TODO: if requested, limit number of batch jobs in flight at once
-                
-                # schedule all tests for batch execution
-                infomsg("starting tests in batch")
-                submittedJobs = set()
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
-                    submittedJobs.add(jobID)
-                    
-                # poll for finished jobs until all done
-                while submittedJobs:
-                    finished = Run.pollForFinishedJobs()
-                    submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
-                    for jobID in finished:
-                        infomsg("test {} finished".format(Run.descriptionForJob(jobID)))
-                    
-                infomsg("all tests finished")
-
-            else:
-                
-                # run all tests sequentially via shell commands
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
-                    status = run.run()
-            
-            
 
 
 

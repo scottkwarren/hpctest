@@ -52,19 +52,23 @@ from hpctest import HPCTest
 
 
 class Run():
+
+
+    # batch job submission
+    from executor import Executor
+    executor = Executor.create()
+
     
-    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study, wantBatch, executor=None):
+    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study, wantBatch):
         
         from os.path import basename, join
-        from executor import Executor
-        global _executor, _jobDescriptions
 
         # general params
         self.testdir = testdir                        # path to test case's directory
         self.config  = config                         # Spack spec for desired build configuration
         self.study   = study                          # storage for collection of test run dirs
         self.name    = basename(self.testdir)
-
+        
         # hpctoolkit params
         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
         self.hpctoolkitParams  = profile
@@ -84,10 +88,7 @@ class Run():
         # storage for hpctest inputs and outputs
         self.output = self.study.addResultDir(self.jobdir, "OUT")
         self._writeInputs()
-    
-        # batch job submission
-        self.executor = executor if executor else Executor.create()
-        
+            
     
     def run(self, echoStdout=True):
         
@@ -96,7 +97,7 @@ class Run():
         from common import homepath, infomsg, sepmsg
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from llnl.util.tty.log import log_output
-        
+                
         # save console output in OUT directory
         outPath = self.output.makePath("console-output.txt")
         with log_output(outPath, echo=echoStdout):
@@ -430,7 +431,7 @@ class Run():
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
-            self.executor.run(cmd, runPath, env, outPath)
+            Run.executor.run(cmd, runPath, env, outPath)
                 
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
@@ -680,42 +681,42 @@ class Run():
 
    
 ##########################################
-# SUPPORT FOR DEFERRED EXECUTION (BATCH) #
+# SUPPORT FOR BATCH EXECUTION            #
 ##########################################
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study, executor):
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):
         
         initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "hpctest _runOne '{}'".format(initArgs)     # creation args for a Run object
-        jobID = executor.submitJob(cmd, description)
+        jobID = Run.executor.submitJob(cmd, description)
         
         return jobID
     
     
     @classmethod
-    def descriptionForJob(cls, jobID, executor):
+    def descriptionForJob(cls, jobID):
     
-        return executor.description(jobID)
+        return Run.executor.description(jobID)
     
     
     @classmethod
-    def isFinished(cls, jobID, executor):
+    def isFinished(cls, jobID):
         
-        return executor.isFinished(jobID)
+        return Run.executor.isFinished(jobID)
     
     
     @classmethod
-    def waitFinished(cls, jobID, executor):
+    def waitFinished(cls, jobID):
         
-        executor.waitFinished(jobID)
+        Run.executor.waitFinished(jobID)
     
     
     @classmethod
-    def pollForFinishedJobs(cls, executor):
+    def pollForFinishedJobs(cls):
 
-        return executor.pollForFinishedJobs()
+        return Run.executor.pollForFinishedJobs()
     
     
     @classmethod

@@ -1,8 +1,10 @@
 ################################################################################
 #                                                                              #
-#  iterate.py                                                                  #
-#  robustly iterates over build configs and test cases using a testdir         #
-#      to store iteration state across failed partial iterations               #
+#  executor.py                                                                 #
+#                                                                              #
+#  Run obs immediately or in batch/background using one of various supported   #
+#  schedulers (defined elsewhere). Knows which schedulers are supported on the #
+#  current system and whether to run jobs immediately or in batch by default.  #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,53 +50,103 @@
 
 
 
+#################################################
+#  ABSTRACT SUPERCLASS                          #
+#################################################
 
-class Iterate():
+
+class Executor(object):
 
     
+    # System inquiries
+
     @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
+    def localExecutorName(cls):
         
-        from itertools import product
-        from common import infomsg, debugmsg, options
-        from run import Run
-
-        if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
-            infomsg("test spec matches no tests")
-            return False
-        else:
-            
-            debugmsg("experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                        .format(dims, args, options, study.path))
-
-            if wantBatch:
-            
-                # TODO: if requested, limit number of batch jobs in flight at once
+        import configuration
+        from common import fatalmsg
                 
-                # schedule all tests for batch execution
-                infomsg("starting tests in batch")
-                submittedJobs = set()
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
-                    submittedJobs.add(jobID)
-                    
-                # poll for finished jobs until all done
-                while submittedJobs:
-                    finished = Run.pollForFinishedJobs()
-                    submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
-                    for jobID in finished:
-                        infomsg("test {} finished".format(Run.descriptionForJob(jobID)))
-                    
-                infomsg("all tests finished")
+        # local configuration may specify the job launcher
+        name = configuration.get("config.batch.manager", "Shell")
+        
+        if name not in cls._subclasses:
+            fatalmsg("config.yaml specifies unknown name '{}' for 'config.batch.manager'".format(name))
+            
+        return name
 
-            else:
-                
-                # run all tests sequentially via shell commands
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
-                    status = run.run()
-            
-            
+
+    @classmethod
+    def defaultToBackground(cls):
+        
+        return cls._subclasses[cls.localExecutorName()].defaultToBackground()
+
+
+    @classmethod
+    def create(cls):
+        
+        import configuration
+
+        # make an executor corresponding to the name specified by config or default
+        name = configuration.get("config.batch.manager", "Shell")
+        ex = cls._subclasses[name]()
+        return ex
+
+
+    # Registry of available executor subclasses
+
+    _subclasses = dict()
+
+
+    @classmethod
+    def register(cls, name, subclass):
+        
+        cls._subclasses[name] = subclass
+
+
+    # Scheduling operations
+    
+    def __init__(self):
+        
+         self.jobDescriptions = dict()
+         
+    
+    def run(self, cmd, runDirPath, env, outPath):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "launch")
+    
+    def submitJob(self, cmd, description):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "submitJob")
+    
+    def description(self, jobID):
+        return self.jobDescriptions[jobID]
+    
+    def stdout(self, jobID):
+        return self.jobStdouts[jobID]
+                                    
+    def isFinished(self, jobID):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "isFinished")
+    
+    def waitFinished(self, jobID):
+        import time
+        while not self.isFinished(jobID): time.sleep(5)     # seconds
+    
+    def pollForFinishedJobs(self):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "pollForFinishedJobs")
+    
+    def kill(self, process):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "kill")
+    
+    def killAll(self):
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "killAll")
+
+
+
+
 
 
 

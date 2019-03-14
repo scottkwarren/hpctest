@@ -66,7 +66,6 @@ class HPCTest():
         from configspec import ConfigSpec
         from stringspec   import StringSpec
         from common import whichDir
-        from executor import Executor
                 
         # determine important paths
         common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
@@ -137,9 +136,6 @@ class HPCTest():
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
                           }
-    
-        # batch job management
-        self.executor = Executor.create()
 
 
     def init(self):
@@ -152,6 +148,7 @@ class HPCTest():
         
         import common
         import configuration
+        from executor   import Executor
         from study      import Study
         from iterate    import Iterate
         from report     import Report
@@ -172,8 +169,8 @@ class HPCTest():
             # run all the tests
             study = Study(studyPath if studyPath else common.workpath)
             if not wantBatch:
-                wantBatch = configuration.get("config.batch.default", self.executor.defaultToBackground())
-            Iterate.doForAll(dims, args, numrepeats, study, wantBatch, self.executor)
+                wantBatch = configuration.get("config.batch.default", Executor.defaultToBackground())
+            Iterate.doForAll(dims, args, numrepeats, study, wantBatch)
             print
             
             # report results

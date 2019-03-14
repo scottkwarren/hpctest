@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  batch.py                                                                    #
-#  knows whether current system uses batch scheduling, which batch scheduler   #
-#  if so, and how to use each supported scheduler                              #
+#  shellExecutor.py                                                            #
+#                                                                              #
+#  Run jobs immediately or in background using the shell.                      #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,86 +48,7 @@
 
 
 
-#################################################
-#  ABSTRACT SUPERCLASS                          #
-#################################################
-
-
-class Executor(object):
-
-    
-    # System inquiries
-
-    @classmethod
-    def create(cls):
-        
-        import configuration
-                
-        # local configuration specifies the job launcher if any
-        name = configuration.get("config.batch.manager", "Shell")
-
-        # make corresponding executor
-        if name == "Shell":
-            ex = ShellExecutor()
-        elif name == "Slurm":
-            ex = SlurmExecutor()
-        else:
-            fatalmsg("config.yaml gives invalid name '{}' for config.batch.manager".format(name))
-            
-        return ex
-
-
-    # Scheduling operations
-    
-    def __init__(self):
-        
-         self.jobDescriptions = dict()
-         
-    
-    def defaultToBackground(cls):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "defaultTobackground")
-
-    def run(self, cmd, runDirPath, env, outPath):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "launch")
-    
-    def submitJob(self, cmd, description):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "submitJob")
-    
-    def description(self, jobID):
-        return self.jobDescriptions[jobID]
-    
-    def stdout(self, jobID):
-        return self.jobStdouts[jobID]
-                                    
-    def isFinished(self, jobID):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "isFinished")
-    
-    def waitFinished(self, jobID):
-        import time
-        while not self.isFinished(jobID): time.sleep(5)     # seconds
-    
-    def pollForFinishedJobs(self):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "pollForFinishedJobs")
-    
-    def kill(self, process):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "kill")
-    
-    def killAll(self):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "killAll")
-
-
-
-
-#################################################
-#  SHELL EXECUTOR                               #
-#################################################
+from executor import Executor
 
 
 class ShellExecutor(Executor):
@@ -139,11 +60,12 @@ class ShellExecutor(Executor):
         self.runningProcesses = set()
 
     
+    @classmethod
     def defaultToBackground(cls):
-
+        
         return False
 
-
+    
     def run(self, cmd, runDirPath, env, outPath):
         
         import os
@@ -226,51 +148,8 @@ class ShellExecutor(Executor):
         self.jobDescriptions.pop(process)
 
 
-
-#################################################
-#  SLURM EXECUTOR                               #
-#################################################
-
-
-class SlurmExecutor(Executor):
-
-    
-    def __init__(self):
-        
-        super(SlurmExecutor, self).__init__()
-    
-    
-    def defaultToBackground(cls):
-
-        return True
-
-
-    def run(self, cmd, runDirPath, env, outPath):
-        from common import notImplemented
-        notImplemented("SlurmExecutor.run")
-    
-    def submitJob(self, cmd, description):
-        from common import notImplemented
-        notImplemented("SlurmExecutor.submitJob")
-    
-    def isFinished(self, jobID):
-        from common import notImplemented
-        notImplemented("SlurmExecutor.isFinished")
-        return True
-    
-    def pollForFinishedJobs(self):
-        from common import notImplemented
-        notImplemented("SlurmExecutor.pollForFinishedJobs")
-        return { }
-    
-    def kill(self, process):
-        from common import notImplemented
-        notImplemented("SlurmExecutor.kill")
-    
-    def killAll(self):
-        from common import notImplemented
-        notImplemented("SlurmExecutor.killAll")
-
+# register this executor class by name
+Executor.register("Shell", ShellExecutor)
 
 
 

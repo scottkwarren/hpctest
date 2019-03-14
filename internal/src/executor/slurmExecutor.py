@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  iterate.py                                                                  #
-#  robustly iterates over build configs and test cases using a testdir         #
-#      to store iteration state across failed partial iterations               #
+#  slurmExecutor.py                                                            #
+#                                                                              #
+#  Run jobs immediately or in batch using the SLURM scheduler.                 #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,54 +48,69 @@
 
 
 
+from executor import Executor
 
-class Iterate():
+
+class SlurmExecutor(Executor):
+    
+    
+    def __init__(self):
+        
+        super(SlurmExecutor, self).__init__()
+    
+
+    @classmethod
+    def defaultToBackground(cls):
+        
+        return True
 
     
-    @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
+    def run(self, cmd, runDirPath, env, outPath):
         
-        from itertools import product
-        from common import infomsg, debugmsg, options
-        from run import Run
+        from common import notImplemented
+        
+        notImplemented("SlurmExecutor.run")
 
-        if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
-            infomsg("test spec matches no tests")
-            return False
-        else:
-            
-            debugmsg("experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                        .format(dims, args, options, study.path))
+    
+    def submitJob(self, cmd, description):
+        
+        from common import notImplemented
+        
+        notImplemented("SlurmExecutor.submitJob")
 
-            if wantBatch:
-            
-                # TODO: if requested, limit number of batch jobs in flight at once
-                
-                # schedule all tests for batch execution
-                infomsg("starting tests in batch")
-                submittedJobs = set()
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
-                    submittedJobs.add(jobID)
-                    
-                # poll for finished jobs until all done
-                while submittedJobs:
-                    finished = Run.pollForFinishedJobs()
-                    submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
-                    for jobID in finished:
-                        infomsg("test {} finished".format(Run.descriptionForJob(jobID)))
-                    
-                infomsg("all tests finished")
+    
+    def isFinished(self, jobID):
+        
+        from common import notImplemented
+        
+        notImplemented("SlurmExecutor.isFinished")
+        return True
 
-            else:
-                
-                # run all tests sequentially via shell commands
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
-                    status = run.run()
-            
-            
+    
+    def pollForFinishedJobs(self):
 
+        from common import notImplemented
+
+        notImplemented("SlurmExecutor.pollForFinishedJobs")
+        return { }
+
+    
+    def kill(self, process):
+
+        from common import notImplemented
+
+        notImplemented("SlurmExecutor.kill")
+
+    
+    def killAll(self):
+
+        from common import notImplemented
+
+        notImplemented("SlurmExecutor.killAll")
+
+
+# register this executor class by name
+Executor.register("Slurm", SlurmExecutor)
 
 
 

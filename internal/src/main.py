@@ -265,6 +265,8 @@ def execute(args):
         
     elif args.subcommand == "_runOne":
         
+        import spack
+        print ">>>>>> spack.do_checksum = {}".format(spack.do_checksum)    # DEBUG
         encodedArgs = args.encodedArgs
         HPCTestOb._runOne(encodedArgs)
             
