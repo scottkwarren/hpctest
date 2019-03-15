@@ -54,13 +54,15 @@ subcommand           = ""       # name of subcommand being executed
 options              = []       # list of options parsed from command line
 numErrors            = 0        # count of errors in this test run
 homepath             = None     # path to this HPCTest installation
-ext_spack_home       = None     # path to external Spack's directory if any -- can be None
-own_spack_home       = None     # path to private Spack's directory
-own_spack_module_dir = None     # path to dir containing private Spack's top level module
-testspath            = None     # path to this HPCTest's test case directory
+own_spack_home       = None     # path to private Spack's install directory
+own_spack_module_dir = None     # path to private Spack's top-level module
+ext_spack_home       = None     # path to external Spack's install directory if any -- can be None (TODO)
+ext_spack_module_dir = None     # path to external Spack's top-level module, if any -- can be None (TODO)
+hpctk_default        = None     # path to default installation of HPToolkit for use in profiling
+testspath            = None     # path to this HPCTest's test directory
 repopath             = None     # path to this HPCTest's repo for test packages
 workpath             = None     # path to this HPCTest's arena for studies
-logger               = None     # used to write test results -- TODO
+logger               = None     # used to write test results (TODO)
 
 
 # Message output

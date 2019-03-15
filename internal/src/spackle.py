@@ -58,9 +58,6 @@ def initSpack():
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
     import spack
     
-    print ">>>>>> spackle.initSpack"    # DEBUG
-    
-    
     # TODO: is any of the following redundant?
     spack.do_checksum = False   # see spack.cmd.diy lines 91-92
     spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums

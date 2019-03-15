@@ -46,77 +46,30 @@
 ##############################################################################
 
 
+from os import environ, makedirs, system, rename
+from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
+import sys
+import common
+import configuration, spackle, util
+
+
 checksumName = ".checksum"
 
 
 class HPCTest():
     
-    import common
 
-    def __init__(self, extspackpath=None, homepath=None):
+    def __init__(self):
         
         global dimensions, dimspecDefaults, dimspecClasses
 
-        from os import environ, makedirs, system, rename
-        from os.path import dirname, join, normpath, realpath, expanduser, isdir, splitext
-        import sys
-        import common, configuration, spackle, util
         from common import infomsg, warnmsg, errormsg
         from testspec   import TestSpec
         from configspec import ConfigSpec
         from stringspec   import StringSpec
-        from common import whichDir
                 
-        # determine important paths
-        common.homepath  = normpath( homepath if homepath else join(dirname(realpath(__file__)), "..", "..") )
-        internalpath = join(common.homepath, "internal")
-        common.ext_spack_home = extspackpath  # ok to be None
-        common.own_spack_home = join(internalpath, "spack")
-        common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
-        common.testspath = join(common.homepath, "tests")
-        common.repopath  = join(internalpath, "repos", "tests")
-        common.workpath  = join(common.homepath, "work")
-        if not isdir(common.workpath): makedirs(common.workpath)
-
-        # adjust environment accordingly
-        environ["HPCTEST_HOME"] = common.homepath
-        sys.path[1:0] = [ common.own_spack_module_dir,
-                          join(common.own_spack_module_dir, "external"),
-                          join(common.own_spack_module_dir, "external", "yaml", "lib"),
-                          join(common.own_spack_module_dir, "llnl"),
-                        ]
-
-        # set up local spack if necessary
-        if not isdir(common.own_spack_home):
-            
-            infomsg("Setting up internal Spack...")
-            
-            spack_version   = "0.11.2"
-            spack_tarball   = join(internalpath, "spack-{}.tar.gz".format(spack_version))
-            spack_extracted = join(internalpath, "spack-{}".format(spack_version))
-            spack_dest      = join(internalpath, "spack")
-            system("cd {}; tar xzf {}".format(internalpath, spack_tarball))
-            rename(spack_extracted, spack_dest)
-            spackle.initSpack()
-        
-            infomsg("Spack found these compilers automatically:")
-            spackle.do("compilers")
-            infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
-            infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
-
-        # set up configuration system
-        configuration.initConfig()    # must come after paths, spack, and environ are initialized
-
-        # private repo
-        self._ensureRepo()
-        
-        # install dir of hpctoolkit on $PATH, if any
-        hpctkFromPATH = whichDir("hpcrun")
-        hpctkFromPATH = dirname(hpctkFromPATH) if hpctkFromPATH else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
-        hpctkDefault  = configuration.get("profile.hpctoolkit path", hpctkFromPATH)
-        hpctkDefault  = expanduser(hpctkDefault) if hpctkDefault else None
-        msgfunc       = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
-        if (not hpctkDefault) and msgfunc:
+        msgfunc = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
+        if (not common.hpctk_default) and msgfunc:
             msgfunc("no default HPCToolkit specified for profiling.\n"
                     "\n"
                     "To run profiling tests, specify '--hpctookit <path to bin dir>' on each 'hpctest run' command line.\n"
@@ -131,7 +84,7 @@ class HPCTest():
         dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
         dimspecDefaults = { "tests":             "all",    
                             "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkit":        hpctkDefault,
+                            "hpctoolkit":        common.hpctk_default,
                             "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
                                                  configuration.get("profile.hpctoolkit.hpcprof params",   "")
@@ -264,128 +217,13 @@ class HPCTest():
                 
         infomsg("selftest not implemented")
         
-#         # run tests, reporting results as we go
-#         study = Study(studyPath if studyPath else common.workpath, prefix="selftest")
-#         xxxxxxxxx
-#         print
-
-        
-#     def miniapps(self):
-#         
-#         from os.path import join
-#         import spack
-#         from spack.repository import Repo
-#         from common import own_spack_home
-#         
-#         # iterate over builtin packages
-#         builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
-#         for name in builtin.packages_with_tags("proxy-app"):
-#             p = builtin.get(name)
-#             print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
-
-    
-    def _ensureRepo(self):
-
-        import common
-        import spackle
-        
-        # create new private repo for building test cases
-        noRepo = spackle.getRepo("tests") is None
-        if noRepo: spackle.createRepo("tests")
-        self._ensureTests()
-        if noRepo:
-            spackle.addRepo(common.repopath)
-        else:
-            spackle.updateRepoPath(common.repopath)
-
-        # extend external repo if one was specified
-        pass
+#       # run tests, reporting results as we go
+#       study = Study(studyPath if studyPath else common.workpath, prefix="selftest")
+#       xxxxxxxxx
+#       print
 
 
-    def _ensureTests(self):
-
-        from os.path import join, exists
-        from util.checksumdir import dirhash
-        from common import options, homepath, forTestsInDirTree, repopath
-    
-        def ensureTest(testDir, testYaml):
-            
-            if "nochecksum" in options: return
-            if testYaml["config"] == "spack-builtin": return
-            name = testYaml["info"]["name"]
-            checksumPath = join(testDir, checksumName)
-            
-            # check if repo has an up-to-date package
-            newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
-            packagePath = join(repopath, "packages", name)
-            if exists(packagePath):
-                # compare old and new checksums
-                if exists(checksumPath):
-                    with open(checksumPath) as old: oldChecksum = old.read()
-                else:
-                    oldChecksum = "no checksum yet"
-                needPackage = newChecksum != oldChecksum
-            else:
-                needPackage = True
-                
-            # update package if test has changed
-            if needPackage:
-                self._addPackageForTest(testDir, name)
-                            
-                # save new checksum
-                with open(checksumPath, 'w') as new:
-                    new.write(newChecksum)
-                
-        testsDir = join(homepath, "tests")
-        forTestsInDirTree( testsDir, lambda(a, b): ensureTest(a, b) )   # 
-
-
-    def _addPackageForTest(self, testPath, name):
-        
-        from os import mkdir
-        from os.path import exists, join
-        from shutil import copy, rmtree
-        import spackle
-        from common import debugmsg, repopath
-        
-        debugmsg("adding package for test {}".format(testPath))
-        packagePath = join(repopath, "packages", name)
-
-        # remove installed versions of package if any
-        if exists(packagePath):
-            cmd = "uninstall --all --force --yes-to-all {}".format(name)
-            spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")   # installed dependencies are not removed
-        rmtree(packagePath, ignore_errors=True)
-
-        # make package directory for this test
-        mkdir(packagePath)
-        
-        # copy or generate test's description files
-        hpath = join(testPath, "hpctest.yaml")
-        ppath = join(testPath, "package.py")
-        copy(hpath, packagePath)
-        if exists(ppath):
-            copy(ppath, packagePath)
-        else:
-            self._generatePackagePy(hpath, packagePath)
-
-
-    def _generatePackagePy(self, hpath, ppath):
-        
-        # hpath => hpctest.yaml file to generate from
-        # ppath => package directory to generate into
-        
-        from common import notimplemented
-        notimplemented("hpctest._generatePackagePy")
-    
-
-
-   
-##########################################
-# SUPPORT FOR DEFERRED EXECUTION (BATCH) #
-##########################################
-
-
+    # support for deferred execution
     def _runOne(self, encodedArgs):
         
         from run import Run
@@ -394,8 +232,172 @@ class HPCTest():
         runOb   = Run(*runArgs)
         runOb.run(echoStdout=False)
 
+        
+#    def miniapps(self):
+#         
+#    from os.path import join
+#    import spack
+#    from spack.repository import Repo
+#    from common import own_spack_home
+#         
+#    # iterate over builtin packages
+#    builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
+#    for name in builtin.packages_with_tags("proxy-app"):
+#        p = builtin.get(name)
+#        print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
 
 
+    
+
+#########################
+# MODULE INITIALIZATION #
+#########################
+
+    
+def _ensureRepo():
+
+    import common
+    import spackle
+    
+    # create new private repo for building test cases
+    noRepo = spackle.getRepo("tests") is None
+    if noRepo: spackle.createRepo("tests")
+    _ensureTests()
+    if noRepo:
+        spackle.addRepo(common.repopath)
+    else:
+        spackle.updateRepoPath(common.repopath)
+
+    # extend external repo if one was specified
+    pass
+
+
+def _ensureTests():
+
+    from os.path import join, exists
+    from util.checksumdir import dirhash
+    from common import options, homepath, forTestsInDirTree, repopath
+
+    def ensureTest(testDir, testYaml):
+        
+        if "nochecksum" in options: return
+        if testYaml["config"] == "spack-builtin": return
+        name = testYaml["info"]["name"]
+        checksumPath = join(testDir, checksumName)
+        
+        # check if repo has an up-to-date package
+        newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
+        packagePath = join(repopath, "packages", name)
+        if exists(packagePath):
+            # compare old and new checksums
+            if exists(checksumPath):
+                with open(checksumPath) as old: oldChecksum = old.read()
+            else:
+                oldChecksum = "no checksum yet"
+            needPackage = newChecksum != oldChecksum
+        else:
+            needPackage = True
+            
+        # update package if test has changed
+        if needPackage:
+            _addPackageForTest(testDir, name)
+                        
+            # save new checksum
+            with open(checksumPath, 'w') as new:
+                new.write(newChecksum)
+            
+    testsDir = join(homepath, "tests")
+    forTestsInDirTree( testsDir, lambda(a, b): ensureTest(a, b) )   # 
+
+
+def _addPackageForTest(testPath, name):
+    
+    from os import mkdir
+    from os.path import exists, join
+    from shutil import copy, rmtree
+    import spackle
+    from common import debugmsg, repopath
+    
+    debugmsg("adding package for test {}".format(testPath))
+    packagePath = join(repopath, "packages", name)
+
+    # remove installed versions of package if any
+    if exists(packagePath):
+        cmd = "uninstall --all --force --yes-to-all {}".format(name)
+        spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")   # installed dependencies are not removed
+    rmtree(packagePath, ignore_errors=True)
+
+    # make package directory for this test
+    mkdir(packagePath)
+    
+    # copy or generate test's description files
+    hpath = join(testPath, "hpctest.yaml")
+    ppath = join(testPath, "package.py")
+    copy(hpath, packagePath)
+    if exists(ppath):
+        copy(ppath, packagePath)
+    else:
+        _generatePackagePy(hpath, packagePath)
+
+
+def _generatePackagePy(hpath, ppath):
+    
+    # hpath => hpctest.yaml file to generate from
+    # ppath => package directory to generate into
+    
+    from common import notimplemented
+    notimplemented("hpctest._generatePackagePy")
+
+
+
+
+# determine important paths
+common.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
+_internalpath   = join(common.homepath, "internal")
+common.own_spack_home = join(_internalpath, "spack")
+common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
+_whichHpcrun         = common.whichDir("hpcrun")
+_hpctkInstall        = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+common.hpctk_default = configuration.get("profile.hpctoolkit path", _hpctkInstall)
+common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
+common.testspath     = join(common.homepath, "tests")
+common.repopath      = join(_internalpath, "repos", "tests")
+common.workpath      = join(common.homepath, "work")
+if not isdir(common.workpath): makedirs(common.workpath)
+
+# set up environment
+environ["HPCTEST_HOME"] = common.homepath
+sys.path[1:0] = [ common.own_spack_module_dir,
+                  join(common.own_spack_module_dir, "external"),
+                  join(common.own_spack_module_dir, "external", "yaml", "lib"),
+                  join(common.own_spack_module_dir, "llnl"),
+                ]
+
+# set up local spack if necessary
+if not isdir(common.own_spack_home):
+    
+    # inits to set up our own Spack, done only the first time HPCTest runs
+    
+    infomsg("Setting up internal Spack...")
+    
+    spack_version   = "0.11.2"
+    spack_tarball   = join(_internalpath, "spack-{}.tar.gz".format(spack_version))
+    spack_extracted = join(_internalpath, "spack-{}".format(spack_version))
+    spack_dest      = join(_internalpath, "spack")
+    system("cd {}; tar xzf {}".format(_internalpath, spack_tarball))
+    rename(spack_extracted, spack_dest)
+
+    infomsg("Spack found these compilers automatically:")
+    spackle.do("compilers")
+    infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
+    infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
+spackle.initSpack()     # must be done at each execution of our Spack
+
+# set up configuration system
+configuration.initConfig()    # must come after paths, spack, and environ are initialized
+
+# set up private repo
+_ensureRepo()
 
 
 
