@@ -1,0 +1,14 @@
+Omptest NOTES
+
+- Runs a number of OpenMP benchmark kernels and for each one, prints a line
+  containing the high resolution real time, high resolution virtual real time
+  (execution time), and benchmark name. I think the virtual real time corresponds
+  to hpctoolkit's REALTIME metric.
+  
+- The line looks like this:
+
+	X  26.777         1.861    pardo_
+	
+  where the 'X' is in column one.
+  
+- On les a run takes about 57.5 minutes. On gpu it takes about 8 minutes.

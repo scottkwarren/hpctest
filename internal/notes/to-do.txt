@@ -3,20 +3,6 @@ HPCTEST TO DO
 
 Bugs
 
-- Intermittent bug!
-    [scott@les ~]$ hpctest run app/lulesh
-    ----------------------------------------------------------------------
-    running test app/lulesh with config %gcc and -e REALTIME@10000
-    ----------------------------------------------------------------------
-    unexpected error AttributeError ('ElapsedTimer' object has no attribute 'secs')
-
-
-- Execution failures display only 'ProcessError' rather than error printed on stdout:
-        ------------------------------------------------------------------------
-        | APP / AMGMK with %GCC and -e REALTIME@10000                           
-        | HPCRUN FAILED: ProcessError (Exit status 127)                         
-        ------------------------------------------------------------------------
-
 - Reporting failures due to incomplete run info often print as just the string "status"
    - info.extractRunInfoMsg = e.message # TODO: 'KeyError' => "status"; e.message and str(e) no better
 

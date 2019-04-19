@@ -66,7 +66,7 @@ class ShellExecutor(Executor):
         return False
 
     
-    def run(self, cmd, runDirPath, env, outPath):
+    def run(self, cmd, runPath, env, outPath, description):
         
         import os
         from subprocess import call, CalledProcessError
@@ -74,44 +74,53 @@ class ShellExecutor(Executor):
            
         try:
                
-            if runDirPath:
+            if runPath:
                 oldwd  = os.getcwd()
-                os.chdir(runDirPath)
+                os.chdir(runPath)
                 
             with open(outPath, "w") as output:
                 call(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
               
         except CalledProcessError as e:
-            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
+            raise ExecuteFailed(str(e), "exit status %d".format(process.returncode))   ## <<< FIXME: iterate.doForAll must handle whatever's here
         except OSError as e:
-            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
+            raise ExecuteFailed('{}: {}'.format(self.exe[0], e.strerror))   ## <<< FIXME: iterate.doForAll must handle whatever's here
         except Exception as e:
             raise ExecuteFailed(e.message)
         
         finally:
-            if runDirPath: os.chdir(oldwd)
+            if runPath: os.chdir(oldwd)
     
     
-    def submitJob(self, cmd, description):
+    def submitJob(self, cmd, runPath, env, outPath, description):   # returns jobID, errno
                 
         from StringIO import StringIO
         import subprocess
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
         
+        errno = 0
         try:
             
-            process = Popen(cmd, shell=True, stdin=None)
+            if runPath:
+                oldwd  = os.getcwd()
+                os.chdir(runPath)
+
+            process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=env)
 
         except OSError as e:
-            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
+            errno = e.errno    # to return from 'submitjob'
+            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))  ## <<< FIXME: iterate.doForAll must handle whatever's here
         except CalledProcessError as e:
-            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
+            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)  ## <<< FIXME: DITTO
+        
+        finally:
+            if runPath: os.chdir(oldwd)
             
         self.runningProcesses.add(process)
         self.jobDescriptions[process] = description        
 
-        return process
+        return process, errno
     
     
     def isFinished(self, process):

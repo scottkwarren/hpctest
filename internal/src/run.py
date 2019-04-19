@@ -64,11 +64,12 @@ class Run():
         from os.path import basename, join
 
         # general params
-        self.testdir = testdir                        # path to test case's directory
-        self.config  = config                         # Spack spec for desired build configuration
-        self.study   = study                          # storage for collection of test run dirs
-        self.name    = basename(self.testdir)
-        
+        self.testdir     = testdir                        # path to test case's directory
+        self.config      = config                         # Spack spec for desired build configuration
+        self.study       = study                          # storage for collection of test run dirs
+        self.name        = basename(self.testdir)
+        self.description = basename(testdir) + config + ":" + profile     
+
         # hpctoolkit params
         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
         self.hpctoolkitParams  = profile
@@ -343,7 +344,8 @@ class Run():
                 
                 # run hpcstruct on test executable
                 structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
-                cmd = "{}/hpcstruct -o {} {} -I {} {}" \
+####            cmd = "{}/hpcstruct -o {} {} -I {} {}" \
+                cmd = "{}/hpcstruct -o {} {} -I {} {} --debug=1" \
                     .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
                 structTime, structFailMsg = self._execute(cmd, root + [], "hpcstruct", suffix, mpi=False, openmp=False)
                 self._checkHpcstructExecution(suffix, structTime, structFailMsg, structPath)
@@ -392,7 +394,7 @@ class Run():
         # compute command to be executed
         # ... start with test's run command
         env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
-        env["PATH"] = self.package.prefix + "/bin" + ":" + env["PATH"]
+        env["PATH"] = self.package.prefix + "/bin" + (":" + env["PATH"]) if "PATH" in env else ""
         runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
         outPath  = self.output.makePath("{}-output.txt", label + suffix)
         timePath = self.output.makePath("{}-time.txt", label + suffix)
@@ -431,7 +433,7 @@ class Run():
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
-            Run.executor.run(cmd, runPath, env, outPath)
+            Run.executor.run(cmd, runPath, env, outPath, self.description)
                 
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
@@ -686,13 +688,17 @@ class Run():
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, rc, errno
+        
+        import os
+        from common import homepath
         
         initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
-        cmd = "hpctest _runOne '{}'".format(initArgs)     # creation args for a Run object
-        jobID = Run.executor.submitJob(cmd, description)
+        cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)     # creation args for a Run object
+        env = os.environ.copy()         # so that batch job will run with the existing environment
+        jobID, rc, err = Run.executor.submitJob(cmd, None, env, None, description)
         
-        return jobID
+        return jobID, rc, err
     
     
     @classmethod
@@ -727,7 +733,6 @@ class Run():
         encodedArgs    = ",".join([testdir, config, hpctoolkit, profile, str(numrepeats), study.path])
         encodedArgs = encodedArgs.replace(" ", "#")
         description = basename(testdir) + config + ":" + profile     
-        decodedArgs = Run.decodeInitArgs(encodedArgs)  ## DEBUG
         return encodedArgs, description
     
     

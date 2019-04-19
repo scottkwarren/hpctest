@@ -56,7 +56,7 @@ class Iterate():
     def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
         
         from itertools import product
-        from common import infomsg, debugmsg, options
+        from common import infomsg, errormsg, debugmsg, options
         from run import Run
 
         if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
@@ -69,24 +69,32 @@ class Iterate():
 
             if wantBatch:
             
-                # TODO: if requested, limit number of batch jobs in flight at once
-                
-                # schedule all tests for batch execution
-                infomsg("starting tests in batch")
-                submittedJobs = set()
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    jobID = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
-                    submittedJobs.add(jobID)
+                try:
                     
-                # poll for finished jobs until all done
-                while submittedJobs:
-                    finished = Run.pollForFinishedJobs()
-                    submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
-                    for jobID in finished:
-                        infomsg("test {} finished".format(Run.descriptionForJob(jobID)))
+                    # TODO: optionally limit number of batch jobs in flight at once
                     
-                infomsg("all tests finished")
+                    # schedule all tests for batch execution
+                    infomsg("starting tests in batch")
+                    submittedJobs = set()
+                    for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
+                        jobID, errmo = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
+                        if not errno:
+                            submittedJobs.add(jobID)
+                        else:
+                            errormsg("submit failed for test {}{}:{} ({})".format(test, config, profile, err))
+                        
+                    # poll for finished jobs until all done
+                    while submittedJobs:
+                        finished = Run.pollForFinishedJobs()
+                        submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
+                        for jobID in finished:
+                            infomsg("test {} finished".format(Run.descriptionForJob(jobID)))
+                        
+                    infomsg("all tests finished")
 
+                except Exception as e:
+                    errormsg("batch failure: {}".format(e))
+                
             else:
                 
                 # run all tests sequentially via shell commands
