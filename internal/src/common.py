@@ -100,7 +100,6 @@ def errormsg(message):
     infomsg("error: " + message)
     if "traceback" in options or "debug" in options:
         traceback.print_stack()
-            
 
 def fatalmsg(message):
     

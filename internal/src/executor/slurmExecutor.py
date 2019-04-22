@@ -70,7 +70,7 @@ class SlurmExecutor(Executor):
         from common import ExecuteFailed
         rc, err = _srun(cmd, runPath, env, outPath, description)
         if rc:
-            raise ExecuteFailed(err, "exit status {} ({})".format(rc, err))   ## <<< FIXME: iterate.doForAll must handle whatever's here
+            raise ExecuteFailed(err, "exit status {} ({})".format(rc, err))
 
     
     def submitJob(self, cmd, runPath, env, outPath, description):   # returns jobID, errno
@@ -82,7 +82,7 @@ class SlurmExecutor(Executor):
             self.runningProcesses.add(jobid)
             self.jobDescriptions[jobid] = description
         
-        return (jobid, rc, err)      
+        return (jobid, err)      
 
     
     def isFinished(self, jobID):

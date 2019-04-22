@@ -82,9 +82,9 @@ class ShellExecutor(Executor):
                 call(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
               
         except CalledProcessError as e:
-            raise ExecuteFailed(str(e), "exit status %d".format(process.returncode))   ## <<< FIXME: iterate.doForAll must handle whatever's here
+            raise ExecuteFailed(str(e), "exit status %d".format(process.returncode))
         except OSError as e:
-            raise ExecuteFailed('{}: {}'.format(self.exe[0], e.strerror))   ## <<< FIXME: iterate.doForAll must handle whatever's here
+            raise ExecuteFailed('{}: {}'.format(self.exe[0], e.strerror))
         except Exception as e:
             raise ExecuteFailed(e.message)
         
@@ -110,9 +110,10 @@ class ShellExecutor(Executor):
 
         except OSError as e:
             errno = e.errno    # to return from 'submitjob'
-            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))  ## <<< FIXME: iterate.doForAll must handle whatever's here
+            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
         except CalledProcessError as e:
-            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)  ## <<< FIXME: DITTO
+            errno = -999    # to return from 'submitjob'
+            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
         
         finally:
             if runPath: os.chdir(oldwd)
@@ -125,7 +126,10 @@ class ShellExecutor(Executor):
     
     def isFinished(self, process):
         
-        return process.poll() != None
+####    return process.poll() != None
+        p = process.poll()
+        print "process.poll() => {}".format(p)
+        return p != None
     
     
     def pollForFinishedJobs(self):

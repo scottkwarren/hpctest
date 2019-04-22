@@ -77,7 +77,7 @@ class Iterate():
                     infomsg("starting tests in batch")
                     submittedJobs = set()
                     for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                        jobID, errmo = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
+                        jobID, errno = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
                         if not errno:
                             submittedJobs.add(jobID)
                         else:

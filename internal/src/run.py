@@ -688,7 +688,7 @@ class Run():
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, rc, errno
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, errno
         
         import os
         from common import homepath
@@ -696,9 +696,9 @@ class Run():
         initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)     # creation args for a Run object
         env = os.environ.copy()         # so that batch job will run with the existing environment
-        jobID, rc, err = Run.executor.submitJob(cmd, None, env, None, description)
+        jobID, err = Run.executor.submitJob(cmd, None, env, None, description)
         
-        return jobID, rc, err
+        return jobID, err
     
     
     @classmethod
