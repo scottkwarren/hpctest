@@ -228,8 +228,6 @@ class HPCTest():
         
         from run import Run
         
-        print ">>>>>> ", encodedArgs, " <<<<<<"     ## DEBUG
-        
         runArgs = Run.decodeInitArgs(encodedArgs) + (False, )  # + wantBatch
         runOb   = Run(*runArgs)
         runOb.run(echoStdout=False)
