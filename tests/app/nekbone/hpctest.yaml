@@ -2,7 +2,6 @@
 # HPCTest description for test nekbone-2.3.4 #
 #============================================#
 
-
 info:
   name:  "nekbone"
   version: 1.0

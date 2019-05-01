@@ -75,18 +75,28 @@ class Report():
         # collect the results from all runs meeting 'whichspec'
         reportAll    = whichspec == "all"
         reportPassed = whichspec == "pass"     # if 'reportAll', don't care
+        studyDirs = listdir(studypath)
         results = list()
-        for runname in listdir(studypath):
+        fails   = list()
+        for runname in studyDirs:
             runPath = join(studypath, runname)
             outPath = join(runPath, "OUT", "OUT.yaml")
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)
                 if error: fatalmsg("result file OUT.yaml cannot be read for test run {}".format(runPath))
-                if reportAll or reportPassed == (resultdict["summary"]["status"] == "OK"):
+                ok = resultdict["summary"]["status"] == "OK"
+                if reportAll or (reportPassed == ok):
                     results.append(resultdict)
+                if not ok:
+                    fails.append(resultdict)
             else:
                 errormsg("Test results file OUT.yaml not found for run {}, ignored".format(runPath))
 
+        # counts for final summary line
+        numTests  = len(studyDirs)
+        numFails  = len(fails)
+        numPasses = numTests - numFails
+        
         # print a summary record for each result, sorted by config spec and then test name
         if results:
 
@@ -107,15 +117,14 @@ class Report():
 
             print
             for result in results:
-                
-                info = self.extractRunInfo(result)
-                
-                # format for display
-                testLabel = "{} with {}".format(info.test, info.config)
-                if info.wantProfiling:
-                    testLabel += " and {}".format(info.params)  # TODO: display hpctoolkit path but make sure line's not too long
+                                
+                # format for display -- line 1
+                testLabel = self.labelForTest(result)
                 line1 = "| {}".format(testLabel)
                 line1 += " " * (tableWidth - len(line1) - 1) + "|"
+                
+                # format for display -- line 2
+                info = self.extractRunInfo(result)
                 if info.extractRunInfoMsg:
                     line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.extractRunInfoMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
@@ -136,9 +145,20 @@ class Report():
                 sepmsg(tableWidth)
                 print line1
                 print line2
-                            
+                       
             sepmsg(tableWidth)
-            print "\n"
+            print; print
+            
+            # final summary
+            print "TESTS:  {}".format(numTests)
+            print "PASSED: {}".format(numPasses)
+            print "FAILED: {}".format(numFails)
+            print
+            if numFails:
+                print "Failed tests:"
+                for f in fails:
+                    print "    {}".format(self.labelForTest(f))
+            print; print
 
         else:
             infomsg("no runs matching '--which {}'".format(whichspec))
@@ -196,6 +216,15 @@ class Report():
             info.extractRunInfoMsg = e.message      # TODO: 'KeyError' => "status"; e.message and str(e) no better
     
         return info
+
+
+    def labelForTest(self, testdict):
+
+        info  = self.extractRunInfo(testdict)
+        label = "{} with {}".format(info.test, info.config)
+        if info.wantProfiling:
+            label += " and {}".format(info.params)  # TODO: display hpctoolkit path but make sure line's not too long
+        return label
 
 
 def _pct(s, d):

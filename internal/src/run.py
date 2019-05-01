@@ -344,8 +344,7 @@ class Run():
                 
                 # run hpcstruct on test executable
                 structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
-####            cmd = "{}/hpcstruct -o {} {} -I {} {}" \
-                cmd = "{}/hpcstruct -o {} {} -I {} {} --debug=1" \
+                cmd = "{}/hpcstruct -o {} {} -I {} {}" \
                     .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
                 structTime, structFailMsg = self._execute(cmd, root + [], "hpcstruct", suffix, mpi=False, openmp=False)
                 self._checkHpcstructExecution(suffix, structTime, structFailMsg, structPath)
