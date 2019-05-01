@@ -66,7 +66,9 @@ class ShellExecutor(Executor):
         return False
 
     
-    def run(self, cmd, runPath, env, outPath, description):
+    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description):
+        
+        # NOT USED: numRanks, numThreads  -- 'cmd' haas necessary code for these already
         
         import os
         from subprocess import call, CalledProcessError
@@ -92,8 +94,10 @@ class ShellExecutor(Executor):
             if runPath: os.chdir(oldwd)
     
     
-    def submitJob(self, cmd, runPath, env, outPath, description):   # returns jobID, errno
-                
+    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, errno
+        
+        # NOT USED: numRanks, numThreads  -- 'cmd' haas necessary code for these already
+        
         from StringIO import StringIO
         import subprocess
         from subprocess import Popen, CalledProcessError

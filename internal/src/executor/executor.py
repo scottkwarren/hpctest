@@ -110,11 +110,11 @@ class Executor(object):
          self.jobDescriptions = dict()
          
     
-    def run(self, cmd, runDirPath, env, outPath, description):
+    def run(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):
         from common import subclassResponsibility
-        subclassResponsibility("Executor", "launch")
+        subclassResponsibility("Executor", "run")
     
-    def submitJob(self, cmd, runDirPath, env, outPath, description):   # returns jobID, errno
+    def submitJob(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):   # returns jobID, errno
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")
     

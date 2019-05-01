@@ -65,19 +65,19 @@ class SlurmExecutor(Executor):
         return True
 
     
-    def run(self, cmd, runPath, env, outPath, description): # returns nothing, raises
+    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         from common import ExecuteFailed
-        rc, err = _srun(cmd, runPath, env, outPath, description)
+        rc, err = _srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
         if rc:
             raise ExecuteFailed(err, "exit status {} ({})".format(rc, err))
 
     
-    def submitJob(self, cmd, runPath, env, outPath, description):   # returns jobID, errno
+    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, errno
         
         from common import ExecuteFailed
 
-        jobid, rc, err = _sbatch(cmd, runPath, env, outPath, description)
+        jobid, rc, err = _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description)
         if rc == 0:
             self.runningProcesses.add(jobid)
             self.jobDescriptions[jobid] = description
@@ -121,7 +121,7 @@ class SlurmExecutor(Executor):
 
 
     @staticmethod
-    def _srun(cmd, runPath, env, outPath, description): # returns (rc, err)
+    def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (rc, err)
         
         import textwrap, tempfile
         
@@ -151,7 +151,7 @@ class SlurmExecutor(Executor):
         account, partition, time = _paramsFromConfiguration()
 
         # template params from test
-        nnodes, ntasks, cpusPerTask, memPerCpu = xxx
+        cpusPerTask, memPerCpu = _paramsFromTest()
         
         # prepare slurm command file
         f, fname = tempfile.mkstemp(".slurm")
@@ -160,8 +160,8 @@ class SlurmExecutor(Executor):
             account     = account,
             partition   = partition,
             env         = _envDictToString(env),
-            nnodes      = nnodes,
-            ntasks      = ntasks,
+            nnodes      = numRanks,
+            ntasks      = numThreads,
             cpusPerTask = cpusPerTask,      # 2,
             memPerCpu   = memPerCpu,        # "1000m",
             time        = time,
@@ -181,7 +181,7 @@ class SlurmExecutor(Executor):
 
 
     @staticmethod
-    def _sbatch(cmd, runPath, env, outPath, description): # returns (jobid, rc, err)
+    def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (jobid, rc, err)
                
         import textwrap, tempfile
         
@@ -210,7 +210,7 @@ class SlurmExecutor(Executor):
         account, partition, time = _paramsFromConfiguration()
         
         # template params from test
-        nnodes, ntasks, cpusPerTask, memPerCpu = _paramsFromTest()
+        cpusPerTask, memPerCpu = _paramsFromTest()
         
         # prepare slurm command file
         f, fname = tempfile.mkstemp(".slurm")
@@ -219,8 +219,8 @@ class SlurmExecutor(Executor):
             account     = account,
             partition   = partition,
             env         = _envDictToString(env),
-            nnodes      = nnodes,
-            ntasks      = ntasks,
+            nnodes      = numRanks,
+            ntasks      = numThreads,
             cpusPerTask = cpusPerTask,      # 2,
             memPerCpu   = memPerCpu,        # "1000m",
             time        = time,
@@ -253,9 +253,9 @@ class SlurmExecutor(Executor):
     def _paramsFromConfiguration():
         
         import configuration
-#         account   =  configuration.get(xxx, "xxx")
-#         partition =  configuration.get(xxx, "xxx")
-#         time      =  configuration.get(xxx, "xxx")
+##        account   =  configuration.get(xxx, "xxx")
+##        partition =  configuration.get(xxx, "xxx")
+##        time      =  configuration.get(xxx, "xxx")
         account   =  "scott@rice.edu"
         partition =  "common"
         time      =  "0:30:00"
@@ -267,16 +267,12 @@ class SlurmExecutor(Executor):
     def _paramsFromTest():
         
         import configuration
-#         nnodes      = xxx
-#         ntasks      = xxx
-#         cpusPerTask = xxx
-#         memPerCpu   = xxx
-        nnodes      = 1
-        ntasks      = 4
+
         cpusPerTask = 1
         memPerCpu   = "1000m"
         
-        return (nnodes, ntasks, cpusPerTask, memPerCpu)
+        return (cpusPerTask, memPerCpu)
+
 
 # register this executor class by name
 Executor.register("Slurm", SlurmExecutor)

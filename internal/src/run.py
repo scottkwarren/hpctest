@@ -406,18 +406,24 @@ class Run():
         # ... add OpenMP parameters if wanted
         if wantOpenMP:
             if "threads" in self.yaml["run"]:
-                openMPNumThreads = str( self.yaml["run"]["threads"] )
-                env["OMP_NUM_THREADS"] = openMPNumThreads
+                numThreads = str( self.yaml["run"]["threads"] )
+                env["OMP_NUM_THREADS"] = numThreads
             else:
-                # TODO: some default thing?
-                pass
+                numThreads = 1
+        else:
+            numThreads = 1
         
         # ... add MPI launching code if wanted
         if wantMPI:
             mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
-            mpiNumRanks = str( self.yaml["run"]["ranks"] )
+            if "ranks" in self.yaml["run"]:
+                numRanks = str( self.yaml["run"]["ranks"] )
+            else:
+                numRanks = 1
             mpiOptions  = "-verbose" if "verbose" in options else ""
-            cmd = "{}/mpiexec -np {} {} {}".format(mpiBinPath, mpiNumRanks, mpiOptions, cmd)
+            cmd = "{}/mpiexec -np {} {} {}".format(mpiBinPath, numRanks, mpiOptions, cmd)
+        else:
+            numRanks = 1
         
         # ... always add timing code
         cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
@@ -432,7 +438,7 @@ class Run():
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
-            Run.executor.run(cmd, runPath, env, outPath, self.description)
+            Run.executor.run(cmd, runPath, env, numRanks, numThreads, outPath, self.description)
                 
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
@@ -687,15 +693,18 @@ class Run():
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, errno
+    def submitJob(cls, testdir, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, errno
         
         import os
         from common import homepath
         
-        initArgs, description = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
+        ## TODO: get 'numRanks' and 'numThreads' from test (testdir => Test object)
+        numRanks = numThreads = 1
+        
+        initArgs, description = Run._encodeInitArgs(testdir, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)     # creation args for a Run object
         env = os.environ.copy()         # so that batch job will run with the existing environment
-        jobID, err = Run.executor.submitJob(cmd, None, env, None, description)
+        jobID, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, description)
         
         return jobID, err
     
