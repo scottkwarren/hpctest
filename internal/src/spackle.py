@@ -68,7 +68,7 @@ def initSpack():
 #  Commands  #
 #------------#
 
-def do(cmdstring, stdout="", stderr=""):
+def do(cmdstring, stdout="/dev/null", stderr="/dev/null"):
 
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         

@@ -149,20 +149,17 @@ class Run():
     def _readYaml(self):
 
         from os.path import join, basename
-        from common import readYamlforTest, BadTestDescription
+        from common import BadTestDescription
+        from test import Test
         
-        self.yaml, msg = readYamlforTest(self.testdir)
-        if msg:
-            self.wantProfiling = False
-            self.output.add("input", "wantProfiling", "False")
-            self.output.addSummaryStatus("READING YAML FAILED", msg)
-            raise BadTestDescription(msg)
-        else:
+        test = Test(self.testdir)   # TEMPORARY: will go away when a Run holds a Test object
+        self.yaml = test.yaml()
+        if self.yaml:
             
             # ensure necessary fields are present, by adding them if necessary
             ## info.homepage -- optional
             ## info.url -- optional
-            ## config.'default vsriants' -- default is the config.variants.base... one
+            ## config.'default variants' -- default is the config.variants.base... one
             ## config.flags.* -- optional
             ## build.makefilename-- default is "Makefile"
             ## build.separate -- default is []
@@ -174,6 +171,13 @@ class Run():
             self.builtin = (self.yaml["config"] == "spack-builtin")
             self.wantProfiling = self.yaml.get("profile", True)
             self.output.add("input", "wantProfiling", str(self.wantProfiling))
+            
+        else:
+            
+            self.wantProfiling = False
+            self.output.add("input", "wantProfiling", "False")
+            self.output.addSummaryStatus("READING YAML FAILED", test.yamlMsg())
+            raise BadTestDescription(msg)
 
 
     def _makeBuildSpec(self):

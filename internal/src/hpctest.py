@@ -275,39 +275,30 @@ def _ensureRepo():
 def _ensureTests():
 
     from os.path import join, exists
-    from util.checksumdir import dirhash
-    from common import options, homepath, forTestsInDirTree, repopath
-
+    from common import options, homepath, repopath
+    from test import Test
+            
     def ensureTest(testDir, testYaml):
+        
+        from test import Test
         
         if "nochecksum" in options: return
         if testYaml["config"] == "spack-builtin": return
-        name = testYaml["info"]["name"]
-        checksumPath = join(testDir, checksumName)
         
         # check if repo has an up-to-date package
-        newChecksum = dirhash(testDir, hashfunc='md5', excluded_files=[checksumName])
+        name = testYaml["info"]["name"]
         packagePath = join(repopath, "packages", name)
         if exists(packagePath):
-            # compare old and new checksums
-            if exists(checksumPath):
-                with open(checksumPath) as old: oldChecksum = old.read()
-            else:
-                oldChecksum = "no checksum yet"
-            needPackage = newChecksum != oldChecksum
+            needPackage = Test.hasChanged(testDir)
         else:
             needPackage = True
             
         # update package if test has changed
         if needPackage:
             _addPackageForTest(testDir, name)
-                        
-            # save new checksum
-            with open(checksumPath, 'w') as new:
-                new.write(newChecksum)
+            Test.markUnchanged(testDir)
             
-    testsDir = join(homepath, "tests")
-    forTestsInDirTree( testsDir, lambda(a, b): ensureTest(a, b) )   # 
+    Test.forEachDo( lambda(testDir, yaml): ensureTest(testDir, yaml) )
 
 
 def _addPackageForTest(testPath, name):
@@ -324,7 +315,7 @@ def _addPackageForTest(testPath, name):
     # remove installed versions of package if any
     if exists(packagePath):
         cmd = "uninstall --all --force --yes-to-all {}".format(name)
-        spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")   # installed dependencies are not removed
+        spackle.do(cmd)   # installed dependencies are not removed
     rmtree(packagePath, ignore_errors=True)
 
     # make package directory for this test

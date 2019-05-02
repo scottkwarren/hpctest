@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  testspec.py                                                                 #
-#  textual spec for set of test cases to run, and its evaluated set            #
+#  test.py                                                                     #
+#  a test case specified by path to its directory                              #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,45 +48,135 @@
 
 
 
-# TEMPORARY: specstring is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
-
-class TestSpec(object):
+class Test():
     
-    def __init__(self, specString):
-                
-        from os.path import join                                                                                                                                                                                                 
-        from glob import glob
-        from common import homepath
-        from test import Test
-                  
-        if specString == "all":
-            self.pathlist = []
-            Test.forEachDo( lambda (testDir, _): self.pathlist.append(testDir) )
+    _checksumName = ".checksum"
+    _yamlName     = "hpctest.yaml"
+    
+    
+    #---------------#
+    # Class methods #
+    #---------------#
+    
+    @classmethod
+    def isTestDir(cls, path):
+        
+        from os.path import isfile, join
+        return isfile(join(path, Test._yamlName))
+
+
+    @classmethod
+    def markUnchanged(cls, testDir):
+        
+        from os.path import join
+
+        checksumPath = join(testDir, Test._checksumName)
+        with open(checksumPath, 'w') as cs:
+            cs.write(Test._computeChecksum(testDir))
+
+
+    @classmethod
+    def hasChanged(cls, testDir):
+        
+        from os.path import join, exists
+        from util.checksumdir import dirhash
+
+        # get new checksum
+        newChecksum = Test._computeChecksum(testDir)
+
+        # get old checksum
+        checksumPath = join(testDir, Test._checksumName)
+        if exists(checksumPath):
+            with open(checksumPath) as old:
+                oldChecksum = old.read()
         else:
-            testsDir = join(homepath, "tests")
-            self.pathlist = \
-                [ path
-                    for pattern in specString.split(',')
-                        for path in glob( join(testsDir, pattern.strip()) )
-                ]
-
-
-    def paths(self):
+            oldChecksum = ""
             
-        return frozenset(self.pathlist)
+        return newChecksum != oldChecksum
 
 
-    def __iter__(self):
+    @classmethod
+    def forEachDo(cls, action):
         
-        from itertools import imap
-        return imap(self._makeTest, self.pathlist)           # was 'iter(self.pathlist)'
-
-
-    @staticmethod
-    def _makeTest(path):
+        import os
+        from os.path import join
+        from common import homepath
         
-        from test import Test
-        return Test(path)
+        testsRoot = join(homepath, "tests")
+        for root, _, _ in os.walk(testsRoot, topdown=False):
+            if Test.isTestDir(root):
+                yaml, _ = Test._readYaml(root)
+                if yaml:
+                    found = (root, yaml)
+                    action(found)
+
+
+    @classmethod
+    def _computeChecksum(cls, testDir):
+        
+        from util.checksumdir import dirhash
+        return dirhash(testDir, hashfunc='md5', excluded_files=[Test._checksumName])
+
+
+    @classmethod
+    def _readYaml(cls, testDir):
+     
+        from os.path import join, basename
+        from spackle import readYamlFile
+             
+        # read yaml file
+        yaml, msg = readYamlFile(join(testDir, Test._yamlName))
+         
+        # validate and apply defaults
+        if not msg:
+            if not yaml.get("info"):
+                 yaml["info"] = {}
+            if not yaml.get("info").get("name"):
+                 yaml["info"]["name"] = basename(testDir)
+            if not yaml.get("build"):
+                 yaml["build"] = {}
+            if not yaml.get("build").get("separate"):
+                 yaml["build"]["separate"] = []
+            # TODO...
+     
+        return yaml, msg
+
+
+    #------------------#
+    # Instance methods #
+    #------------------#
+
+    def __init__(self, dirPath):
+        
+        from common import fatalmsg
+        
+        if Test.isTestDir(dirPath):
+            self.dirPath  = dirPath
+            self.yamlRead = False
+        else:
+            fatalmsg("Test.__init__: dirPath must point to a valid test directory but does not ({})").format(dirPath)
+
+
+    def path(self):
+            
+        return self.dirPath
+
+
+    def yaml(self):
+        
+        if not self.yamlRead:
+            self.yaml, self.yamlMsg = Test._readYaml(self.dirPath)
+            self.yamlRead = True
+            
+        return self.yaml
+
+
+    def yamlMsg(self):
+        
+        _ = self.yaml()     # ensure yaml has been read
+        return self.yamlMsg
+    
+    
 
 
 

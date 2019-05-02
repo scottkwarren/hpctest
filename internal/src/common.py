@@ -172,49 +172,6 @@ def noneOrMore(x):
     return iter( x if type(x) is list else [x] if x else [] )
 
 
-# YAML test decriptions
-
-def readYamlforTest(testDir):
- 
-    from os.path import join, basename
-    from spackle import readYamlFile
-         
-    # read yaml file
-    yaml, msg = readYamlFile(join(testDir, "hpctest.yaml"))
-     
-    # validate and apply defaults
-    if not msg:
-        if not yaml.get("info"):
-             yaml["info"] = {}
-        if not yaml.get("info").get("name"):
-             yaml["info"]["name"] = basename(testDir)
-        if not yaml.get("build"):
-             yaml["build"] = {}
-        if not yaml.get("build").get("separate"):
-             yaml["build"]["separate"] = []
-        # TODO...
- 
-    return yaml, msg
-
-
-def forTestsInDirTree(dirtree, action):
-    
-    import os
-    from os.path import isfile, join
-    
-    for root, dirs, files in os.walk(dirtree, topdown=False):
-         
-        if isfile(join(root, "hpctest.yaml")):
-            yaml, msg = readYamlforTest(root)
-            if yaml:  # found a test-case directory
-                found = (root, yaml)
-                action(found)
-            else:
-                found = (None, None)
-                
-    return found
-
-
 # context manager for timing
 
 class ElapsedTimer(object):
