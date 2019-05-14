@@ -56,8 +56,12 @@ import configuration, spackle, util
 checksumName = ".checksum"
 
 
-class HPCTest():
-    
+class HPCTest(object):
+
+
+    #---------------------------#
+    # Instance methods - public #
+    #---------------------------#
 
     def __init__(self):
         
@@ -221,7 +225,11 @@ class HPCTest():
 #       study = Study(studyPath if studyPath else common.workpath, prefix="selftest")
 #       xxxxxxxxx
 #       print
+    
 
+    #----------------------------#
+    # Instance methods - private #
+    #----------------------------#
 
     # support for deferred execution
     def _runOne(self, encodedArgs):
@@ -245,6 +253,100 @@ class HPCTest():
 #    for name in builtin.packages_with_tags("proxy-app"):
 #        p = builtin.get(name)
 #        print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
+    
+    
+    #---------------#
+    # Class methods #
+    #---------------#
+    
+    @classmethod
+    def _ensureRepo(cls):
+    
+        import common
+        import spackle
+        
+        # create new private repo for building test cases
+        noRepo = spackle.getRepo("tests") is None
+        if noRepo: spackle.createRepo("tests")
+        HPCTest._ensureTests()
+        if noRepo:
+            spackle.addRepo(common.repopath)
+        else:
+            spackle.updateRepoPath(common.repopath)
+    
+        # extend external repo if one was specified
+        pass
+    
+    
+    @classmethod
+    def _ensureTests(cls):
+    
+        from os.path import join, exists
+        from common import options, repopath
+        from test import Test
+                
+        def ensureOneTest(test):
+                        
+            # guards
+            if "nochecksum" in options: return
+            if not test.valid(): return
+            if test.config() == "spack-builtin": return
+            
+            # check if repo has an up-to-date package for the test
+            name = test.yamlName()
+            packagePath = join(repopath, "packages", name)
+            if exists(packagePath):
+                needPackage = test.hasChanged()
+            else:
+                needPackage = True
+                
+            # if not, update package
+            if needPackage:
+                HPCTest._addPackageForTest(testDir, name)
+                test.markUnchanged(testDir)
+                
+        Test.forEachDo(ensureOneTest)
+    
+    
+    @classmethod
+    def _addPackageForTest(cls, testPath, name):
+        
+        from os import mkdir
+        from os.path import exists, join
+        from shutil import copy, rmtree
+        import spackle
+        from common import debugmsg, repopath
+        
+        debugmsg("adding package for test {}".format(testPath))
+        packagePath = join(repopath, "packages", name)
+    
+        # remove installed versions of package if any
+        if exists(packagePath):
+            cmd = "uninstall --all --force --yes-to-all {}".format(name)
+            spackle.do(cmd)   # installed dependencies are not removed
+        rmtree(packagePath, ignore_errors=True)
+    
+        # make package directory for this test
+        mkdir(packagePath)
+        
+        # copy or generate test's description files
+        hpath = join(testPath, "hpctest.yaml")
+        ppath = join(testPath, "package.py")
+        copy(hpath, packagePath)
+        if exists(ppath):
+            copy(ppath, packagePath)
+        else:
+           HPCTest._generatePackagePy(hpath, packagePath)
+    
+    
+    @classmethod
+    def _generatePackagePy(cls, hpath, ppath):
+        
+        # hpath => hpctest.yaml file to generate from
+        # ppath => package directory to generate into
+        
+        from common import notimplemented
+        notimplemented("HPCTest._generatePackagePy")
 
 
     
@@ -252,94 +354,6 @@ class HPCTest():
 #########################
 # MODULE INITIALIZATION #
 #########################
-
-    
-def _ensureRepo():
-
-    import common
-    import spackle
-    
-    # create new private repo for building test cases
-    noRepo = spackle.getRepo("tests") is None
-    if noRepo: spackle.createRepo("tests")
-    _ensureTests()
-    if noRepo:
-        spackle.addRepo(common.repopath)
-    else:
-        spackle.updateRepoPath(common.repopath)
-
-    # extend external repo if one was specified
-    pass
-
-
-def _ensureTests():
-
-    from os.path import join, exists
-    from common import options, homepath, repopath
-    from test import Test
-            
-    def ensureTest(testDir, testYaml):
-        
-        from test import Test
-        
-        if "nochecksum" in options: return
-        if testYaml["config"] == "spack-builtin": return
-        
-        # check if repo has an up-to-date package
-        name = testYaml["info"]["name"]
-        packagePath = join(repopath, "packages", name)
-        if exists(packagePath):
-            needPackage = Test.hasChanged(testDir)
-        else:
-            needPackage = True
-            
-        # update package if test has changed
-        if needPackage:
-            _addPackageForTest(testDir, name)
-            Test.markUnchanged(testDir)
-            
-    Test.forEachDo( lambda(testDir, yaml): ensureTest(testDir, yaml) )
-
-
-def _addPackageForTest(testPath, name):
-    
-    from os import mkdir
-    from os.path import exists, join
-    from shutil import copy, rmtree
-    import spackle
-    from common import debugmsg, repopath
-    
-    debugmsg("adding package for test {}".format(testPath))
-    packagePath = join(repopath, "packages", name)
-
-    # remove installed versions of package if any
-    if exists(packagePath):
-        cmd = "uninstall --all --force --yes-to-all {}".format(name)
-        spackle.do(cmd)   # installed dependencies are not removed
-    rmtree(packagePath, ignore_errors=True)
-
-    # make package directory for this test
-    mkdir(packagePath)
-    
-    # copy or generate test's description files
-    hpath = join(testPath, "hpctest.yaml")
-    ppath = join(testPath, "package.py")
-    copy(hpath, packagePath)
-    if exists(ppath):
-        copy(ppath, packagePath)
-    else:
-        _generatePackagePy(hpath, packagePath)
-
-
-def _generatePackagePy(hpath, ppath):
-    
-    # hpath => hpctest.yaml file to generate from
-    # ppath => package directory to generate into
-    
-    from common import notimplemented
-    notimplemented("hpctest._generatePackagePy")
-
-
 
 
 # determine important paths
@@ -388,7 +402,7 @@ spackle.initSpack()     # must be done at each execution of our Spack
 configuration.initConfig()    # must come after paths, spack, and environ are initialized
 
 # set up private repo
-_ensureRepo()
+HPCTest._ensureRepo()
 
 
 

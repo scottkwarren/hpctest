@@ -144,7 +144,11 @@ def truncate(s, n):
 
 def escape(s):
 
-    return s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
+    return s.replace('\\', '\\\\')  \
+            .replace("'", "\\'")    \
+            .replace('"', '\\"')    \
+            .replace(',', '\\,')    \
+            .replace(';', '\\;')
     
 
 # Stack traceback
@@ -202,6 +206,66 @@ def whichDir(exename):
         return dirname( which(exename) )
     except:
         return None
+
+
+# Keypath access to dict-like objects    
+
+def getValueAtKeypath(dictionary, keypath, default=None):
+    
+    keyList = keypath.split(".") if type(keypath) is str else keypath
+    return _findValueAtKeypath(dictionary, keyList, None, False, default)
+
+
+def setValueAtKeypath(dictionary, keypath, value):
+    
+    # decompose keypath into (adjusted) list of keys
+    if type(keypath) is str: keypath = keypath.split(".")
+    keyList  = keypath[:-1]    # path to object into which 'value' will be stored
+    keyAfter = keypath[-1]     # key at which 'value' will be stored
+    
+    # find where to store 'value' and do so
+    ob = _findValueAtKeypath(dictionary, keyList, keyAfter, True, None)
+    ob[keyAfter] = value
+
+
+def _findValueAtKeypath(dictionary, keyList, keyAfter, autoExtend, default):
+
+    from collections import OrderedDict
+    from common import fatalmsg
+
+    def isCompatible(key, collection):
+        ktype, ctype = type(key), type(collection)
+        if ktype is str:
+            return ctype is dict or ctype is OrderedDict
+        elif ktype is int:
+            return ctype is list
+        else:
+            fatalmsg("common.findValueForPath.isCompatible: invalid key type ({})".format(ktype))
+    
+    def collectionForKey(key):
+        keytype = type(key)
+        if keytype is str:
+            return OrderedDict()
+        elif keytype is int:
+            return list()
+        else:
+            fatalmsg("common.findValueForPath.collectionForKey: invalid key type ({})".format(ktype))
+
+    # descend into 'dictionary' using keys, possibly adding new dicts or lists as needed
+    ob = dictionary
+    for k, key in enumerate(keyList):
+        if isCompatible(key, ob):
+            if key not in ob:
+                if autoExtend:
+                    nextkey = keyList[k+1] if k+1 < len(keyList) else keyAfter
+                    ob[key] = collectionForKey(nextkey)
+                else:
+                    ob = default
+                    break
+            ob = ob[key]
+        else:
+            fatalmsg("common.findValueForPath: invalid key for current collection")
+    return ob
     
 
 # Custom exceptions

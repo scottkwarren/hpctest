@@ -74,7 +74,7 @@ def initConfig():
             if msg:
                 errormsg("ignoring invalid config file {}".format(path))
             else:
-                _overrideDictByDict(currentConfig, config)
+                _overrideDict(currentConfig, config)
 
 
 def get(keypath, default=None):
@@ -97,10 +97,10 @@ def get(keypath, default=None):
 def set(key, value):
     
     from common import notimplemented
-    notimplemented("configuration.set")
+    notimplemented("hpctest.configuration.set")
 
 
-def _overrideDictByDict(dict1, dict2):
+def _overrideDict(dict1, dict2):
 
     from collections import Mapping, MutableMapping
 
@@ -109,7 +109,7 @@ def _overrideDictByDict(dict1, dict2):
             if key in dict1 and dict1[key]:
                 value1 = dict1[key]
                 if isinstance(value1, MutableMapping) and isinstance(value2, Mapping):  ## TODO: FIX CASE "key in both, V1 is scalar, V2 is dict & vv"
-                    _overrideDictByDict(value1, value2)
+                    _overrideDict(value1, value2)
                 else:
                     dict1[key] = value2
             else:

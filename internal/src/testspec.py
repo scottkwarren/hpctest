@@ -61,7 +61,7 @@ class TestSpec(object):
                   
         if specString == "all":
             self.pathlist = []
-            Test.forEachDo( lambda (testDir, _): self.pathlist.append(testDir) )
+            Test.forEachDo( lambda test: self.pathlist.append(test.path()) )
         else:
             testsDir = join(homepath, "tests")
             self.pathlist = \

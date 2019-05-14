@@ -59,16 +59,14 @@ class Run():
     executor = Executor.create()
 
     
-    def __init__(self, testdir, config, hpctoolkit, profile, numrepeats, study, wantBatch):
+    def __init__(self, test, config, hpctoolkit, profile, numrepeats, study, wantBatch):
         
         from os.path import basename, join
 
         # general params
-        self.testdir     = testdir                        # path to test case's directory
+        self.test        = test
         self.config      = config                         # Spack spec for desired build configuration
         self.study       = study                          # storage for collection of test run dirs
-        self.name        = basename(self.testdir)
-        self.description = basename(testdir) + config + ":" + profile     
 
         # hpctoolkit params
         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
@@ -83,13 +81,16 @@ class Run():
         self.numrepeats = numrepeats
         
         # job directory
-        configdesc  = self.config
-        self.jobdir = self.study.addRunDir(self.name, self.config, self.hpcrunParams)   ## TODO: compute description including all dim specs
-        
-        # storage for hpctest inputs and outputs
+        self.jobdir = self.study.addRunDir(self.description())
         self.output = self.study.addResultDir(self.jobdir, "OUT")
         self._writeInputs()
-            
+    
+    
+    def description(self):
+        
+        from os.path import basename
+        return basename(self.test.path()) + self.config + ":" + self.hpctoolkitParams
+    
     
     def run(self, echoStdout=True):
         
@@ -107,13 +108,12 @@ class Run():
             self.hpcrunParams.replace(" ", ".")
             
             sepmsg(True)
-            name = relpath(self.testdir, join(homepath, "tests"))
-            infomsg("running test {} with {} and {}".format(name, self.config, self.hpcrunParams))
+            infomsg( "running test {}".format(self.description()) )
             sepmsg(True)
             
             try:
                 
-                self._readYaml()
+                self._examineYaml()
                 self._makeBuildSpec()
                 self._prepareJobDirs()
                 self._buildTest()
@@ -146,38 +146,20 @@ class Run():
             self.output.write()
 
 
-    def _readYaml(self):
+    def _examineYaml(self):
 
-        from os.path import join, basename
         from common import BadTestDescription
-        from test import Test
         
-        test = Test(self.testdir)   # TEMPORARY: will go away when a Run holds a Test object
-        self.yaml = test.yaml()
-        if self.yaml:
-            
-            # ensure necessary fields are present, by adding them if necessary
-            ## info.homepage -- optional
-            ## info.url -- optional
-            ## config.'default variants' -- default is the config.variants.base... one
-            ## config.flags.* -- optional
-            ## build.makefilename-- default is "Makefile"
-            ## build.separate -- default is []
-            ## run.threads -- default is 1, or no OPENMP_NUMTHREADS set
-            
-            # extract important values for easy reference
-            self.name = self.yaml["info"]["name"]                               # name of test case
-            self.version = self.yaml["info"]["version"]                         # TODO: let 'info.version' be missing, and use package default in such cases
-            self.builtin = (self.yaml["config"] == "spack-builtin")
-            self.wantProfiling = self.yaml.get("profile", True)
-            self.output.add("input", "wantProfiling", str(self.wantProfiling))
-            
-        else:
-            
-            self.wantProfiling = False
+        if self.test.yamlErrorMsg():
+            self.wantProfiling = False  # trouble later if missing
             self.output.add("input", "wantProfiling", "False")
-            self.output.addSummaryStatus("READING YAML FAILED", test.yamlMsg())
+            self.output.addSummaryStatus("READING YAML FAILED", self.test.yamlErrorMsg())
             raise BadTestDescription(msg)
+        else:
+            self.version = self.test.version()  # TODO: let 'info.version' be missing, and use package default in such cases
+            self.builtin = self.test.builtin()
+            self.wantProfiling = self.test.profile()
+            self.output.add("input", "wantProfiling", str(self.wantProfiling))
 
 
     def _makeBuildSpec(self):
@@ -186,7 +168,7 @@ class Run():
         from common import BadBuildSpec
         
         namespace = "builtin" if self.builtin else "tests"
-        spackString = "{}@{}{}".format(namespace + "." + self.name, self.version, self.config)
+        spackString = "{}@{}{}".format(namespace + "." + self.test.yamlName(), self.version, self.config)
         try:
             
             self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
@@ -212,22 +194,21 @@ class Run():
         from common import PrepareFailed
 
         try:
+
+            # src directory -- immutable so just use test's dir
+            self.srcdir = self.test.path()
             
-            # src directory -- immutable so just use teste's dir
-            self.srcdir = self.testdir
-            
-            # build directory - make new or copy test's dir if not separable-build test
-            # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
+            # build directory -- make new or copy test's dir if not separable-build test
             self.builddir = join(self.jobdir, "build");
-            if "build" in self.yaml["build"]["separate"]:
+            separate = self.test.yaml("build.separate")
+            if "build" in separate:
                 makedirs(self.builddir)
             else:
                 copytree(self.srcdir, self.builddir)
                 symlink( self.builddir, join(self.jobdir, basename(self.srcdir)) )
                 
             # run directory - make new or use build dir if not separable-run test
-            # TODO: ensure relevant keys are in self.yaml, or handle missing keys here
-            if "run" in self.yaml["build"]["separate"]:
+            if "run" in separate:
                 self.rundir = join(self.jobdir, "run");
                 makedirs(self.rundir)
             else:
@@ -245,6 +226,7 @@ class Run():
         from shutil import copyfileobj
         from sys import stdout
         from llnl.util.tty.log import log_output
+        from common import escape
         import spackle
 
         from common import noneOrMore, options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
@@ -282,8 +264,8 @@ class Run():
                     buildTime = t.secs
         
         # Make alias(es) in build directory to the built product(s)    #### TODO: support more than one product
-        products = self.yaml["build"]["install"] if "build" in self.yaml and "install" in self.yaml["build"] else None
-        self.prefix    = self.package.prefix      # prefix path is valid even if package failed to install
+        products = self.test.yaml("build.install")
+        self.prefix = self.package.prefix      # prefix path is valid even if package failed to install
         for productRelpath in noneOrMore(products):
             productPath = join(self.rundir, productRelpath)
             productName = basename(productPath)
@@ -292,7 +274,8 @@ class Run():
                 os.symlink(productPrefix, productPath)
             
         # save results
-        os.system("cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir()))
+        cmd = "cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir())
+        os.system(escape(cmd))
         self.output.add("build", "prefix",     str(self.prefix))
         self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
         self.output.add("build", "status",     status)
@@ -332,7 +315,7 @@ class Run():
             suffix = "-{:d}".format(k+1) if self.numrepeats > 1 else ""
             
             # set up for test case execution
-            cmd = self.yaml["run"]["cmd"]
+            cmd = self.test.yaml("run.cmd")
             self.exeName = cmd.split()[0]
         
             # execute test case without profiling
@@ -349,7 +332,7 @@ class Run():
                 # run hpcstruct on test executable
                 structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
                 cmd = "{}/hpcstruct -o {} {} -I {} {}" \
-                    .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(self.yaml["run"]["cmd"])[0]))
+                    .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefix.bin, split(cmd)[0]))
                 structTime, structFailMsg = self._execute(cmd, root + [], "hpcstruct", suffix, mpi=False, openmp=False)
                 self._checkHpcstructExecution(suffix, structTime, structFailMsg, structPath)
             
@@ -398,33 +381,28 @@ class Run():
         # ... start with test's run command
         env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
         env["PATH"] = self.package.prefix + "/bin" + (":" + env["PATH"]) if "PATH" in env else ""
-        runPath  = self.rundir if "dir" not in self.yaml["run"] else join(self.rundir, self.yaml["run"]["dir"])
+        rd       = self.test.yaml("run.dir")
+        runPath  = join(self.rundir, rd) if rd else self.rundir
         outPath  = self.output.makePath("{}-output.txt", label + suffix)
         timePath = self.output.makePath("{}-time.txt", label + suffix)
 
         # ... add profiling code if wanted
-        if profile:
+        if wantProfile:
             self.measurementsPath = self.output.makePath("hpctoolkit-{}-measurements{}".format(self.exeName, suffix))
             cmd = "{}/hpcrun -o {} -t {} {}".format(self.hpctoolkitBinPath, self.measurementsPath, self.hpcrunParams, cmd)
 
         # ... add OpenMP parameters if wanted
         if wantOpenMP:
-            if "threads" in self.yaml["run"]:
-                numThreads = str( self.yaml["run"]["threads"] )
-                env["OMP_NUM_THREADS"] = numThreads
-            else:
-                numThreads = 1
+            numThreads = self.test.numThreads()
+            env["OMP_NUM_THREADS"] = str(numThreads)
         else:
             numThreads = 1
         
         # ... add MPI launching code if wanted
         if wantMPI:
-            mpiBinPath  = join(self.spec["mpi"].prefix, "bin")
-            if "ranks" in self.yaml["run"]:
-                numRanks = str( self.yaml["run"]["ranks"] )
-            else:
-                numRanks = 1
-            mpiOptions  = "-verbose" if "verbose" in options else ""
+            mpiBinPath = join(self.spec["mpi"].prefix, "bin")
+            numRanks   = self.test.numRanks()
+            mpiOptions = "-verbose" if "verbose" in options else ""
             cmd = "{}/mpiexec -np {} {} {}".format(mpiBinPath, numRanks, mpiOptions, cmd)
         else:
             numRanks = 1
@@ -442,7 +420,7 @@ class Run():
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         try:
             
-            Run.executor.run(cmd, runPath, env, numRanks, numThreads, outPath, self.description)
+            Run.executor.run(cmd, runPath, env, numRanks, numThreads, outPath, self.description())
                 
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
@@ -455,13 +433,14 @@ class Run():
             with open(outPath, "r") as f: print f.read()
         cputime = self._readTotalCpuTime(timePath)
         if cputime:
-            infomsg("... {} cpu time = {:<0.2f} seconds".format(label, cputime))
+            infomsg("{} cpu time = {:<0.2f} seconds".format(label, cputime))
         else:
-            msg = "... couldn't determine {} cpu time".format(label)
+            msg = "couldn't determine {} cpu time".format(label)
             infomsg(msg)
         
         # save results
-        os.system("cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir()))
+        cmd = "cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir())
+        os.system(escape(cmd))
         self.output.add(label, "cpu time", cputime, subroot=root, format="{:0.2f}" if cputime else None)
         self.output.add(label, "status", "FAILED" if failed else "OK", subroot=root)
         self.output.add(label, "status msg", msg, subroot=root)
@@ -494,10 +473,8 @@ class Run():
                 
                 # limit on cpu time is a special case
                 if key == "t":
-                    # time must be split among child processes, so each gets just a fraction of given time
-                    try:    ranks = self.yaml["run"]["ranks"]
-                    except: ranks = 1
-                    divisor = ranks
+                    # time must be divided among child processes
+                    divisor = self.test.numRanks()
                 else:
                     divisor = 1
                     
@@ -544,7 +521,7 @@ class Run():
 
         now = datetime.datetime.now()
         self.output.add("input", "date",              now.strftime("%Y-%m-%d %H:%M"))
-        self.output.add("input", "test",              relpath(self.testdir, join(homepath, "tests")))
+        self.output.add("input", "test",              self.test.relpath())
         self.output.add("input", "config spec",       str(self.config))
         self.output.add("input", "hpctoolkit",        str(self.hpctoolkitBinPath))
         self.output.add("input", "hpctoolkit params", OrderedDict({"hpcrun":self.hpcrunParams, "hpcstruct":self.hpcstructParams, "hpcprof":self.hpcprofParams}))
@@ -697,18 +674,18 @@ class Run():
 
 
     @classmethod
-    def submitJob(cls, testdir, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, errno
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, errno
         
         import os
         from common import homepath
         
-        ## TODO: get 'numRanks' and 'numThreads' from test (testdir => Test object)
+        ## TODO: get 'numRanks' and 'numThreads' from Test object
         numRanks = numThreads = 1
         
-        initArgs, description = Run._encodeInitArgs(testdir, config, hpctoolkit, profile, numrepeats, study)
-        cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)     # creation args for a Run object
-        env = os.environ.copy()         # so that batch job will run with the existing environment
-        jobID, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, description)
+        initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
+        cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
+        env = os.environ.copy()         # batch job should run with the existing environment
+        jobID, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, test.description(config, hpctoolkit, profile))
         
         return jobID, err
     
@@ -738,20 +715,20 @@ class Run():
     
     
     @classmethod
-    def _encodeInitArgs(cls, testdir, config, hpctoolkit, profile, numrepeats, study):
+    def _encodeInitArgs(cls, test, config, hpctoolkit, profile, numrepeats, study):
         
         from os.path import basename
         
-        encodedArgs    = ",".join([testdir, config, hpctoolkit, profile, str(numrepeats), study.path])
+        encodedArgs = ",".join([test.path(), config, hpctoolkit, profile, str(numrepeats), study.path])
         encodedArgs = encodedArgs.replace(" ", "#")
-        description = basename(testdir) + config + ":" + profile     
-        return encodedArgs, description
+        return encodedArgs
     
     
     @classmethod
     def decodeInitArgs(cls, encodedArgs):
         
         from study import Study
+        from test import Test
         
         encodedArgs = encodedArgs.replace("#", " ")
         argStrings = encodedArgs.split(",")
@@ -760,8 +737,7 @@ class Run():
         numrepeats = int(argStrings[4])
         study = Study(argStrings[5])
         
-        return (testdir, config, hpctoolkit, profile, numrepeats, study)
-
+        return (Test(testdir), config, hpctoolkit, profile, numrepeats, study)
 
 
 

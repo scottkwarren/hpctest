@@ -253,7 +253,7 @@ class SlurmExecutor(Executor):
     def _paramsFromConfiguration():
         
         import configuration
-##        account   =  configuration.get(xxx, "xxx")
+##      account   =  configuration.get(xxx, "xxx")
 ##        partition =  configuration.get(xxx, "xxx")
 ##        time      =  configuration.get(xxx, "xxx")
         account   =  "scott@rice.edu"

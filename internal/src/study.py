@@ -86,13 +86,13 @@ class Study():
         return isdir(path) and basename(path).startswith(_prefix)
     
     
-    def addRunDir(self, testName, build, profile):
+    def addRunDir(self, description):
 
         import os
         from os.path import join, isdir
 
         # TODO: ensure uniqueness
-        rundir = join(self.path, "{}-{}-{}".format(testName, build, profile)).replace(" ", ".")
+        rundir = join(self.path, description.replace(" ", "."))
         if isdir(rundir):
             n = 2
             while( isdir(rundir + "-" + str(n))): n += 1

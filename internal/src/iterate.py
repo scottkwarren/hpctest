@@ -74,15 +74,16 @@ class Iterate():
                     # TODO: optionally limit number of batch jobs in flight at once
                     
                     # schedule all tests for batch execution
-                    infomsg("starting tests in batch")
+                    infomsg("submitting all tests for batch execution...")
                     submittedJobs = set()
                     for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                        jobID, errno = Run.submitJob(test.path(), config, hpctoolkit, profile, numrepeats, study)
+                        jobID, errno = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
                         if not errno:
                             submittedJobs.add(jobID)
                         else:
-                            errormsg("submit failed for test at {}{}:{} ({})".format(test.path(), config, profile, err))
-                        
+                            errormsg("submit failed for test {} ({})".format(test.description(config, hpctoolkit, profile), err))
+                    infomsg("done")
+                    
                     # poll for finished jobs until all done
                     while submittedJobs:
                         finished = Run.pollForFinishedJobs()
@@ -99,7 +100,7 @@ class Iterate():
                 
                 # run all tests sequentially via shell commands
                 for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test.path(), config, hpctoolkit, profile, numrepeats, study, False)
+                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
                     status = run.run()
             
             
