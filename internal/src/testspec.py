@@ -79,7 +79,7 @@ class TestSpec(object):
     def __iter__(self):
         
         from itertools import imap
-        return imap(self._makeTest, self.pathlist)           # was 'iter(self.pathlist)'
+        return imap(self._makeTest, self.pathlist)
 
 
     @staticmethod
