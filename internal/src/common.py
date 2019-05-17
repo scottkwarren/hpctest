@@ -46,10 +46,7 @@
 ################################################################################
 
 
-
-
-# Shared variables, set in HPCTest at startup
-
+# shared variables, set in HPCTest at startup
 subcommand           = ""       # name of subcommand being executed
 options              = []       # list of options parsed from command line
 numErrors            = 0        # count of errors in this test run
@@ -63,6 +60,8 @@ testspath            = None     # path to this HPCTest's test directory
 repopath             = None     # path to this HPCTest's repo for test packages
 workpath             = None     # path to this HPCTest's arena for studies
 logger               = None     # used to write test results (TODO)
+
+
 
 
 # Message output
