@@ -3,15 +3,8 @@ HPCTEST TO DO
 
 Bugs
 
-- Reporting failures due to incomplete run info often print as just the string "status"
-   - info.extractRunInfoMsg = e.message # TODO: 'KeyError' => "status"; e.message and str(e) no better
-
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
-- "Executing normal test:" vs "run:normal" in yaml =>
-   - "normal" is inapt
-   - "run" vs "test" is inconsistent
-   
 - check each dimension for emptiness; requires each Spec class to evaluate its spec
 
 - hpctest clean -d does not delete all built dependencies. Survivors are:
@@ -20,6 +13,17 @@ Bugs
   - miniamr
   - pkg-config
   - util-macros
+
+
+
+- Refactor for experiment classes
+- Config defaults per platform and site
+
+
+
+CWD CONTEXT MANAGER
+- make one in common.py
+- use this: https://gist.github.com/bradmontgomery/4f4934893388f971c6c5
 
 
 ----------------
@@ -113,7 +117,6 @@ OUT.yaml ISSUES
 	- Equivalent of run.log for whole job
 	
 
-- Batch job submission & polling
 - Robust iteration & continuation
  
  
@@ -121,13 +124,6 @@ OUT.yaml ISSUES
 
 
 - Alternate input notation based on yaml
-   
-   
-- Refactor for experiment classes
- 
- 
-- Config defaults per platform and site
-
 
 
 

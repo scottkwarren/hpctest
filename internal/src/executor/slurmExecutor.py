@@ -57,6 +57,7 @@ class SlurmExecutor(Executor):
     def __init__(self):
         
         super(SlurmExecutor, self).__init__()
+        # nothing for SlurmExecutor
     
 
     @classmethod
@@ -65,24 +66,32 @@ class SlurmExecutor(Executor):
         return True
 
     
+    @classmethod
+    def isAvailable(cls):
+        
+        from common import whichDir
+        available = whichDir("srun") is not None and whichDir("sbatch") is not None
+        return available, "srun and sbatch are missing"
+
+
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         from common import ExecuteFailed
-        rc, err = _srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
-        if rc:
-            raise ExecuteFailed(err, "exit status {} ({})".format(rc, err))
+        out, err = _srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
+        if err:
+            raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, errno
+    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, rc, err = _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description)
-        if rc == 0:
+        jobid, out, err = _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description)
+        if err == 0:
             self.runningProcesses.add(jobid)
             self.jobDescriptions[jobid] = description
         
-        return (jobid, err)      
+        return jobid, out, err
 
     
     def isFinished(self, jobID):
@@ -96,7 +105,7 @@ class SlurmExecutor(Executor):
 
         from common import notImplemented
         notImplemented("SlurmExecutor.pollForFinishedJobs")
-        return { }
+        return set()
 
     
     def kill(self, process):
@@ -113,36 +122,47 @@ class SlurmExecutor(Executor):
 
 
 
-def _shell(cls, cmd):
+def _shell(cmd):
            
     import subprocess
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    return (out, err)
-
-
-def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (rc, err)
     
+    try:
+        
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err_out = proc.communicate()
+        err = proc.returncode
+        if err: out = err_out.strip()
+        
+    except StandardError as e:
+        out = e.strerror
+        err = e.errno
+    except Exception as e:
+        out = str(e)
+        err = -1   ## TODO: ??? is there a better property of Exception to use for 'err'?
+        
+    return out, err
+
+
+def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+    
+    from os import getcwd
     import textwrap, tempfile
     
     # slurm srun command file template
-    #   args: jobName, account, partition, nnodes, ntasks, time, outpath, errorpth, cmd
+    ## TODO: this seems to be the same as template in '_sbatch'
     _Slurm_run_template = textwrap.dedent(
         """\
         #!/bin/bash
         #SBATCH --job-name={jobName}
         #SBATCH --account={account}
         #SBATCH --partition={partition}
-        #SBATCH --export={env}
-        #SBATCH --nodes={nnodes}
+        #SBATCH --export=NONE
         #SBATCH --exclusive
-        #SBATCH --ntasks={ntasks}
-        #### #SBATCH --ntasks-per-node=4
-        #SBATCH --cpus-per-task={cpusPerTask}    # 2
-        #SBATCH --mem-per-cpu={memPerCpu}        # 1000m
+        #SBATCH --ntasks={numRanks}
+        #SBATCH --cpus-per-task={numThreads}
+        #SBATCH --mem-per-cpu={memPerThread}
         #SBATCH --time={time}
         #SBATCH --output={outPath}
-        #SBATCH --error={errorPath}
         #SBATCH --mail-type=NONE
         {cmd}
         """)
@@ -151,92 +171,96 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     account, partition, time = _paramsFromConfiguration()
 
     # template params from test
-    cpusPerTask, memPerCpu = _paramsFromTest()
+    memPerThread = _paramsFromTest()
     
     # prepare slurm command file
-    f, fname = tempfile.mkstemp(".slurm")
+    f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
+                                    dir=getcwd(), prefix='sbatch-', suffix=".slurm")
     f.write(_Slurm_run_template.format(
-        jobName     = description,
-        account     = account,
-        partition   = partition,
-        env         = _envDictToString(env),
-        nnodes      = numRanks,
-        ntasks      = numThreads,
-        cpusPerTask = cpusPerTask,      # 2,
-        memPerCpu   = memPerCpu,        # "1000m",
-        time        = time,
-        outPath     = outPath,
-        errorPath   = outPath + ".err",
-        cmd         = cmd,
+        jobName      = description,
+        account      = account,
+        partition    = partition,
+        numRanks     = numRanks,
+        numThreads   = numThreads,
+        memPerThread = memPerThread,
+        time         = time,
+        outPath      = outPath,
+        cmd          = cmd,
         ))
     f.close()
     
     # run the command immediately with 'srun'
-    out, err = _shell("srun {}".format(fname))
+    out, err = _shell("srun {}".format(f.name))
+    
     # extract rc from 'out'
+    print "out = '", out, "'"     ## DEBUG
     rc = 0
     
-    return (rc, err)
+    return out, (err if err else rc)
 
 
-def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (jobid, rc, err)
+def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (jobid, out, err)
     
     import textwrap, tempfile
     from os import getcwd
+    from common import verbosemsg
     
     # slurm sbatch command file template
-    #   args: jobName, account, partition, nnodes, ntasks, time, outpath, errorpth, cmd
+    ## TODO: this seems to be the same as template in '_srun'
     _Slurm_batch_template = textwrap.dedent(
         """\
         #!/bin/bash
         #SBATCH --job-name={jobName}
         #SBATCH --account={account}
         #SBATCH --partition={partition}
-        #SBATCH --export={env}
-        #SBATCH --nodes={nnodes}
+        #SBATCH --export=NONE
         #SBATCH --exclusive
-        #SBATCH --ntasks={ntasks}
-        #SBATCH --cpus-per-task={cpusPerTask}    # 2
-        #SBATCH --mem-per-cpu={memPerCpu}        # 1000m
+        #SBATCH --ntasks={numRanks}
+        #SBATCH --cpus-per-task={numThreads}
+        #SBATCH --mem-per-cpu={memPerThread}
         #SBATCH --time={time}
         #SBATCH --output={outPath}
-        #SBATCH --error={errorPath}
         #SBATCH --mail-type=NONE
         {cmd} 
         """)
+
+        ### SBATCH --nodes={nnodes}
+        ### SBATCH --ntasks-per-node=1
 
     # template params from configuration
     account, partition, time = _paramsFromConfiguration()
     
     # template params from test
-    cpusPerTask, memPerCpu = _paramsFromTest()
+    memPerThread = _paramsFromTest()
     
     # prepare slurm command file
-    f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, suffix=".slurm", prefix='tmp', dir=getcwd(), delete=False)
+    f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
+                                    dir=getcwd(), prefix='sbatch-', suffix=".slurm")
     f.write(_Slurm_batch_template.format(
-        jobName     = description,
-        account     = account,
-        partition   = partition,
-        env         = _envDictToString(env),
-        nnodes      = numRanks,
-        ntasks      = numThreads,
-        cpusPerTask = cpusPerTask,      # 2,
-        memPerCpu   = memPerCpu,        # "1000m",
-        time        = time,
-        outPath     = outPath + ".out" if outPath else "slurm-%x.out",
-        errorPath   = outPath + ".err" if outPath else "slurm-%x.err",
-        cmd         = cmd
+        jobName      = description,
+        account      = account,
+        partition    = partition,
+        numRanks     = numRanks,
+        numThreads   = numThreads,
+        memPerThread = memPerThread,
+        time         = time,
+        outPath      = outPath,
+        cmd          = cmd,
         ))
     f.close()
     
     # submit the command for batch execution with 'sbatch'
-    out, err = _shell("sbatch {}".format(fname))
-    # extract job id from 'out'
-    jobid = 17
-    # extract rc from 'out'
-    rc = 0
+    verbosemsg("slurm batch file for job {} is {}".format(description, f.name))
+    out, err = _shell("sbatch {}".format(f.name))
+    if err:
+        jobid = rc = None
+    else:
+        # extract job id from 'out'
+        jobid = 17
+        # extract rc from 'out'
+        rc = 0
     
-    return (jobid, rc, err)
+    return (jobid, out, err if err else rc)
 
 
 def _envDictToString(envDict):
@@ -250,7 +274,7 @@ def _envDictToString(envDict):
 def _paramsFromConfiguration():
     
     import configuration
-##      account   =  configuration.get(xxx, "xxx")
+##  account   =  configuration.get(xxx, "xxx")
 ##        partition =  configuration.get(xxx, "xxx")
 ##        time      =  configuration.get(xxx, "xxx")
     account   =  "scott@rice.edu"

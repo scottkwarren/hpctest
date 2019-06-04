@@ -10,9 +10,10 @@
 # profile:
 #   hpctoolkit path: ~/hpctoolkit-current/hpctoolkit/INSTALL/bin/
   
-## config:
-##   batch:
-##     default: True
+config:
+#   batch:
+#     default: False
+#     manager: Slurm
 run:
   ulimit:
     t: unlimited  # cpu time (seconds)

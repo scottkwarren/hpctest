@@ -60,36 +60,55 @@ class Executor(object):
     
     # System inquiries
 
+    _local_executor_class = None
+    _local_executor       = None
+    
+    
     @classmethod
-    def localExecutorName(cls):
+    def localExecutorClass(cls):
         
         import configuration
         from common import fatalmsg
-                
-        # local configuration may specify the job launcher
-        name = configuration.get("config.batch.manager", "Shell")
         
-        if name not in cls._subclasses:
-            fatalmsg("config.yaml specifies unknown name '{}' for 'config.batch.manager'".format(name))
+        if not cls._local_executor_class:
             
-        return name
-
+            # local configuration may specify the job launcher
+            name = configuration.get("config.batch.manager", "Shell")
+            
+            # validate the name
+            if name not in cls._subclasses:
+                fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
+            
+            # validate the corresponding executor
+            available, msg = cls._subclasses[name].isAvailable()
+            if not available:
+                fatalmsg("config files specify {} as config.batch.manager, "
+                         "but {}".format(name, msg if msg else  name + " is not available"))
+            
+            cls._local_executor_class = cls._subclasses[name]
+            
+        return cls._local_executor_class
+    
+    
+    @classmethod
+    def localExecutor(cls):
+        
+        if not cls._local_executor:
+            cls._local_executor = cls.localExecutorClass() ()
+        
+        return cls._local_executor
+    
 
     @classmethod
     def defaultToBackground(cls):
         
-        return cls._subclasses[cls.localExecutorName()].defaultToBackground()
+        return cls.localExecutorClass().defaultToBackground()
 
 
     @classmethod
-    def create(cls):
+    def isAvailable(cls):                               # returns (available, msg_or_None)
         
-        import configuration
-
-        # make an executor corresponding to the name specified by config or default
-        name = configuration.get("config.batch.manager", "Shell")
-        ex = cls._subclasses[name]()
-        return ex
+        return cls.localExecutorClass().isAvailable()
 
 
     # Registry of available executor subclasses
@@ -99,7 +118,6 @@ class Executor(object):
 
     @classmethod
     def register(cls, name, subclass):
-        
         cls._subclasses[name] = subclass
 
 
@@ -107,14 +125,14 @@ class Executor(object):
     
     def __init__(self):
         
-         self.jobDescriptions = dict()
+        self.jobDescriptions = dict()
          
     
     def run(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
     
-    def submitJob(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):   # returns jobID, errno
+    def submitJob(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")
     

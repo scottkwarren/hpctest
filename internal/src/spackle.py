@@ -86,6 +86,7 @@ def extDo(cmdstring):
 
 
 def execute(cmd, cwd=None, env=None, output=None, error=None):
+    # raises spack.util.executable.ProcessError if execution fails
        
     import os, subprocess
     from spack.util.executable import ProcessError
@@ -102,16 +103,14 @@ def execute(cmd, cwd=None, env=None, output=None, error=None):
         if process.returncode != 0:
             raise ProcessError('Exit status %d:' % process.returncode)
    
-    except OSError as e:
-        raise ProcessError('%s: %s' % (self.exe[0], e.strerror))
-   
     except subprocess.CalledProcessError as e:
-        raise ProcessError(str(e), "exit status %d" % process.returncode)
-   
+        raise ProcessError(str(e), process.returncode)
+    except OSError as e:
+        raise ProcessError("%s: %s".format(self.exe[0], e.strerror))
+    except Exception as e:
+        raise ProcessError("unexpected error: " + str(e))
     finally:
         if cwd: os.chdir(oldwd)
-           
-    # raises spack.util.executable.ProcessError if execution fails
 
 
 #---------#

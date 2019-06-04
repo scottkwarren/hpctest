@@ -74,24 +74,29 @@ class Iterate():
                     # TODO: optionally limit number of batch jobs in flight at once
                     
                     # schedule all tests for batch execution
-                    infomsg("submitting all tests for batch execution...")
+                    infomsg("submitting all test runs for batch execution...")
                     submittedJobs = set()
+                    numSubmitted = 0
                     for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                        jobID, errno = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
-                        if not errno:
+                        jobID, out, err = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
+                        if not err:
                             submittedJobs.add(jobID)
+                            numSubmitted += 1
                         else:
-                            errormsg("submit failed for test {} ({})".format(test.description(config, hpctoolkit, profile), err))
-                    infomsg("done")
+                            errormsg("submit failed for test run {}: {} (errno {})".format(test.description(config, hpctoolkit, profile), out, err))
+                    if numSubmitted > 0:
+                        infomsg("done")
+                    else:
+                        infomsg("no runs submitted")
                     
                     # poll for finished jobs until all done
-                    while submittedJobs:
-                        finished = Run.pollForFinishedJobs()
-                        submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
-                        for jobID in finished:
-                            infomsg("test {} finished".format(Run.descriptionForJob(jobID)))
-                        
-                    infomsg("all tests finished")
+                    if numSubmitted > 0:
+                        while submittedJobs:
+                            finished = Run.pollForFinishedJobs()
+                            submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
+                            for jobID in finished:
+                                infomsg("run {} finished".format(Run.descriptionForJob(jobID)))
+                        infomsg("all runs done")
 
                 except Exception as e:
                     errormsg("batch failure: {}".format(e))

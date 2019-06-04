@@ -123,6 +123,10 @@ class HPCTest(object):
         # check preconditions and run tests if ok
         if dims["hpctoolkit"]:   # TODO: shouldn't require an HPCToolkit if no test wants profiling
             
+            # preflight the current executor
+            if not Executor.isAvailable():
+                fatalmsg()
+                
             # run all the tests
             study = Study(studyPath if studyPath else common.workpath)
             if not wantBatch:

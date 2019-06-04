@@ -161,7 +161,8 @@ class Report():
             print; print
 
         else:
-            infomsg("no runs matching '--which {}'".format(whichspec))
+            infomsg("no completed runs to report")
+            debugmsg("reportspec = '--which {}'".format(whichspec))
 
 
     def extractRunInfo(self, result):

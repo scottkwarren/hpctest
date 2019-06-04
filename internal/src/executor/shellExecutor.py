@@ -66,7 +66,15 @@ class ShellExecutor(Executor):
         return False
 
     
-    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description):
+    @classmethod
+    def isAvailable(cls):
+        
+        from common import whichDir
+        available = whichDir("bash") is not None and whichDir("bash") is not None
+        return available, "bash is missing"
+
+    
+    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns nothing, raises
         
         # NOT USED: numRanks, numThreads  -- 'cmd' haas necessary code for these already
         
@@ -84,26 +92,24 @@ class ShellExecutor(Executor):
                 call(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
               
         except CalledProcessError as e:
-            raise ExecuteFailed(str(e), "exit status %d".format(process.returncode))
+            raise ExecuteFailed(str(e), process.returncode)
         except OSError as e:
-            raise ExecuteFailed('{}: {}'.format(self.exe[0], e.strerror))
+            msg = "{}: {}'.format(self.exe[0], e.strerror)"
+            raise ExecuteFailed(msg)
         except Exception as e:
             raise ExecuteFailed(e.message)
-        
         finally:
             if runPath: os.chdir(oldwd)
     
     
-    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, errno
+    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
         
-        # NOT USED: numRanks, numThreads  -- 'cmd' haas necessary code for these already
+        # NOT USED: numRanks, numThreads  -- 'cmd' contains necessary code for these already
         
-        from StringIO import StringIO
-        import subprocess
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
         
-        errno = 0
+        err = 0
         try:
             
             if runPath:
@@ -111,26 +117,28 @@ class ShellExecutor(Executor):
                 os.chdir(runPath)
 
             process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=env)
+            out     = ""
+            err     = process.returncode
 
-        except OSError as e:
-            errno = e.errno    # to return from 'submitjob'
-            raise ExecuteFailed('%s: %s' % (self.exe[0], e.strerror))
+        except StandardError as e:
+            out = e.strerror
+            err = e.errno
+            raise ExecuteFailed("{}: {})".format(self.exe[0], out), err)
         except CalledProcessError as e:
-            errno = -999    # to return from 'submitjob'
-            raise ExecuteFailed(str(e), "exit status %d" % process.returncode)
-        
+            out = str(e)
+            err = process.returncode
+            raise ExecuteFailed(out, err)
         finally:
             if runPath: os.chdir(oldwd)
             
         self.runningProcesses.add(process)
         self.jobDescriptions[process] = description        
 
-        return process, errno
+        return process, out, err
     
     
     def isFinished(self, process):
         
-####    return process.poll() != None
         p = process.poll()
         print "process.poll() => {}".format(p)
         return p != None

@@ -56,7 +56,7 @@ class Run():
 
     # batch job submission
     from executor import Executor
-    executor = Executor.create()
+    executor = Executor.localExecutor()
 
     
     def __init__(self, test, config, hpctoolkit, profile, numrepeats, study, wantBatch):
@@ -70,8 +70,8 @@ class Run():
 
         # hpctoolkit params
         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
-        self.hpctoolkitParams  = profile
-        paramList = profile.split(";")
+        self.hpctoolkitParams  = profile.strip(" ;:").replace(";", ":")
+        paramList = self.hpctoolkitParams.split(":")
         self.hpcrunParams      = paramList[0]
         self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
         self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
@@ -79,17 +79,15 @@ class Run():
 
         # execution params
         self.numrepeats = numrepeats
-        
-        # job directory
-        self.jobdir = self.study.addRunDir(self.description())
-        self.output = self.study.addResultDir(self.jobdir, "OUT")
-        self._writeInputs()
     
     
-    def description(self):
+    def description(self, forName=False):
         
         from os.path import basename
-        return basename(self.test.path()) + self.config + ":" + self.hpctoolkitParams
+        return self.test.description(self.config,
+                                     self.hpctoolkitBinPath,
+                                     self.hpctoolkitParams,
+                                     forName=forName)
     
     
     def run(self, echoStdout=True):
@@ -100,6 +98,11 @@ class Run():
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from llnl.util.tty.log import log_output
                 
+        # job directory
+        self.jobdir = self.study.addRunDir(self.description(forName=True))
+        self.output = self.study.addResultDir(self.jobdir, "OUT")
+        self._writeInputs()
+
         # save console output in OUT directory
         outPath = self.output.makePath("console-output.txt")
         with log_output(outPath, echo=echoStdout):
@@ -134,9 +137,10 @@ class Run():
             except CheckFailed as e:
                 msg = "test result check failed"
             except Exception as e:
-                msg = "unexpected error {} ({})".format(type(e).__name__, e.message)
+                msg = "unexpected error: {} ({})".format(e.message, type(e).__name__)
             else:
                 msg = None
+                
             if msg: infomsg(msg)
             
             # finish writing results
@@ -283,7 +287,7 @@ class Run():
 
         # finish up
         if status == "OK":
-            infomsg("... build time = {:<0.2f} seconds".format(buildTime))
+            infomsg("build time = {:<0.2f} seconds".format(buildTime))
         else:
             if status == "FATAL":
                 fatalmsg(msg)
@@ -338,7 +342,7 @@ class Run():
             
                 # run hpcprof on test measurements
                 if profiledFailMsg or structFailMsg:
-                    infomsg("... hpcprof not run due to previous failure")
+                    infomsg("hpcprof not run due to previous failure")
                 else:
                     profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
                     cmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
@@ -361,7 +365,7 @@ class Run():
             
             if failure:
                 self.output.addSummaryStatus(failure, msg)
-                raise ExecuteFailed
+                raise ExecuteFailed(msg)
             
     
     def _execute(self, cmd, root, label, suffix, profile=None, mpi=None, openmp=None):
@@ -370,7 +374,8 @@ class Run():
         from os.path import join
         import sys
         from subprocess import CalledProcessError
-        from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg, ExecuteFailed
+        from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
+        from common import HPCTestError, ExecuteFailed
         from configuration import currentConfig
         
         wantProfile = profile if profile else False
@@ -418,25 +423,37 @@ class Run():
             
         # execute the command
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
+        msg = None  # for cpu-time messaging below
         try:
             
             Run.executor.run(cmd, runPath, env, numRanks, numThreads, outPath, self.description())
                 
+        except HPCTestError as e:
+            failed, msg = True, str(e)
         except Exception as e:
             failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
-            infomsg("{} execution failed: {}".format(label, msg))
         else:
             failed, msg = False, None
-                    
+            
+        if failed:
+            infomsg("{} execution failed: {}".format(label, msg))
+
         # print test's output and cpu time
         if "verbose" in options:
             with open(outPath, "r") as f: print f.read()
-        cputime = self._readTotalCpuTime(timePath)
-        if cputime:
-            infomsg("{} cpu time = {:<0.2f} seconds".format(label, cputime))
+            
+        if failed:
+            infomsg("{} execution time not collected".format(label))
+            cputime, errno, errmsg = None, 0, None
         else:
-            msg = "couldn't determine {} cpu time".format(label)
-            infomsg(msg)
+            cputime, errno, errmsg = self._readTotalCpuTime(timePath)
+            if cputime:
+                infomsg("{} cpu time = {:<0.2f} seconds".format(label, cputime))
+            else:
+                cputime_msg = "{} cpu time collection failod: ({}) {}".format(label, errno, errmsg)
+                infomsg(cputime_msg)
+                if not msg:
+                    msg = cputime_msg            
         
         # save results
         cmd = "cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir())
@@ -500,10 +517,16 @@ class Run():
                 times = csv.reader([line], delimiter=" ").next()
                 cpuTime = float(times[1]) + float(times[2])
                 
+        except IOError as e:
+            cpuTime    = None
+            errno, msg = e.errno, e.strerror + " " + e.filename
         except Exception as e:
-            cpuTime = None
+            cpuTime    = None
+            errno, msg = e.errno, e.message
+        else:
+            errno, msg = 0, None
         
-        return cpuTime
+        return cpuTime, errno, msg
             
 
     def _checkTestResults(self):
@@ -551,18 +574,18 @@ class Run():
 
         # compute profiling overhead
         if normalFailMsg or profiledFailMsg:
-            infomsg("... hpcrun overhead not computed due to execution failure")
+            infomsg("hpcrun overhead not computed")
             self.output.add("run", "profiled" + suffix, "hpcrun overhead %", "NA")
         elif not (normalTime and profiledTime):
             overheadPercent = "NA"
         else:
             overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-            infomsg("... hpcrun overhead = {:<0.2f} %".format(overheadPercent))
+            infomsg("hpcrun overhead = {:<0.2f} %".format(overheadPercent))
             self.output.add("run", "profiled" + suffix, "hpcrun overhead %", overheadPercent, format="{:0.2f}")
 
         # summarize hpcrun log
         if profiledFailMsg:
-            infomsg("... hpcrun log not summarized due to execution failure")
+            infomsg("hpcrun log not summarized")
             self.output.add("run", "profiled", "hpcrun summary",  "NA")
         else:
             summaryDict = self._summarizeHpcrunLog()
@@ -674,7 +697,7 @@ class Run():
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, errno
+    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, out, err
         
         import os
         from common import homepath
@@ -685,9 +708,9 @@ class Run():
         initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
         env = os.environ.copy()         # batch job should run with the existing environment
-        jobID, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, test.description(config, hpctoolkit, profile))
+        jobID, out, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, test.description(config, hpctoolkit, profile))
         
-        return jobID, err
+        return jobID, out, err
     
     
     @classmethod

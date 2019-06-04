@@ -69,7 +69,7 @@ class Study():
             self.path = join(path, _prefix + timestamp)
             makedirs(self.path)
         else:
-            raise BadStudyPath(path)
+            raise BadStudyPath("bad path given for 'study'".format(path))
         
         self.resultDirs = dict()
 

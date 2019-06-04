@@ -91,7 +91,7 @@ def get(keypath, default=None):
             except:
                 value = None
 
-    return value if value else default
+    return value if value is not None else default
 
 
 def set(key, value):

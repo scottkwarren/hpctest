@@ -66,7 +66,21 @@ class Test():
             self.dir = dir
             self.yamlDict, self.yamlMsg = self._readYaml()
         else:
-            fatalmsg("Test.__init__: dir must be a path to a complete test directory but is not ({})").format(dir)
+            fatalmsg("Test.__init__: dir must be a path to a valid test directory but is not ({})").format(dir)
+
+
+    def description(self, config, hpctoolkit, profile, forName=False):
+        
+        ## TODO: use 'hpctoolkit', eg if not the default one, but need short names for the paths
+        
+        if forName:
+            n = self.relpath().replace("/", "--")
+            c = config
+            p = profile.rstrip(" ;").replace(" ", "_").replace(";", ":")
+            d = "{}-{}-{}".format(n, c, p)
+        else:
+            d = "{}:{}:{}".format(self.relpath(), config, profile.rstrip(" ;"))
+        return d
 
 
     def path(self):
@@ -128,11 +142,6 @@ class Test():
         from os.path import relpath, join
         from common import homepath
         return relpath(self.dir, join(homepath, "tests"))
-
-
-    def description(self, config, hpctoolkit, profile):
-        
-        return "{} {}: {}".format(self.relpath(), config, profile)
 
 
     def version(self):

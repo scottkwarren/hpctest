@@ -104,8 +104,9 @@ def fatalmsg(message):
     
     import inspect, traceback
 
-    info = inspect.getframeinfo( inspect.currentframe().f_back )
-    infomsg("FATAL ERROR: at {}:{}, ".format(info.filename, info.lineno) + message)
+    info = inspect.getframeinfo(inspect.currentframe().f_back)
+    infomsg("FATAL ERROR: {}\n"
+            "             at {}:{}".format(message, info.filename, info.lineno))
     raise SystemExit
     
     
@@ -121,7 +122,7 @@ def notimplemented(what):
 
 def subclassResponsibility(cls, method):
     
-    fatalmsg("{}.{} should be implemented a subclass, but was called instead".format(cls, method))
+    fatalmsg("{}.{} should be overridden by each subclass but was not".format(cls, method))
 
 
 def sepmsg(long=False):
@@ -180,22 +181,24 @@ def noneOrMore(x):
 class ElapsedTimer(object):
         
     def __init__(self, verbose=False):
+        
         import time
         self.timer = time.time
         self.secs  = 0.0        # works around mystery bug where < __exit__ not called > => "unexpected error AttributeError ('ElapsedTimer' object has no attribute 'secs')"
 
     def __enter__(self):
+        
         self.start = self.timer()
         return self
 
     def __exit__(self, *args):
+        
         self.secs = self.timer() - self.start
 
 
 # Finding executables on $PATH
 
 def whichDir(exename):
-    
     
     import os
     from os.path import dirname
@@ -270,7 +273,16 @@ def _findValueAtKeypath(dictionary, keyList, keyAfter, autoExtend, default):
 # Custom exceptions
 
 class HPCTestError(Exception):
-    pass
+    """Superclass of all custom exceptions in HPCTest"""
+    
+    def __init__(self, message, errno=None):
+        self.message = message
+        self.errno  = errno
+        
+    def __str__(self):
+        errno_str = " (errno {})".format(self.errno) if self.errno else ""
+        return self.message + errno_str
+
 
 class BadTestDescription(HPCTestError):
     pass
