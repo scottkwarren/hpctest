@@ -16,14 +16,19 @@ Bugs
 
 
 
+NEXT
 - Refactor for experiment classes
 - Config defaults per platform and site
+- hide generated slurm command files
+- preserve generated slurm command files in OUT directory
+- delete generated slurm command files in 'hpctest clean'
 
 
 
 CWD CONTEXT MANAGER
 - make one in common.py
 - use this: https://gist.github.com/bradmontgomery/4f4934893388f971c6c5
+
 
 
 ----------------

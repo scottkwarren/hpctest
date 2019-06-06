@@ -447,7 +447,7 @@ class Run():
             cputime, errno, errmsg = None, 0, None
         else:
             cputime, errno, errmsg = self._readTotalCpuTime(timePath)
-            if cputime:
+            if errno == 0:
                 infomsg("{} cpu time = {:<0.2f} seconds".format(label, cputime))
             else:
                 cputime_msg = "{} cpu time collection failod: ({}) {}".format(label, errno, errmsg)
