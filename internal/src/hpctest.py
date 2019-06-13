@@ -65,12 +65,10 @@ class HPCTest(object):
 
     def __init__(self):
         
-        global dimensions, dimspecDefaults, dimspecClasses
+        global dimNames, dimDefaultMap, dimClassMap
 
         from common import infomsg, warnmsg, errormsg
-        from testspec   import TestSpec
-        from configspec import ConfigSpec
-        from stringspec   import StringSpec
+        from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
                 
         msgfunc = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
         if (not common.hpctk_default) and msgfunc:
@@ -84,15 +82,10 @@ class HPCTest(object):
                     )
         
         # dimension info (requires paths and config to be set up)
-        dimensions      = set(("tests", "build", "hpctoolkit", "profile"))
-        dimspecClasses  = { "tests":TestSpec,    "build":ConfigSpec, "hpctoolkit":StringSpec, "profile":StringSpec }
-        dimspecDefaults = { "tests":             "all",    
-                            "build":             "%" + configuration.get("build.compiler", "gcc"),     
-                            "hpctoolkit":        common.hpctk_default,
-                            "profile":           configuration.get("profile.hpctoolkit.hpcrun params",    "-e REALTIME@10000") + ";" +
-                                                 configuration.get("profile.hpctoolkit.hpcstruct params", "")                  + ";" +
-                                                 configuration.get("profile.hpctoolkit.hpcprof params",   "")
-                          }
+        dimClasses    = [ TestDim, ConfigDim, HPCTkitDim, ProfileDim ]
+        dimNames      = [ dim.name()                  for dim in dimClasses ]
+        dimClassMap   = { dim.name() : dim            for dim in dimClasses }
+        dimDefaultMap = { dim.name() : dim.default()  for dim in dimClasses }
 
 
     def init(self):
@@ -101,7 +94,7 @@ class HPCTest(object):
         pass
 
         
-    def run(self, dimStrings={}, args={}, numrepeats=1, reportspec="", sortKeys=[], studyPath=None, wantBatch=False):
+    def run(self, argDimSpecs=dict(), args=dict(), numrepeats=1, reportspec="", sortKeys=[], studyPath=None, wantBatch=False):
         
         import common
         import configuration
@@ -109,24 +102,17 @@ class HPCTest(object):
         from study      import Study
         from iterate    import Iterate
         from report     import Report
-        global dimensions, dimspecDefaults, dimspecClasses
+        global dimNames, dimDefaultMap, dimClassMap
                 
-        # decode the odict of dimension strings into a complete odict of dimension specs, with default specs for missing dimensions
+        # decode the dict of dimension strings into a complete dict of dimensionss, with default dims for missing dimensions
         dims = dict()
-        for dimName in dimensions:
-            if dimName in dimStrings:
-                str = dimStrings[dimName]
-            else:
-                str = dimspecDefaults[dimName]
-            dims[dimName] = dimspecClasses[dimName](str) if str else None
+        for name in dimNames:
+            spec = argDimSpecs[name] if name in argDimSpecs else dimDefaultMap[name]
+            dims[name] = dimClassMap[name](spec) if spec else None # TODO: can't be None?
             
         # check preconditions and run tests if ok
-        if dims["hpctoolkit"]:   # TODO: shouldn't require an HPCToolkit if no test wants profiling
+        if dims["hpctoolkit"]:      # TODO: shouldn't require an HPCToolkit if no test wants profiling
             
-            # preflight the current executor
-            if not Executor.isAvailable():
-                fatalmsg()
-                
             # run all the tests
             study = Study(studyPath if studyPath else common.workpath)
             if not wantBatch:
@@ -136,7 +122,7 @@ class HPCTest(object):
             
             # report results
             reporter = Report()
-            reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else dimStrings.keys())
+            reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else argDimSpecs.keys())
                 
         else:
             # error message was printed during self._init_
@@ -221,7 +207,6 @@ class HPCTest(object):
         from study      import Study
         from iterate    import Iterate
         from report     import Report
-        global dimensions, dimspecDefaults, dimspecClasses
                 
         infomsg("selftest not implemented")
         
@@ -366,8 +351,8 @@ _internalpath   = join(common.homepath, "internal")
 common.own_spack_home = join(_internalpath, "spack")
 common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
 _whichHpcrun         = common.whichDir("hpcrun")
-_hpctkInstall        = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
-common.hpctk_default = configuration.get("profile.hpctoolkit path", _hpctkInstall)
+_hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
 common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
 common.testspath     = join(common.homepath, "tests")
 common.repopath      = join(_internalpath, "repos", "tests")

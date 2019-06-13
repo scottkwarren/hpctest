@@ -54,15 +54,24 @@ class Test():
     _yamlFilename     = "hpctest.yaml"
 
 
-    #---------------------------#
-    # Instance methods - public #
-    #---------------------------#
+    @classmethod
+    def forEachDo(cls, action):
+        
+        import os
+        from os.path import join
+        from common import homepath
+        
+        testsRoot = join(homepath, "tests")
+        for dir, _, _ in os.walk(testsRoot, topdown=False):
+            if Test._isTestDir(dir):
+                action(Test(dir))
 
+    
     def __init__(self, dir):
         
         from common import fatalmsg
         
-        if Test.isTestDir(dir):
+        if Test._isTestDir(dir):
             self.dir = dir
             self.yamlDict, self.yamlMsg = self._readYaml()
         else:
@@ -73,14 +82,14 @@ class Test():
         
         ## TODO: use 'hpctoolkit', eg if not the default one, but need short names for the paths
         
-        if forName:
-            n = self.relpath().replace("/", "--")
-            c = config
-            p = profile.rstrip(" ;").replace(" ", "_").replace(";", ":")
-            d = "{}-{}-{}".format(n, c, p)
-        else:
-            d = "{}:{}:{}".format(self.relpath(), config, profile.rstrip(" ;"))
-        return d
+        from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
+        
+        f = "{}:{}:{}" if forName else "{} : {} : {}"
+        t = TestDim.format(self.relpath(), forName)
+        c = ConfigDim.format(config,       forName)
+        p = ProfileDim.format(profile,     forName)
+        
+        return f.format(t, c, p)
 
 
     def path(self):
@@ -174,9 +183,16 @@ class Test():
         return self.yaml("run.threads", 1)
     
 
-    #----------------------------#
-    # Instance methods - private #
-    #----------------------------#
+    #-----------------#
+    # Private methods #
+    #-----------------#
+
+    @classmethod
+    def _isTestDir(cls, path):
+        
+        from os.path import isfile, join
+        return isfile(join(path, Test._yamlFilename))
+
 
     def _computeChecksum(self):
         
@@ -205,30 +221,6 @@ class Test():
             # TODO...
      
         return yaml, msg
-
-
-    #---------------#
-    # Class methods #
-    #---------------#
-    
-    @classmethod
-    def isTestDir(cls, path):
-        
-        from os.path import isfile, join
-        return isfile(join(path, Test._yamlFilename))
-
-
-    @classmethod
-    def forEachDo(cls, action):
-        
-        import os
-        from os.path import join
-        from common import homepath
-        
-        testsRoot = join(homepath, "tests")
-        for dir, _, _ in os.walk(testsRoot, topdown=False):
-            if Test.isTestDir(dir):
-                action(Test(dir))
 
 
 

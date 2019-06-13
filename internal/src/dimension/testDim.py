@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  testspec.py                                                                 #
-#  textual spec for set of test cases to run, and its evaluated set            #
+#  testDim.py                                                                  #
+#  set of paths to test cases, constructed from "spec" exprs                   #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,38 +48,61 @@
 
 
 
-# TEMPORARY: specstring is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
+from . import StringDim
 
-class TestSpec(object):
+
+class TestDim(StringDim):
     
-    def __init__(self, specString):
+    @classmethod
+    def name(cls):
+        
+        return "tests"
+    
+    
+    @classmethod
+    def default(cls):
+
+        return "all"
+
+
+    @classmethod
+    def format(cls, value, forName=False):
+        
+        from os.path import relpath, join
+        from common import homepath
+        
+        return value.replace("/", "--") if forName else value
+
+    
+    def __init__(self, expr):
+        # 'expr' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
                 
         from os.path import join                                                                                                                                                                                                 
         from glob import glob
         from common import homepath
         from test import Test
                   
-        if specString == "all":
-            self.pathlist = []
-            Test.forEachDo( lambda test: self.pathlist.append(test.path()) )
+        if expr == "all":
+            self.valueList = []
+            Test.forEachDo( lambda test: self.valueList.append(test.path()) )
         else:
             testsDir = join(homepath, "tests")
-            self.pathlist = \
+            self.valueList = \
                 [ path
-                    for pattern in specString.split(',')
+                    for pattern in expr.split(',')
                         for path in glob( join(testsDir, pattern.strip()) )
                 ]
 
 
-    def paths(self):
+    def values(self):
             
-        return frozenset(self.pathlist)
+        return frozenset( map(self._makeTest, self.valueList) )
 
 
     def __iter__(self):
         
         from itertools import imap
-        return imap(self._makeTest, self.pathlist)
+        return imap(self._makeTest, self.valueList)
 
 
     @staticmethod

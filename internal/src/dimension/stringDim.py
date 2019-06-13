@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  stringspec.py                                                               #
-#  textual spec for string-valued dimension specs, and its evaluated set       #
+#  stringDim.py                                                                #
+#  abstract superclass for sets of strings constructed from "spec" exprs       #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,20 +48,47 @@
 
 
 
-class StringSpec():
+from . import Dimension
+
+
+class StringDim(Dimension):
     
-    def __init__(self, specString):
-        # specstring should be a comma-separated list of possibly-quoted strings
+    @classmethod
+    def name(cls):
+        
+        from common import subclassResponsibility
+        subclassResponsibility("StringDim", "name")
+    
+    
+    @classmethod
+    def default(cls):
+        from common import subclassResponsibility
+        subclassResponsibility("StringDim", "default")
+        return None
+
+
+    @classmethod
+    def format(self, value, forName=False):
+        
+        return value
+
+    
+    def __init__(self, spec=""):
         
         # TODO: quotes not yet supported
-        self.specList = [ spackspec.strip() for spackspec in specString.split(",") ]
-                                
-                                
-    def strings(self):
+        self.valueList = [ s.strip() for s in spec.split(",") ]
+
+
+    def isEmpty(self):
+        
+        return len(self.valueList) == 0
+
+
+    def values(self):
             
-        return frozenset(self.specList)
+        return frozenset(self.valueList)
 
 
     def __iter__(self):
         
-        return iter(self.specList)
+        return iter(self.valueList)

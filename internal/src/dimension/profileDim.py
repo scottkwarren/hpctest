@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  buildspec.py                                                                #
-#  textual spec for set of build configs to test on, and its evaluated set     #
+#  profileDim.py                                                               #
+#  set of param strings for hpc{run,struct,prof} constructed from "spec" exprs #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -48,19 +48,37 @@
 
 
 
-class ConfigSpec():
+from . import StringDim
+
+
+class ProfileDim(StringDim):
     
-    def __init__(self, specString):
-        # TEMPORARY: stub by expecting specstring to be a comma-separated list of Spack specs
+    @classmethod
+    def name(cls):
         
-        self.specList = [ spackspec.strip() for spackspec in specString.split(',') ]
-                                
-                                
-    def specs(self):
-            
-        return frozenset(self.specList)
+        return "profile"
+    
+    
+    @classmethod
+    def default(cls):
+
+        import configuration
+        return ( configuration.get("profile.hpctoolkit.hpcrun params", "-e REALTIME@10000") +
+                 ";" +
+                 configuration.get("profile.hpctoolkit.hpcstruct params", "") +
+                 ";" +
+                 configuration.get("profile.hpctoolkit.hpcprof params", "")
+               )
 
 
-    def __iter__(self):
+    @classmethod
+    def format(cls, value, forName=False):
         
-        return iter(self.specList)
+        stripped = value.rstrip(" ;")
+        return stripped.replace(" ", ".").replace(";", ":") if forName else stripped
+
+
+    # everything else is inherited from StringDim
+
+
+

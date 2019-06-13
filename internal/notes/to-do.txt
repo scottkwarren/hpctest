@@ -18,10 +18,10 @@ Bugs
 
 NEXT
 - Refactor for experiment classes
-- Config defaults per platform and site
 - hide generated slurm command files
-- preserve generated slurm command files in OUT directory
 - delete generated slurm command files in 'hpctest clean'
+- preserve generated slurm command files in OUT directory
+- Config defaults per platform and site
 
 
 

@@ -125,6 +125,11 @@ def subclassResponsibility(cls, method):
     fatalmsg("{}.{} should be overridden by each subclass but was not".format(cls, method))
 
 
+def mustNotCall(whatClass, whatMethod, reason):
+    
+    fatalmsg("{}.{} must not be called because {}".format(whatClass, whatMethod, reason))
+    
+
 def sepmsg(long=False):
     
     if type(long) is int:

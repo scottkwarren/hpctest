@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  config-builtin.py                                                           #
-#  built in configuration settings (lowest priority settings)                  #
+#  dimension.py                                                                #
+#  abstract superclass of all Experiment parameter types                       #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -10,10 +10,10 @@
 #  Part of HPCToolkit (hpctoolkit.org)                                         #
 #                                                                              #
 #  Information about sources of support for research and development of        #
-#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
+#  HPCToolkit is at 'hpctoolkit.org' and in 'README.Acknowledgments'.          #
 #  --------------------------------------------------------------------------- #
 #                                                                              #
-#  Copyright ((c)) 2002-2017, Rice University                                  #
+#  Copyright ((c)) 2002-2019, Rice University                                  #
 #  All rights reserved.                                                        #
 #                                                                              #
 #  Redistribution and use in source and binary forms, with or without          #
@@ -46,43 +46,41 @@
 ################################################################################
 
 
-################################################################################
-# These config settings are used when no user-specified setting is given.      #
-# A 'null' value indicates "no setting" in any hpctest config file.            #
-################################################################################
 
 
-config:
-  batch: None
+class Dimension(object):
+    
+    @classmethod
+    def name(cls):
+        from common import subclassResponsibility
+        subclassResponsibility("Dimension", "name")
+    
+    @classmethod
+    def default(cls):
+        from common import subclassResponsibility
+        subclassResponsibility("Dimension", "default")
 
-build:
-  compiler: "%gcc"  # Spack spec
-  
-run:
-  ulimit:
-    c:  200K        # core file size          (blocks, -c) 0
-    d:  2M          # data seg size           (kbytes, -d) unlimited
-#   e:  0           # scheduling priority             (-e) 0
-    f:  2M          # file size               (blocks, -f) unlimited
-#   i:  512899      # pending signals                 (-i) 512899
-#   l:  64          # max locked memory       (kbytes, -l) 64
-#   m:  unlimited   # max memory size         (kbytes, -m) unlimited
-#   n:  1024        # open files                      (-n) 1024
-#   p:  8           # pipe size            (512 bytes, -p) 8
-#   q:  819200      # POSIX message queues     (bytes, -q) 819200
-#   r:  0           # real-time priority              (-r) 0
-    s:  100K        # stack size              (kbytes, -s) 8192
-    t:  3000        # cpu time               (seconds, -t) unlimited
-    u:  500         # max user processes              (-u) 4096
-#   v:  unlimited   # virtual memory          (kbytes, -v) unlimited
-#   x:  unlimited   # file locks                      (-x) unlimited
+    @classmethod
+    def format(self, value, forName=False):
+        from common import subclassResponsibility
+        subclassResponsibility("Dimension", "format")
+    
+    def __init__(self, spec=""):
+        from common import mustNotCall
+        mustNotCall("Dimension", "__init_", "it is abstract")
 
-profile:
-  hpctoolkit:
-    path:              null
-    hpcrun params:     "-e REALTIME@10000"
-    hpcstruct params:  ""
-    hpcprof params:    ""
+    def isEmpty(self):
+        from common import subclassResponsibility
+        subclassResponsibility("Dimension", "isEmpty")
+
+    def values(self):
+        from common import subclassResponsibility
+        subclassResponsibility("Dimension", "values")
+
+    def __iter__(self):
+        from common import subclassResponsibility
+        subclassResponsibility("Dimension", "__iter__")
+
 
 
 

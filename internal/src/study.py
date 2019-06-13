@@ -92,7 +92,7 @@ class Study():
         from os.path import join, isdir
 
         # TODO: ensure uniqueness
-        rundir = join(self.path, description.replace(" ", "."))
+        rundir = join(self.path, description.replace(" ", "_"))
         if isdir(rundir):
             n = 2
             while( isdir(rundir + "-" + str(n))): n += 1

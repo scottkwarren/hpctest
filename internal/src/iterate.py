@@ -59,7 +59,7 @@ class Iterate():
         from common import infomsg, errormsg, debugmsg, options
         from run import Run
 
-        if not dims["tests"].paths():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
+        if dims["tests"].isEmpty():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
             infomsg("test spec matches no tests")
             return False
         else:
