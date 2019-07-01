@@ -285,7 +285,7 @@ class HPCTestError(Exception):
         self.errno  = errno
         
     def __str__(self):
-        errno_str = " (errno {})".format(self.errno) if self.errno else ""
+        errno_str = " ({})".format(self.errno) if self.errno else ""
         return self.message + errno_str
 
 

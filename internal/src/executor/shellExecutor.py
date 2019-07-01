@@ -49,6 +49,7 @@
 
 
 from executor import Executor
+from rtslib.fabric import Qla2xxxFabricModule
 
 
 class ShellExecutor(Executor):
@@ -78,8 +79,8 @@ class ShellExecutor(Executor):
         
         # NOT USED: numRanks, numThreads  -- 'cmd' haas necessary code for these already
         
-        import os
-        from subprocess import call, CalledProcessError
+        import os, sys
+        from subprocess import check_call, CalledProcessError
         from common import ExecuteFailed
            
         try:
@@ -87,24 +88,26 @@ class ShellExecutor(Executor):
             if runPath:
                 oldwd  = os.getcwd()
                 os.chdir(runPath)
-                
+            
             with open(outPath, "w") as output:
-                call(cmd, shell=True, stdin=None, stdout=output, stderr=output, env=env)
-              
+                with open(outPath + ".err", "w") as error:
+                    check_call(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
+        
         except CalledProcessError as e:
-            raise ExecuteFailed(str(e), process.returncode)
+            raise ExecuteFailed(self._shellError(e.returncode), e.returncode)
         except OSError as e:
-            msg = "{}: {}'.format(self.exe[0], e.strerror)"
+            msg = "{}: {}".format(self.exe[0], e.strerror)
             raise ExecuteFailed(msg)
         except Exception as e:
             raise ExecuteFailed(e.message)
         finally:
-            if runPath: os.chdir(oldwd)
-    
+            if runPath:
+                os.chdir(oldwd)
+
     
     def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
         
-        # NOT USED: numRanks, numThreads  -- 'cmd' contains necessary code for these already
+        # NOT USED: numRanks, numThreads - 'cmd' contains necessary code for these already
         
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
@@ -172,6 +175,18 @@ class ShellExecutor(Executor):
         self.runningProcesses.remove(process)
         self.jobDescriptions.pop(process)
 
+
+    def _shellError(self, retcode):
+        
+        if retcode is 126:
+            msg = "Command file is not executable"
+        elif retcode is 127:
+            msg = "Command file not found"
+        else:
+            msg = "Command terminated by signal {}".format(retcode-128)
+        
+        return msg
+    
 
 # register this executor class by name
 Executor.register("Shell", ShellExecutor)
