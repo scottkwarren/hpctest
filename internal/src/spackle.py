@@ -68,15 +68,19 @@ def initSpack():
 #  Commands  #
 #------------#
 
-def do(cmdstring, stdout="/dev/null", stderr="/dev/null"):
+def do(cmdstring, echo=True):
 
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
     import os, common
     
-    if stdout != "": stdout = "> {}".format(stdout)
-    if stderr != "": stderr = "2> {}".format(stderr)
-    os.system(common.own_spack_home + "/bin/spack " + cmdstring + " {} {}".format(stdout, stderr))
+    if echo:
+        out = "/dev/stdout"
+        err = "/dev/stderr"
+    else:
+        out = "/dev/null"
+        err = "/dev/null"
+    os.system(common.own_spack_home + "/bin/spack " + cmdstring + " > {} 2> {}".format(out, err))
 
 
 def extDo(cmdstring):

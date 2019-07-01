@@ -312,7 +312,7 @@ class HPCTest(object):
         # remove installed versions of package if any
         if exists(packagePath):
             cmd = "uninstall --all --force --yes-to-all {}".format(name)
-            spackle.do(cmd)   # installed dependencies are not removed
+            spackle.do(cmd, False)   # installed dependencies are not removed
         rmtree(packagePath, ignore_errors=True)
     
         # make package directory for this test
