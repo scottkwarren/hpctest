@@ -265,7 +265,6 @@ def execute(args):
         
     elif args.subcommand == "_runOne":
         
-        import spack
         encodedArgs = args.encodedArgs
         HPCTestOb._runOne(encodedArgs)
             
