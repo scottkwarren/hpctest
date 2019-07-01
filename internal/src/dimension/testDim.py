@@ -74,25 +74,25 @@ class TestDim(StringDim):
         return value.replace("/", "--") if forName else value
 
     
-    def __init__(self, expr):
-        # 'expr' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
+    def __init__(self, spec):
+        # 'spec' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
                 
         from os.path import join                                                                                                                                                                                                 
         from glob import glob
         from common import homepath
         from test import Test
                   
-        if expr == "all":
+        if spec == "all":
             self.valueList = []
             Test.forEachDo( lambda test: self.valueList.append(test.path()) )
         else:
             testsDir = join(homepath, "tests")
             self.valueList = \
                 [ path
-                    for pattern in expr.split(',')
-                        for path in glob( join(testsDir, pattern.strip()) )
+                    for testPattern in spec.split(',')
+                        for path in glob( join(testsDir, testPattern.strip()) )
                 ]
-
+        
 
     def values(self):
             
@@ -103,7 +103,7 @@ class TestDim(StringDim):
         
         from itertools import imap
         return imap(self._makeTest, self.valueList)
-
+        
 
     @staticmethod
     def _makeTest(path):
