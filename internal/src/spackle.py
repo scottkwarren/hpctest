@@ -56,7 +56,7 @@ import sys
 def initSpack():
 
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-    import spack
+    import spack, spackle
     
     # TODO: is any of the following redundant?
     spack.do_checksum = False   # see spack.cmd.diy lines 91-92

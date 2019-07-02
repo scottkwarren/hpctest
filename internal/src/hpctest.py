@@ -291,14 +291,14 @@ class HPCTest(object):
                 
             # if not, update package
             if needPackage:
-                HPCTest._addPackageForTest(testDir, name)
-                test.markUnchanged(testDir)
+                HPCTest._addPackageForTest(test)
+                test.markUnchanged()
                 
         Test.forEachDo(ensureOneTest)
     
     
     @classmethod
-    def _addPackageForTest(cls, testPath, name):
+    def _addPackageForTest(cls, test):
         
         from os import mkdir
         from os.path import exists, join
@@ -306,12 +306,15 @@ class HPCTest(object):
         import spackle
         from common import debugmsg, repopath
         
+        testName = test.yamlName()
+        testPath = test.path()
+        
         debugmsg("adding package for test {}".format(testPath))
-        packagePath = join(repopath, "packages", name)
+        packagePath = join(repopath, "packages", testName)
     
         # remove installed versions of package if any
         if exists(packagePath):
-            cmd = "uninstall --all --force --yes-to-all {}".format(name)
+            cmd = "uninstall --all --force --yes-to-all {}".format(testName)
             spackle.do(cmd, False)   # installed dependencies are not removed
         rmtree(packagePath, ignore_errors=True)
     
@@ -344,6 +347,8 @@ class HPCTest(object):
 # MODULE INITIALIZATION #
 #########################
 
+
+from common import infomsg
 
 # determine important paths
 common.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
