@@ -55,13 +55,12 @@ import sys
 
 def initSpack():
 
-    # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-    import spack, spackle
+    import spack
+    import spack.config     # necessay to force loading the 'config' module,
+                            # else 'spack.config' fails below
     
-    # TODO: is any of the following redundant?
-    spack.do_checksum = False   # see spack.cmd.diy lines 91-92
-    spack.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
-    spack.insecure = True
+    # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
+    spack.config.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
 
 
 #------------#
@@ -124,6 +123,7 @@ def execute(cmd, cwd=None, env=None, output=None, error=None):
 def parseSpec(specString):
     
     import spack
+    import spack.cmd
     return spack.cmd.parse_specs(specString)
 
 
@@ -197,7 +197,7 @@ def uninstall(name):
 def getRepo(name):
     
     import spack
-    return spack.repo.get_repo(name, default=None)
+    return spack.repo.path.get_repo(name, default=None)
     
     
 def createRepo(dirname):
@@ -205,7 +205,7 @@ def createRepo(dirname):
     from os.path import join, isdir
     from shutil import rmtree
     import spack
-    from spack.repository import create_repo
+    from spack.repo import create_repo
     from common import homepath
 
     # this just makes a repo directory -- it must be added to Spack once populated
@@ -218,34 +218,34 @@ def createRepo(dirname):
 def updateRepoPath(repoPath):
 
     import spack
-    from spack.repository import Repo
+    from spack.repo import Repo
     from common import assertmsg
 
     # update Spack's current RepoPath
-    assertmsg(len(spack.repo.repos) == 2, "unexpected RepoPath length while updating Spack for changed internal repo")
-    spack.repo.repos[0] = Repo(repoPath)
+    assertmsg(len(spack.repo.path.repos) == 2, "unexpected RepoPath length while updating Spack for changed internal repo")
+    spack.repo.path.repos[0] = Repo(repoPath)
 
 
 def addRepo(repoPath):
 
     import spack
-    from spack.repository import Repo
+    from spack.repo import Repo
 
     # We need to add a repo *while Spack is running*, which existing Spack code never does.
     # Adding while preserving RepoPath representation invariant is messy
     # ...no single operation for this is available in current Spack code
     
     # update Spack's config
-    repos = spack.config.get_config('repos', "site")
+    repos = spack.config.config.get_config('repos', "site")
     if isinstance(repos, list):
         repos.insert(0, repoPath)
     else:
         repos = [ repoPath ]
-    spack.config.update_config('repos', repos, "site")
+    spack.config.config.update_config('repos', repos, "site")
     
     # add to Spack's RepoPath
     repo = Repo(repoPath)
-    spack.repo.put_first(repo)
+    spack.repo.path.put_first(repo)
 
 
 #--------------#
@@ -254,7 +254,8 @@ def addRepo(repoPath):
 
 def readYamlFile(path):
     
-    import spack, yaml
+    import spack
+    import ruamel.yaml as yaml
     from common import options, debugmsg
 
     if "verbose" in options:
@@ -282,7 +283,8 @@ def writeYamlFile(path, object):
     
     from collections import OrderedDict     # to make output text file will have fields in order of insertion
     import sys
-    import spack, yaml
+    import spack
+    import ruamel.yaml as yaml
     from common import options, debugmsg, fatalmsg
 
     def ordered_dump(data, stream=None, Dumper=yaml.Dumper, **kwds):    # adaptor to let PyYAML use OrderedDict

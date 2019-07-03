@@ -234,7 +234,7 @@ class HPCTest(object):
 #         
 #    from os.path import join
 #    import spack
-#    from spack.repository import Repo
+#    from spack.repo import Repo
 #    from common import own_spack_home
 #         
 #    # iterate over builtin packages
@@ -379,7 +379,7 @@ if not isdir(common.own_spack_home):
     
     infomsg("Setting up internal Spack...")
     
-    spack_version   = "0.11.2"
+    spack_version   = "0.12.1"
     spack_tarball   = join(_internalpath, "spack-{}.tar.gz".format(spack_version))
     spack_extracted = join(_internalpath, "spack-{}".format(spack_version))
     spack_dest      = join(_internalpath, "spack")
@@ -390,6 +390,7 @@ if not isdir(common.own_spack_home):
     spackle.do("compilers")
     infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
     infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
+    
 spackle.initSpack()     # must be done at each execution of our Spack
 
 # set up configuration system
