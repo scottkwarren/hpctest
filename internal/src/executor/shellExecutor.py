@@ -49,7 +49,6 @@
 
 
 from executor import Executor
-from rtslib.fabric import Qla2xxxFabricModule
 
 
 class ShellExecutor(Executor):
