@@ -7,9 +7,9 @@
 ################################################################################
 
 
-# profile:
-#   hpctoolkit path: ~/hpctoolkit-current/hpctoolkit/INSTALL/bin/
-  
+profile:
+  hpctoolkit:
+    path: ~/hpctoolkit-current/hpctoolkit/INSTALL/
 config:
 #   batch:
 #     default: False

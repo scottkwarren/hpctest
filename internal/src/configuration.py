@@ -86,12 +86,9 @@ def get(keypath, default=None):
     value = currentConfig
     for k in keys:
         if value:
-            try:
-                value = value[k]
-            except:
-                value = None
+            value = value.get(k, None)
 
-    return value if value is not None else default
+    return default if value is None else value
 
 
 def set(key, value):

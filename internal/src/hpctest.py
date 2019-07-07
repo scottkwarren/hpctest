@@ -74,10 +74,10 @@ class HPCTest(object):
         if (not common.hpctk_default) and msgfunc:
             msgfunc("no default HPCToolkit specified for profiling.\n"
                     "\n"
-                    "To run profiling tests, specify '--hpctookit <path to bin dir>' on each 'hpctest run' command line.\n"
+                    "To run profiling tests, specify '--hpctookit <path to install directory>' on each 'hpctest run' command line.\n"
                     "To avoid specifying '--hpctoolkit' every time, do one of the following:\n"
-                    "- edit hpctest/config.yaml to specify a default HPCToolkit path\n"
-                    "- ensure that an HPCToolkit instance is on your $PATH to serve as default.\n"
+                    "- edit hpctest/config.yaml and set profile.hpctoolkit.path to desired default HPCToolkit install directory\n"
+                    "- or ensure that an HPCToolkit bin directory is on your $PATH.\n"
                     "\n"
                     )
         
@@ -350,29 +350,26 @@ class HPCTest(object):
 
 from common import infomsg
 
-# determine important paths
+
+# (1) establish preconditions for initializing the config system...
+
+# homepath is needed for everything else
 common.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
+environ["HPCTEST_HOME"] = common.homepath
+
+# paths needed to initialize Spack's location
 _internalpath   = join(common.homepath, "internal")
 common.own_spack_home = join(_internalpath, "spack")
 common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
-_whichHpcrun         = common.whichDir("hpcrun")
-_hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
-common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
-common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
-common.testspath     = join(common.homepath, "tests")
-common.repopath      = join(_internalpath, "repos", "tests")
-common.workpath      = join(common.homepath, "work")
-if not isdir(common.workpath): makedirs(common.workpath)
 
-# set up environment
-environ["HPCTEST_HOME"] = common.homepath
+# sys.path adjustment is needed to load Spack modules
 sys.path[1:0] = [ common.own_spack_module_dir,
                   join(common.own_spack_module_dir, "external"),
                   join(common.own_spack_module_dir, "external", "yaml", "lib"),
                   join(common.own_spack_module_dir, "llnl"),
                 ]
 
-# set up local spack if necessary
+# set up our private Spack installation if not already present
 if not isdir(common.own_spack_home):
     
     # inits to set up our own Spack, done only the first time HPCTest runs
@@ -390,12 +387,23 @@ if not isdir(common.own_spack_home):
     spackle.do("compilers")
     infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
     infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
+
+# Spack is needed to read yaml files in initConfig
+spackle.initSpack()
+
+# (2) now we can set up configuration system so configs can specify important paths
+configuration.initConfig()
+
+# (3) finally we can initialize important user-visible paths, possibly from config settings
+_whichHpcrun         = common.whichDir("hpcrun")
+_hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
+common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
+common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
+common.testspath     = join(common.homepath, "tests")
+common.repopath      = join(_internalpath, "repos", "tests")
+common.workpath      = join(common.homepath, "work")
+if not isdir(common.workpath): makedirs(common.workpath)
     
-spackle.initSpack()     # must be done at each execution of our Spack
-
-# set up configuration system
-configuration.initConfig()    # must come after paths, spack, and environ are initialized
-
 # set up private repo
 HPCTest._ensureRepo()
 
