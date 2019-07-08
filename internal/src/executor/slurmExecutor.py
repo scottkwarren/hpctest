@@ -49,6 +49,7 @@
 
 
 from executor import Executor
+from common import options
 
 
 class SlurmExecutor(Executor):
@@ -82,11 +83,11 @@ class SlurmExecutor(Executor):
             raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
+    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description)
+        jobid, out, err = _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self.runningProcesses.add(jobid)
             self.jobDescriptions[jobid] = description
@@ -199,10 +200,11 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     return out, (err if err else rc)
 
 
-def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (jobid, out, err)
+def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
     
     import textwrap, tempfile
     from os import getcwd
+    import common
     from common import verbosemsg
     
     # slurm sbatch command file template
@@ -237,7 +239,7 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description): # re
     f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
                                     dir=getcwd(), prefix='sbatch-', suffix=".slurm")
     f.write(_Slurm_batch_template.format(
-        jobName      = description,
+        jobName      = name,
         account      = account,
         partition    = partition,
         numRanks     = numRanks,
@@ -249,9 +251,16 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, description): # re
         ))
     f.close()
     
-    # submit the command for batch execution with 'sbatch'
-    verbosemsg("slurm batch file for job {} is {}".format(description, f.name))
-    out, err = _shell("sbatch {}".format(f.name))
+    # submit command file for batch execution with 'sbatch'
+    options = "--verbose " if "debug" in common.options else ""
+    command = "    sbatch {}{}".format(options, f.name)
+    verbosemsg("submitting job {} ...".format(description))
+    verbosemsg("    " + command)
+    out, err = _shell(command)
+    verbosemsg("    " + out)
+    verbosemsg("\n")
+    
+    # handle output from submit command
     if err:
         jobid = rc = None
     else:

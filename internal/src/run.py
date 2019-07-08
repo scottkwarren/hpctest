@@ -373,7 +373,9 @@ class Run():
         initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
         env = os.environ.copy()         # batch job should run with the existing environment
-        jobID, out, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, test.description(config, hpctoolkit, profile))
+        name = test.description(config, hpctoolkit, profile, forName=True)
+        desc = test.description(config, hpctoolkit, profile, forName=False)
+        jobID, out, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, name, desc)
         
         return jobID, out, err
     

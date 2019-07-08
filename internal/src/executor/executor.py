@@ -73,20 +73,23 @@ class Executor(object):
         if not cls._local_executor_class:
             
             # local configuration may specify the job launcher
-            name = configuration.get("config.batch.manager", "Shell")
+            name  = configuration.get("config.batch.manager", "Shell")
+            force = configuration.get("config.batch.force",   "False")
             
             # validate the name
             if name not in cls._subclasses:
                 fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
             
-            # validate the corresponding executor
-            available, msg = cls._subclasses[name].isAvailable()
-            if not available:
+            # validate the corresponding executor class
+            executorClass = cls._subclasses[name]
+            available, msg = executorClass.isAvailable()
+            if not (available or force):
                 fatalmsg("config files specify {} as config.batch.manager, "
                          "but {}".format(name, msg if msg else  name + " is not available"))
             
-            cls._local_executor_class = cls._subclasses[name]
-            
+            # memoize for subsequent calls
+            cls._local_executor_class = executorClass
+
         return cls._local_executor_class
     
     
@@ -132,7 +135,7 @@ class Executor(object):
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
     
-    def submitJob(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
+    def submitJob(self, cmd, runDirPath, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")
     

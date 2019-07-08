@@ -104,7 +104,7 @@ class ShellExecutor(Executor):
                 os.chdir(oldwd)
 
     
-    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns jobID, out, err
+    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         # NOT USED: numRanks, numThreads - 'cmd' contains necessary code for these already
         
