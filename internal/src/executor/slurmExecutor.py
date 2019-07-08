@@ -284,18 +284,14 @@ def _paramsFromConfiguration():
     
     import configuration
 
-## FIXME
-##  account   =  configuration.get(xxx, "xxx")
-##  partition =  configuration.get(xxx, "xxx")
-##  time      =  configuration.get(xxx, "xxx")
-    account   =  "scott@rice.edu"
-    partition =  "commons"
-    time      =  "1:00:00"
+    account   =  configuration.get("batch.params.account",   "commons")
+    partition =  configuration.get("batch.params.partition", "commons")
+    time      =  configuration.get("batch.params.time",      "1:00:00")
     
     return (account, partition, time)
 
 
-def _paramsFromTest():
+def _paramsFromTest():  
     
     import configuration
 
