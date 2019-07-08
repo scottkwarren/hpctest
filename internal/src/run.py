@@ -366,13 +366,12 @@ class Run():
         
         import os
         from common import homepath
-        
-        ## TODO: get 'numRanks' and 'numThreads' from Test object
-        numRanks = numThreads = 1
-        
+                
         initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
         env = os.environ.copy()         # batch job should run with the existing environment
+        numRanks = test.numRanks()
+        numThreads = test.numThreads()
         name = test.description(config, hpctoolkit, profile, forName=True)
         desc = test.description(config, hpctoolkit, profile, forName=False)
         jobID, out, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, name, desc)

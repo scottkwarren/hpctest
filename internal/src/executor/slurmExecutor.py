@@ -151,18 +151,17 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     # slurm srun command template
     Slurm_run_cmd_template = textwrap.dedent(
-        "srun --job-name={jobName} \\n\n"
-        "     --account={account} \\n\n"
-        "     --partition={partition} \\n\n"
-        "     --export=NONE \\n\n"
-        "     --exclusive \\n\n"
-        "     --ntasks={numRanks} \\n\n"
-        "     --cpus-per-task={numThreads} \\n\n"
-#       "     --mem-per-cpu={memPerThread} \\n\n"
-        "     --time={time} \\n\n"
-#       "     --output={outPath} \\n\n"
-        "     --mail-type=NONE \\n\n"
-        "     {cmd} \\n\n"
+        "srun --account={account} "
+        "     --partition={partition} "
+        "     --export=NONE "
+        "     --exclusive "
+        "     --ntasks={numRanks} "
+        "     --cpus-per-task={numThreads} "
+#       "     --mem-per-cpu={memPerThread} "
+        "     --time={time} "
+#       "     --output={outPath} "
+        "     --mail-type=NONE "
+        "     {cmd}"
         )
 
     # template params from configuration
@@ -173,7 +172,6 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     # prepare slurm command
     cmd = Slurm_run_cmd_template.format(
-        jobName      = description,
         account      = account,
         partition    = partition,
         numRanks     = numRanks,
@@ -186,9 +184,9 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     # run the command immediately with 'srun'
     out, err = _shell(cmd)
-    # ...'out' is something like 'Submitted batch job 278025'
     
-    # extract rc from 'out'
+    # extract job id from 'out'
+    # 'out' should be eg 'Submitted batch job 278025'
     print "out = '", out, "'"     ## DEBUG
     rc = 0
     
@@ -203,7 +201,6 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
     from common import verbosemsg
     
     # slurm sbatch command file template
-    ## TODO: this seems to be the same as template in '_srun'
     Slurm_batch_file_template = textwrap.dedent(
         """\
         #!/bin/bash
