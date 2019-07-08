@@ -11,14 +11,14 @@ profile:
   hpctoolkit:
     path: ~/hpctoolkit-current/hpctoolkit/INSTALL/
 config:
-# batch:
-#   manager: Slurm
-#   force:   True
-#   default: False
-#   params:
-#     account:   commons
-#     partition: commons
-#     time:      "1:00:00"
+#   batch:
+#     manager: Slurm
+#     force:   True
+#     default: False
+#     params:
+#       account:   commons
+#       partition: commons
+#       time:      "1:00:00"
 run:
   ulimit:
     t: unlimited  # cpu time (seconds)
