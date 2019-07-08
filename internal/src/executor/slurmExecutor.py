@@ -219,9 +219,9 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         #SBATCH --exclusive
         #SBATCH --ntasks={numRanks}
         #SBATCH --cpus-per-task={numThreads}
-        #SBATCH --mem-per-cpu={memPerThread}
+        #  #SBATCH --mem-per-cpu={memPerThread}
         #SBATCH --time={time}
-        #SBATCH --output={outPath}
+        #  #SBATCH --output={outPath}
         #SBATCH --mail-type=NONE
         {cmd} 
         """)
@@ -244,9 +244,9 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         partition    = partition,
         numRanks     = numRanks,
         numThreads   = numThreads,
-        memPerThread = memPerThread,
+        memPerThread = memPerThread,    # commented out in template
         time         = time,
-        outPath      = outPath,
+        outPath      = outPath,         # commented out in template
         cmd          = cmd,
         ))
     f.close()
@@ -283,12 +283,14 @@ def _envDictToString(envDict):
 def _paramsFromConfiguration():
     
     import configuration
+
+## FIXME
 ##  account   =  configuration.get(xxx, "xxx")
-##        partition =  configuration.get(xxx, "xxx")
-##        time      =  configuration.get(xxx, "xxx")
+##  partition =  configuration.get(xxx, "xxx")
+##  time      =  configuration.get(xxx, "xxx")
     account   =  "scott@rice.edu"
-    partition =  "common"
-    time      =  "0:30:00"
+    partition =  "commons"
+    time      =  "1:00:00"
     
     return (account, partition, time)
 
@@ -297,10 +299,9 @@ def _paramsFromTest():
     
     import configuration
 
-    cpusPerTask = 1
-    memPerCpu   = "1000m"
+    memPerCpu = "1000M"     ## FIXME
     
-    return (cpusPerTask, memPerCpu)
+    return memPerCpu
 
 
 
