@@ -149,24 +149,21 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     from os import getcwd
     import textwrap, tempfile
     
-    # slurm srun command file template
-    ## TODO: this seems to be the same as template in '_sbatch'
-    _Slurm_run_template = textwrap.dedent(
-        """\
-        #!/bin/bash
-        #SBATCH --job-name={jobName}
-        #SBATCH --account={account}
-        #SBATCH --partition={partition}
-        #SBATCH --export=NONE
-        #SBATCH --exclusive
-        #SBATCH --ntasks={numRanks}
-        #SBATCH --cpus-per-task={numThreads}
-        #SBATCH --mem-per-cpu={memPerThread}
-        #SBATCH --time={time}
-        #SBATCH --output={outPath}
-        #SBATCH --mail-type=NONE
-        {cmd}
-        """)
+    # slurm srun command template
+    Slurm_run_cmd_template = textwrap.dedent(
+        "srun --job-name={jobName} \\n\n"
+        "     --account={account} \\n\n"
+        "     --partition={partition} \\n\n"
+        "     --export=NONE \\n\n"
+        "     --exclusive \\n\n"
+        "     --ntasks={numRanks} \\n\n"
+        "     --cpus-per-task={numThreads} \\n\n"
+#       "     --mem-per-cpu={memPerThread} \\n\n"
+        "     --time={time} \\n\n"
+#       "     --output={outPath} \\n\n"
+        "     --mail-type=NONE \\n\n"
+        "     {cmd} \\n\n"
+        )
 
     # template params from configuration
     account, partition, time = _paramsFromConfiguration()
@@ -174,10 +171,8 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     # template params from test
     memPerThread = _paramsFromTest()
     
-    # prepare slurm command file
-    f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
-                                    dir=getcwd(), prefix='sbatch-', suffix=".slurm")
-    f.write(_Slurm_run_template.format(
+    # prepare slurm command
+    cmd = Slurm_run_cmd_template.format(
         jobName      = description,
         account      = account,
         partition    = partition,
@@ -186,12 +181,12 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         memPerThread = memPerThread,
         time         = time,
         outPath      = outPath,
-        cmd          = cmd,
-        ))
-    f.close()
+        cmd          = cmd
+        )
     
     # run the command immediately with 'srun'
-    out, err = _shell("srun {}".format(f.name))
+    out, err = _shell(cmd)
+    # ...'out' is something like 'Submitted batch job 278025'
     
     # extract rc from 'out'
     print "out = '", out, "'"     ## DEBUG
@@ -209,7 +204,7 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
     
     # slurm sbatch command file template
     ## TODO: this seems to be the same as template in '_srun'
-    _Slurm_batch_template = textwrap.dedent(
+    Slurm_batch_file_template = textwrap.dedent(
         """\
         #!/bin/bash
         #SBATCH --job-name={jobName}
@@ -238,7 +233,7 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
     # prepare slurm command file
     f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
                                     dir=getcwd(), prefix='sbatch-', suffix=".slurm")
-    f.write(_Slurm_batch_template.format(
+    f.write(Slurm_batch_file_template.format(
         jobName      = name,
         account      = account,
         partition    = partition,
