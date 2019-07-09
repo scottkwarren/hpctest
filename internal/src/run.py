@@ -127,7 +127,7 @@ class Run():
                 # use an experiment instance to perform one run
                 cmd        = self.test.cmd()
                 mpiPrefix  = self.spec["mpi"].prefix if "+mpi" in self.spec else None
-                runSubdir  = self.test.runDir()
+                runSubdir  = self.test.runSubdir()
                 numRanks   = self.test.numRanks()
                 numThreads = self.test.numThreads()
                 wantMPI    = "+mpi" in self.spec
@@ -365,11 +365,12 @@ class Run():
     def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, out, err
         
         import os
+        from os.path import join
         from common import homepath
                 
         initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
-        runDir = test.runDir()
+        runDir = join(self.rundir, test.runSubdir())
         env = os.environ.copy()
         numRanks = test.numRanks()
         numThreads = test.numThreads()

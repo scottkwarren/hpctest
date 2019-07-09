@@ -153,7 +153,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     Slurm_run_cmd_template = textwrap.dedent(
         "srun --account={account} "
         "     --partition={partition} "
-        "     --chdir={runPath} "
+        "     --workdir={runPath} "
         "     --export={env} "
         "     --exclusive "
         "     --ntasks={numRanks} "
@@ -210,7 +210,7 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         #SBATCH --job-name={jobName}
         #SBATCH --account={account}
         #SBATCH --partition={partition}
-        #SBATCH --chdir={runPath}
+        #SBATCH --workdir={runPath}
         #SBATCH --export={env}
         #SBATCH --exclusive
         #SBATCH --ntasks={numRanks}

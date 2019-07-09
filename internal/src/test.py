@@ -184,9 +184,9 @@ class Test():
         return self.yaml("run.cmd")
 
 
-    def runDir(self):
+    def runSubdir(self):
         
-        return self.yaml("run.dir")
+        return self.yaml("run.dir", ".")
 
 
     def numRanks(self):
