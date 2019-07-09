@@ -168,9 +168,25 @@ class Test():
         return self.yamlDict["config"] == "spack-builtin"
 
 
+    def installProducts(self):
+        
+        from common import noneOrMore
+        return noneOrMore( self.yaml("build.install") )
+
+
     def profile(self):
         
         return self.yamlDict.get("profile", True)
+
+
+    def cmd(self):
+        
+        return self.yaml("run.cmd")
+
+
+    def runDir(self):
+        
+        return self.yaml("run.dir")
 
 
     def numRanks(self):

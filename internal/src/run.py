@@ -125,9 +125,9 @@ class Run():
                 self._buildTest()
                 
                 # use an experiment instance to perform one run
-                cmd        = self.test.yaml("run.cmd")
+                cmd        = self.test.cmd()
                 mpiPrefix  = self.spec["mpi"].prefix if "+mpi" in self.spec else None
-                runSubdir  = self.test.yaml("run.dir")
+                runSubdir  = self.test.runDir()
                 numRanks   = self.test.numRanks()
                 numThreads = self.test.numThreads()
                 wantMPI    = "+mpi" in self.spec
@@ -250,7 +250,7 @@ class Run():
         from common import escape
         import spackle
 
-        from common import noneOrMore, options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
+        from common import options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
 
         # build the package if necessary
         self.package = spackle.packageFromSpec(self.spec)
@@ -280,14 +280,14 @@ class Run():
                     except Exception as e:
                         status, msg =  "FAILED", e.message
                     except BaseException as e:
-                        print "HOLY SHIT!!! This happened: {}".format(e.message)
+                        print "unexpected error: {}".format(e.message)
                         
                     buildTime = t.secs
         
-        # Make alias(es) in build directory to the built product(s)    #### TODO: support more than one product
-        products = self.test.yaml("build.install")
+        # make alias(es) in build directory to the built product(s)
+        products = self.test.installProducts()
         self.prefix = self.package.prefix      # prefix path is valid even if package failed to install
-        for productRelpath in noneOrMore(products):
+        for productRelpath in products:
             productPath = join(self.rundir, productRelpath)
             productName = basename(productPath)
             productPrefix = join(self.prefix.bin, productName)
@@ -369,12 +369,13 @@ class Run():
                 
         initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
-        env = os.environ.copy()         # batch job should run with the existing environment
+        runDir = test.runDir()
+        env = os.environ.copy()
         numRanks = test.numRanks()
         numThreads = test.numThreads()
         name = test.description(config, hpctoolkit, profile, forName=True)
         desc = test.description(config, hpctoolkit, profile, forName=False)
-        jobID, out, err = Run.executor.submitJob(cmd, None, env, numRanks, numThreads, None, name, desc)
+        jobID, out, err = Run.executor.submitJob(cmd, runDir, env, numRanks, numThreads, None, name, desc)
         
         return jobID, out, err
     

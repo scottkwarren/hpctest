@@ -174,11 +174,11 @@ def yesno(prompt, cancelmsg):
     return ok
 
 
-# iterator for list-or-scalar values. used for one-or-more fields in yaml
+# list of values specified in yaml by a list-or-scalar expression
 
 def noneOrMore(x):
     
-    return iter( x if type(x) is list else [x] if x else [] )
+    return x if type(x) is list else [x] if x else []
 
 
 # context manager for timing

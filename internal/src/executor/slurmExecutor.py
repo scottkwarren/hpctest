@@ -153,7 +153,8 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     Slurm_run_cmd_template = textwrap.dedent(
         "srun --account={account} "
         "     --partition={partition} "
-        "     --export=NONE "
+        "     --chdir={runPath} "
+        "     --export={env} "
         "     --exclusive "
         "     --ntasks={numRanks} "
         "     --cpus-per-task={numThreads} "
@@ -174,11 +175,13 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     cmd = Slurm_run_cmd_template.format(
         account      = account,
         partition    = partition,
+        runPath      = runPath,
+        env          = env,
         numRanks     = numRanks,
         numThreads   = numThreads,
-        memPerThread = memPerThread,
+        memPerThread = memPerThread,    # commented out in template
         time         = time,
-        outPath      = outPath,
+        outPath      = outPath,         # commented out in template
         cmd          = cmd
         )
     
@@ -207,7 +210,8 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         #SBATCH --job-name={jobName}
         #SBATCH --account={account}
         #SBATCH --partition={partition}
-        #SBATCH --export=NONE
+        #SBATCH --chdir={runPath}
+        #SBATCH --export={env}
         #SBATCH --exclusive
         #SBATCH --ntasks={numRanks}
         #SBATCH --cpus-per-task={numThreads}
@@ -234,6 +238,8 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         jobName      = name,
         account      = account,
         partition    = partition,
+        runPath      = runPath,
+        env          = env,
         numRanks     = numRanks,
         numThreads   = numThreads,
         memPerThread = memPerThread,    # commented out in template
