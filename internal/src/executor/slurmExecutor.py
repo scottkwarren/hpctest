@@ -83,11 +83,11 @@ class SlurmExecutor(Executor):
             raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = _sbatch(cmd, env, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self.runningProcesses.add(jobid)
             self.jobDescriptions[jobid] = description
@@ -153,8 +153,8 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     Slurm_run_cmd_template = textwrap.dedent(
         "srun --account={account} "
         "     --partition={partition} "
-        "     --workdir={runPath} "
-        "     --export={env} "
+        "     --chdir={runPath} "
+        "     --export=\"{env}\" "
         "     --exclusive "
         "     --ntasks={numRanks} "
         "     --cpus-per-task={numThreads} "
@@ -196,7 +196,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     return out, (err if err else rc)
 
 
-def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
     
     import textwrap, tempfile
     from os import getcwd
@@ -210,8 +210,7 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         #SBATCH --job-name={jobName}
         #SBATCH --account={account}
         #SBATCH --partition={partition}
-        #SBATCH --workdir={runPath}
-        #SBATCH --export={env}
+        #SBATCH --export=\"{env}\"
         #SBATCH --exclusive
         #SBATCH --ntasks={numRanks}
         #SBATCH --cpus-per-task={numThreads}
@@ -221,9 +220,6 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         #SBATCH --mail-type=NONE
         {cmd} 
         """)
-
-        ### SBATCH --nodes={nnodes}
-        ### SBATCH --ntasks-per-node=1
 
     # template params from configuration
     account, partition, time = _paramsFromConfiguration()
@@ -238,7 +234,6 @@ def _sbatch(cmd, runPath, env, numRanks, numThreads, outPath, name, description)
         jobName      = name,
         account      = account,
         partition    = partition,
-        runPath      = runPath,
         env          = env,
         numRanks     = numRanks,
         numThreads   = numThreads,

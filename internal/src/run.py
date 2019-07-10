@@ -370,13 +370,12 @@ class Run():
                 
         initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
-        runDir = join(self.rundir, test.runSubdir())
         env = os.environ.copy()
         numRanks = test.numRanks()
         numThreads = test.numThreads()
         name = test.description(config, hpctoolkit, profile, forName=True)
         desc = test.description(config, hpctoolkit, profile, forName=False)
-        jobID, out, err = Run.executor.submitJob(cmd, runDir, env, numRanks, numThreads, None, name, desc)
+        jobID, out, err = Run.executor.submitJob(cmd, env, numRanks, numThreads, None, name, desc)
         
         return jobID, out, err
     

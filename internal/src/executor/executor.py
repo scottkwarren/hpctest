@@ -135,7 +135,7 @@ class Executor(object):
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
     
-    def submitJob(self, cmd, runDirPath, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")
     

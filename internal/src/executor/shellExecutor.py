@@ -104,7 +104,7 @@ class ShellExecutor(Executor):
                 os.chdir(oldwd)
 
     
-    def submitJob(self, cmd, runPath, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         # NOT USED: numRanks, numThreads - 'cmd' contains necessary code for these already
         
@@ -114,10 +114,6 @@ class ShellExecutor(Executor):
         err = 0
         try:
             
-            if runPath:
-                oldwd  = os.getcwd()
-                os.chdir(runPath)
-
             process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=env)
             out     = ""
             err     = process.returncode
@@ -130,8 +126,6 @@ class ShellExecutor(Executor):
             out = str(e)
             err = process.returncode
             raise ExecuteFailed(out, err)
-        finally:
-            if runPath: os.chdir(oldwd)
             
         self.runningProcesses.add(process)
         self.jobDescriptions[process] = description        
