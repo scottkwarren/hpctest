@@ -129,42 +129,80 @@ class Executor(object):
     def __init__(self):
         
         self.jobDescriptions = dict()
+        self.runningJobs = set()
          
     
     def run(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):
+        
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
+
     
     def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")
+
     
     def description(self, jobID):
         return self.jobDescriptions[jobID]
+
     
     def stdout(self, jobID):
+        
         return self.jobStdouts[jobID]
+
                                     
     def isFinished(self, jobID):
+        
         from common import subclassResponsibility
         subclassResponsibility("Executor", "isFinished")
+
     
     def waitFinished(self, jobID):
+        
         import time
         while not self.isFinished(jobID): time.sleep(5)     # seconds
+
     
     def pollForFinishedJobs(self):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "pollForFinishedJobs")
+        
+        # general method; a subclass might override with more efficient specific one
+        
+        finished = set()
+        
+        for p in self.runningJobs:
+            if self.isFinished(p):
+                finished.add(p)
+        
+        for p in finished:
+            self.runningJobs.remove(p)
+        
+        return finished
+
     
-    def kill(self, process):
+    def kill(self, job):
+        
         from common import subclassResponsibility
         subclassResponsibility("Executor", "kill")
     
+    
     def killAll(self):
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "killAll")
+        
+        for p in self.runningJobs:
+            p.kill()
 
+
+    def _addJob(self, job, description):
+
+        self.runningJobs.add(job)
+        self.jobDescriptions[job] = description        
+
+
+    def _removeJob(self, job):
+
+        self.runningJobs.remove(job)
+        self.jobDescriptions.pop(job)
 
 
 

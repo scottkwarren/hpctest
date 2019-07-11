@@ -57,7 +57,6 @@ class ShellExecutor(Executor):
     def __init__(self):
         
         super(ShellExecutor, self).__init__()
-        self.runningProcesses = set()
 
     
     @classmethod
@@ -127,48 +126,23 @@ class ShellExecutor(Executor):
             err = process.returncode
             raise ExecuteFailed(out, err)
             
-        self.runningProcesses.add(process)
-        self.jobDescriptions[process] = description        
-
+        self._addJob(process, description)
+        
         return process, out, err
     
     
     def isFinished(self, process):
         
         p = process.poll()
-        print "process.poll() => {}".format(p)
         return p != None
+
     
-    
-    def pollForFinishedJobs(self):
-        
-        finished = set()
-        for p in self.runningProcesses:
-            if p.poll() != None:
-                finished.add(p)
-        for p in finished:
-            self.runningProcesses.remove(p)
-        return finished
-    
-    
-    def kill(self, process):
+    def kill(self, job):
         
         process.kill()
-        self._cleanup(process)
+        self._removeJob(job)
+
     
-    
-    def killAll(self):
-        
-        for p in self.runningProcesses:
-            p.kill()
-
-
-    def _cleanup(self, process):
-
-        self.runningProcesses.remove(process)
-        self.jobDescriptions.pop(process)
-
-
     def _shellError(self, retcode):
         
         if retcode is 126:

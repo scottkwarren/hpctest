@@ -89,8 +89,7 @@ class SlurmExecutor(Executor):
 
         jobid, out, err = _sbatch(cmd, env, numRanks, numThreads, outPath, name, description)
         if err == 0:
-            self.runningProcesses.add(jobid)
-            self.jobDescriptions[jobid] = description
+            self._addJob(jobid, description)
         
         return jobid, out, err
 
@@ -99,26 +98,12 @@ class SlurmExecutor(Executor):
         
         from common import notImplemented
         notImplemented("SlurmExecutor.isFinished")
-        return True
-
-    
-    def pollForFinishedJobs(self):
-
-        from common import notImplemented
-        notImplemented("SlurmExecutor.pollForFinishedJobs")
-        return set()
 
     
     def kill(self, process):
 
         from common import notImplemented
         notImplemented("SlurmExecutor.kill")
-
-    
-    def killAll(self):
-
-        from common import notImplemented
-        notImplemented("SlurmExecutor.killAll")
 
 
 
@@ -139,7 +124,7 @@ def _shell(cmd):
         err = e.errno
     except Exception as e:
         out = str(e)
-        err = -1   ## TODO: ??? is there a better property of Exception to use for 'err'?
+        err = -1   ## TODO: is there a better property of Exception to use for 'err'?
         
     return out, err
 
@@ -158,9 +143,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         "     --exclusive "
         "     --ntasks={numRanks} "
         "     --cpus-per-task={numThreads} "
-#       "     --mem-per-cpu={memPerThread} "
         "     --time={time} "
-#       "     --output={outPath} "
         "     --mail-type=NONE "
         "     {cmd}"
         )
@@ -168,9 +151,6 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     # template params from configuration
     account, partition, time = _paramsFromConfiguration()
 
-    # template params from test
-    memPerThread = _paramsFromTest()
-    
     # prepare slurm command
     cmd = Slurm_run_cmd_template.format(
         account      = account,
@@ -179,9 +159,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         env          = env,
         numRanks     = numRanks,
         numThreads   = numThreads,
-        memPerThread = memPerThread,    # commented out in template
         time         = time,
-        outPath      = outPath,         # commented out in template
         cmd          = cmd
         )
     
@@ -214,7 +192,6 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         #SBATCH --exclusive
         #SBATCH --ntasks={numRanks}
         #SBATCH --cpus-per-task={numThreads}
-        #  #SBATCH --mem-per-cpu={memPerThread}
         #SBATCH --time={time}
         #  #SBATCH --output={outPath}
         #SBATCH --mail-type=NONE
@@ -223,9 +200,6 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
 
     # template params from configuration
     account, partition, time = _paramsFromConfiguration()
-    
-    # template params from test
-    memPerThread = _paramsFromTest()
     
     # prepare slurm command file
     f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
@@ -237,7 +211,6 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         env          = env,
         numRanks     = numRanks,
         numThreads   = numThreads,
-        memPerThread = memPerThread,    # commented out in template
         time         = time,
         outPath      = outPath,         # commented out in template
         cmd          = cmd,
@@ -282,15 +255,6 @@ def _paramsFromConfiguration():
     time      =  configuration.get("batch.params.time",      "1:00:00")
     
     return (account, partition, time)
-
-
-def _paramsFromTest():  
-    
-    import configuration
-
-    memPerCpu = "1000M"     ## FIXME
-    
-    return memPerCpu
 
 
 
