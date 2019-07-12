@@ -367,9 +367,10 @@ class Run():
         import os
         from os.path import join
         from common import homepath
-                
-        initArgs = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
-        cmd = "{}/hpctest _runOne '{}'; exit 0".format(homepath, initArgs)
+        
+        optString = Run._makeOptionsArgString()
+        initArgs  = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
+        cmd = "{}/hpctest _runOne {} '{}'; exit 0".format(homepath, optString, initArgs)
         env = os.environ.copy()
         numRanks = test.numRanks()
         numThreads = test.numThreads()
@@ -402,6 +403,21 @@ class Run():
     def pollForFinishedJobs(cls):
 
         return Run.executor.pollForFinishedJobs()
+    
+    
+    @classmethod
+    def _makeOptionsArgString(cls, options=None):
+        
+        import common
+        if not options: options = common.options
+        
+        optString = ""
+        if "verbose"    in options:    optString += " --verbose"
+        if "debug"      in options:    optString += " --debug"
+        if "force"      in options:    optString += " --force"
+        if "traceback"  in options:    optString += " --traceback"
+        
+        return optString
     
     
     @classmethod
