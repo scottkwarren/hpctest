@@ -62,6 +62,24 @@ workpath             = None     # path to this HPCTest's arena for studies
 logger               = None     # used to write test results (TODO)
 
 
+    
+# Options
+  
+def optionsArgString(options=None):
+    
+    import common
+    if not options: options = common.options
+    
+    optString = ""
+    if "quiet"      in options:    optString += " --quiet"
+    if "verbose"    in options:    optString += " --verbose"
+    if "debug"      in options:    optString += " --debug"
+    if "force"      in options:    optString += " --force"
+    if "traceback"  in options:    optString += " --traceback"
+    
+    return optString
+
+
 
 
 # Message output

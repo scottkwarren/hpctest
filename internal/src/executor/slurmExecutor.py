@@ -96,13 +96,13 @@ class SlurmExecutor(Executor):
     
     def isFinished(self, jobID):
         
-        from common import notImplemented
+        from common import notimplemented
         notImplemented("SlurmExecutor.isFinished")
 
     
     def kill(self, process):
 
-        from common import notImplemented
+        from common import notimplemented
         notImplemented("SlurmExecutor.kill")
 
 
@@ -133,10 +133,12 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     from os import getcwd
     import textwrap, tempfile
+    from common import options, verbosemsg
     
     # slurm srun command template
     Slurm_run_cmd_template = textwrap.dedent(
-        "srun --account={account} "
+        "srun {options} "
+        "     --account={account} "
         "     --partition={partition} "
         "     --chdir={runPath} "
         "     --export=\"{env}\" "
@@ -153,6 +155,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
 
     # prepare slurm command
     cmd = Slurm_run_cmd_template.format(
+        options      = "--verbose" if "debug" in options else "",
         account      = account,
         partition    = partition,
         runPath      = runPath,
@@ -164,6 +167,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         )
     
     # run the command immediately with 'srun'
+    verbosemsg("Executing via srun:\n{}".format(cmd))
     out, err = _shell(cmd)
     
     # extract job id from 'out'
@@ -212,7 +216,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
-        outPath      = outPath,         # commented out in template
+        outPath      = outPath,     # commented out in template
         cmd          = cmd,
         ))
     f.close()
@@ -220,9 +224,12 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     # submit command file for batch execution with 'sbatch'
     options = "--verbose " if "debug" in common.options else ""
     command = "    sbatch {}{}".format(options, f.name)
+    
     verbosemsg("submitting job {} ...".format(description))
     verbosemsg("    " + command)
+    
     out, err = _shell(command)
+    
     verbosemsg("    " + out)
     verbosemsg("\n")
     
