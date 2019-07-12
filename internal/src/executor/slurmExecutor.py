@@ -97,13 +97,13 @@ class SlurmExecutor(Executor):
     def isFinished(self, jobID):
         
         from common import notimplemented
-        notImplemented("SlurmExecutor.isFinished")
+        notimplemented("SlurmExecutor.isFinished")
 
     
     def kill(self, process):
 
         from common import notimplemented
-        notImplemented("SlurmExecutor.kill")
+        notimplemented("SlurmExecutor.kill")
 
 
 
@@ -133,7 +133,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     from os import getcwd
     import textwrap, tempfile
-    from common import options, verbosemsg
+    from common import options, verbosemsg, escape
     
     # slurm srun command template
     Slurm_run_cmd_template = textwrap.dedent(
@@ -159,7 +159,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         account      = account,
         partition    = partition,
         runPath      = runPath,
-        env          = env,
+        env          = escape(env),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -183,7 +183,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     import textwrap, tempfile
     from os import getcwd
     import common
-    from common import verbosemsg
+    from common import verbosemsg, escape
     
     # slurm sbatch command file template
     Slurm_batch_file_template = textwrap.dedent(
@@ -212,7 +212,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         jobName      = name,
         account      = account,
         partition    = partition,
-        env          = env,
+        env          = escape(env),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
