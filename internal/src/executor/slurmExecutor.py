@@ -96,14 +96,12 @@ class SlurmExecutor(Executor):
     
     def isFinished(self, jobID):
         
-        from common import notimplemented
-        notimplemented("SlurmExecutor.isFinished")
+        return False    ## TODO: DEBUG
 
     
     def kill(self, process):
 
-        from common import notimplemented
-        notimplemented("SlurmExecutor.kill")
+        return    ## TODO: DEBUG
 
 
 
@@ -159,7 +157,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         account      = account,
         partition    = partition,
         runPath      = runPath,
-        env          = escape(env),
+        env          = escape(str(env)),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -212,7 +210,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         jobName      = name,
         account      = account,
         partition    = partition,
-        env          = escape(env),
+        env          = escape(str(env)),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
