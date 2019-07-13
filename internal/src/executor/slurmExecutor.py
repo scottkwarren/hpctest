@@ -114,7 +114,6 @@ class SlurmExecutor(Executor):
             if match:
                 jobid = match.group(1)
                 finished.remove(jobid)
-                print ">>>>>>> REMOVED JOB ID {}".format(jobid)   ## DEBUG
             else:
                 errormsg("unexpected output from 'squeue':\n {}".format(out))
         
@@ -261,7 +260,6 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         match = re.match(r".* ([0-9]+)$", out)
         if match:
             jobid = match.group(1)
-            print ">>>>>>> JOB ID = {}".format(jobid)   ## DEBUG
         else:
             jobid = None
             err = "unexpected output from 'sbatch': {}".format(out)
