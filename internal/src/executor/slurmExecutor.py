@@ -99,6 +99,32 @@ class SlurmExecutor(Executor):
         return False    ## TODO: DEBUG
 
     
+    def pollForFinishedJobs(self):
+        
+        import os
+        
+        # ask Slurm for all our jobs that are still running
+        userid = os.env["USER"]
+        out, err = _shell("squeue --user={} --noheader".format(userid))
+        
+        # start with all remaining jobs and remove ones mentioned by 'squeue' and hence still running
+        finished = self.runningJobs.copy()
+        for line in out.splitlines():
+            match = re.match(r" *([0-9]+) ", line)
+            if match:
+                jobid = match.group(0)
+                finished.remove(jobid)
+                print ">>>>>>> REMOVED JOB ID {}".format(jobid)   ## DEBUG
+            else:
+                errormsg("unexpected output from 'squeue':\n {}".format(out))
+        
+        # clean up finished jobs
+        for p in finished:
+            self.runningJobs.remove(p)
+        
+        return finished
+
+    
     def kill(self, process):
 
         return    ## TODO: DEBUG
@@ -131,7 +157,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     from os import getcwd
     import textwrap, tempfile
-    from common import options, verbosemsg, escape
+    from common import options, verbosemsg
     
     # slurm srun command template
     Slurm_run_cmd_template = textwrap.dedent(
@@ -157,7 +183,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         account      = account,
         partition    = partition,
         runPath      = runPath,
-        env          = escape(str(env)),
+        env          = "ALL",
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -167,10 +193,6 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     # run the command immediately with 'srun'
     verbosemsg("Executing via srun:\n{}".format(cmd))
     out, err = _shell(cmd)
-    
-    # extract job id from 'out'
-    # 'out' should be eg 'Submitted batch job 278025'
-    print "out = '", out, "'"     ## DEBUG
     rc = 0
     
     return out, (err if err else rc)
@@ -180,8 +202,9 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     
     import textwrap, tempfile
     from os import getcwd
+    import re
     import common
-    from common import verbosemsg, escape
+    from common import verbosemsg, errormsg
     
     # slurm sbatch command file template
     Slurm_batch_file_template = textwrap.dedent(
@@ -210,7 +233,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         jobName      = name,
         account      = account,
         partition    = partition,
-        env          = escape(str(env)),
+        env          = "ALL",
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -236,19 +259,16 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         jobid = rc = None
     else:
         # extract job id from 'out'
-        jobid = 17
-        # extract rc from 'out'
-        rc = 0
+        match = re.match(r".* ([0-9]+)$", out)
+        if match:
+            jobid = match.group(0)
+            print ">>>>>>> JOB ID = {}".format(jobid)   ## DEBUG
+        else:
+            jobid = None
+            err = "unexpected output from 'sbatch': {}".format(out)
+            errormsg(err)
     
     return (jobid, out, err if err else rc)
-
-
-def _envDictToString(envDict):
-    
-    s = ""
-    for key, value in envDict.iteritems():
-        s += (key + "=" + value + " ")
-    return s
 
 
 def _paramsFromConfiguration():

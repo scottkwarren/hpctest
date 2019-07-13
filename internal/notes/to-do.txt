@@ -16,6 +16,23 @@ Bugs
 
 
 
+SLURM
+
+squeue output:
+------------------------------------------------------------------------------------
+Sat Jul 13 15:48:57 2019
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+            278061   commons app--lul  skw0897  R       9:53      1 c1
+            278061   commons app--lul  skw0897  R      11:33      1 c1
+			...
+------------------------------------------------------------------------------------
+
+squeue options:
+--noheader
+--user=
+
+
+
 NEXT
 - Refactor for experiment classes
 - hide generated slurm command files
