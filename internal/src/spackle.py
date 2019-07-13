@@ -167,13 +167,13 @@ def allPackageNames(namespace):
     # result is a set of strings for all packages in given namespace, installed or not
     
     import spack
-    return spack.repo.get_repo(namespace).all_package_names()
+    return spack.repo.path.get_repo(namespace).all_package_names()
 
 
 def packageFromSpec(spec):
     
     import spack
-    return spack.repo.get(spec)
+    return spack.repo.path.get(spec)
 
 
 def setDIY(package, diyPath):
@@ -187,7 +187,7 @@ def uninstall(name):
     import spackle
     
     cmd = "uninstall --all --force --yes-to-all {}".format(name)
-    spackle.do(cmd, stdout="/dev/null", stderr="/dev/null")
+    spackle.do(cmd, echo=False)
 
 
 #----------------#
