@@ -101,7 +101,7 @@ class SlurmExecutor(Executor):
     
     def pollForFinishedJobs(self):
         
-        import os. re
+        import os, re
         
         # ask Slurm for all our jobs that are still running
         userid = os.environ["USER"]

@@ -47,7 +47,7 @@ build:
   install: AMGMk
 
 run:
-  cmd: AMGMk
+  cmd: ./AMGMk
   threads: 4
 
 

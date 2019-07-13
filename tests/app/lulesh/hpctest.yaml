@@ -56,7 +56,7 @@ build:
   install: lulesh2.0
 
 run:
-  cmd: lulesh2.0 -s 20    # on les: "-s 10" => < 1 cpu minute, "-s 20" => < 7 cpu minutes, "-s 30" => 32 cpu minutes
+  cmd: ./lulesh2.0 -s 20    # on les: "-s 10" => < 1 cpu minute, "-s 20" => < 7 cpu minutes, "-s 30" => 32 cpu minutes
   ranks: 8
   threads: 4
 

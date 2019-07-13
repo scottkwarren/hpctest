@@ -57,7 +57,7 @@ build:
     - test/sstruct.in.MG.FD
 
 run:
-  cmd: amg2013 -P 1 2 2  -r 24 24 24    # "-r 24 24 24" => les: 3 min / 200K samples; "-r 36 36 36" => les: 17 min / 1.2M samples
+  cmd: ./amg2013 -P 1 2 2  -r 24 24 24    # "-r 24 24 24" => les: 3 min / 200K samples; "-r 36 36 36" => les: 17 min / 1.2M samples
   dir: test
   ranks: 4
   threads: 2  # was 4
