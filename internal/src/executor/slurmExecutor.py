@@ -101,10 +101,10 @@ class SlurmExecutor(Executor):
     
     def pollForFinishedJobs(self):
         
-        import os
+        import os. re
         
         # ask Slurm for all our jobs that are still running
-        userid = os.env["USER"]
+        userid = os.environ["USER"]
         out, err = _shell("squeue --user={} --noheader".format(userid))
         
         # start with all remaining jobs and remove ones mentioned by 'squeue' and hence still running
@@ -255,7 +255,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     
     # handle output from submit command
     if err:
-        jobid = rc = None
+        jobid = None
     else:
         # extract job id from 'out'
         match = re.match(r".* ([0-9]+)$", out)

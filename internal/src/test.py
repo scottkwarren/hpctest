@@ -181,7 +181,9 @@ class Test():
 
     def cmd(self):
         
-        return self.yaml("run.cmd")
+        cmd = self.yaml("run.cmd")
+        prefix = "" if cmd[0] == '/' else "./"
+        return prefix + cmd
 
 
     def runSubdir(self):
