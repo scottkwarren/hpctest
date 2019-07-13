@@ -182,7 +182,7 @@ class Test():
     def cmd(self):
         
         cmd = self.yaml("run.cmd")
-        prefix = "" if cmd[0] == '/' else "./"
+        prefix = "" if cmd[0] == '/' or cmd[0] == '.' else "./"
         return prefix + cmd
 
 
