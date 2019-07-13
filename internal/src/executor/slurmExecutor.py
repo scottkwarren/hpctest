@@ -156,6 +156,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     from os import getcwd
     import textwrap, tempfile
+    from pipes import quote
     from common import options, verbosemsg
     
     # slurm srun command template
@@ -182,7 +183,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         account      = account,
         partition    = partition,
         runPath      = runPath,
-        env          = "ALL",
+        env          = quote(str(env)),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -201,6 +202,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     import textwrap, tempfile
     from os import getcwd
     import re
+    from pipes import quote
     import common
     from common import verbosemsg, errormsg
     
@@ -231,7 +233,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         jobName      = name,
         account      = account,
         partition    = partition,
-        env          = "ALL",
+        env          = quote(str(env)),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
