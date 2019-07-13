@@ -112,7 +112,7 @@ class SlurmExecutor(Executor):
         for line in out.splitlines():
             match = re.match(r" *([0-9]+) ", line)
             if match:
-                jobid = match.group(0)
+                jobid = match.group(1)
                 finished.remove(jobid)
                 print ">>>>>>> REMOVED JOB ID {}".format(jobid)   ## DEBUG
             else:
@@ -193,9 +193,8 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     # run the command immediately with 'srun'
     verbosemsg("Executing via srun:\n{}".format(cmd))
     out, err = _shell(cmd)
-    rc = 0
     
-    return out, (err if err else rc)
+    return out, (err if err else 0)
 
 
 def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
@@ -261,14 +260,14 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         # extract job id from 'out'
         match = re.match(r".* ([0-9]+)$", out)
         if match:
-            jobid = match.group(0)
+            jobid = match.group(1)
             print ">>>>>>> JOB ID = {}".format(jobid)   ## DEBUG
         else:
             jobid = None
             err = "unexpected output from 'sbatch': {}".format(out)
             errormsg(err)
     
-    return (jobid, out, err if err else rc)
+    return (jobid, out, err if err else 0)
 
 
 def _paramsFromConfiguration():
