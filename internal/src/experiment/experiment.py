@@ -174,7 +174,7 @@ class Experiment(object):
         # compute command to be executed
         # ... start with test's run command
         env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
-        env["PATH"] = self.prefixBin + (":" + env["PATH"]) if "PATH" in env else ""
+        env["PATH"] = self.prefixBin + ":" + env["PATH"]
         runPath  = join(self.rundir, self.runSubdir) if self.runSubdir else self.rundir
         outPath  = self.output.makePath("{}-output.txt", label)
         timePath = self.output.makePath("{}-time.txt", label)

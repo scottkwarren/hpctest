@@ -171,7 +171,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         "     --account={account} "
         "     --partition={partition} "
         "     --chdir={runPath} "
-        "     --export=\"{env}\" "
+        "     --export={env} "
         "     --exclusive "
         "     --ntasks={numRanks} "
         "     --cpus-per-task={numThreads} "
@@ -219,7 +219,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         #SBATCH --job-name={jobName}
         #SBATCH --account={account}
         #SBATCH --partition={partition}
-        #SBATCH --export=\"{env}\"
+        #SBATCH --export={env}
         #SBATCH --exclusive
         #SBATCH --ntasks={numRanks}
         #SBATCH --cpus-per-task={numThreads}
