@@ -407,6 +407,11 @@ if not isdir(common.workpath): makedirs(common.workpath)
 # set up private repo
 HPCTest._ensureRepo()
 
+# make our general-purpose hidden directory
+hiddenDir = join(common.homepath, ".hpctest")
+if not isdir(hiddenDir): makedirs(hiddenDir)
+
+
 
 
 
