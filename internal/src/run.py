@@ -374,7 +374,7 @@ class Run():
         env = os.environ.copy()
         numRanks = test.numRanks()
         numThreads = test.numThreads()
-        name = test.description(config, hpctoolkit, profile, forName=True)
+        name = test.name()
         desc = test.description(config, hpctoolkit, profile, forName=False)
         jobID, out, err = Run.executor.submitJob(cmd, env, numRanks, numThreads, None, name, desc)
         

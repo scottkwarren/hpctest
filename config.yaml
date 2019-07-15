@@ -1,30 +1,26 @@
 ################################################################################
 #                                                                              #
 # Local config settings to customize this HPCTest installation.                #
-# They override the builtin settings in runner/src/config-builtin.yaml.        #
-# Edit as desired.                                                             #
+# They override the builtin settings in internal/src/config-builtin.yaml.      #
+# Edit as needed.                                                              #
 #                                                                              #
 ################################################################################
 
 
 profile:
   hpctoolkit:
-    path: ~/hpctoolkit-current/hpctoolkit/INSTALL/
+    path: ~/hpctoolkit/INSTALL/
 config:
-#   batch:
-#     manager: Slurm
-#     force:   True
-#     default: False
-#     params:
-#       account:   commons
-#       partition: commons
-#       time:      "1:00:00"
+#    batch:
+#      manager: Slurm
+#      default: true
+#      params:
+#        account:   commons
+#        partition: commons
+#        time:      "1:00:00"
 run:
   ulimit:
-    t: unlimited  # cpu time (seconds)
+#    t: unlimited  # cpu time (seconds)
 
-  
-  
-  
-  
+
  

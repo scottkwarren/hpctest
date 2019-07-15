@@ -56,7 +56,7 @@ class Iterate():
     def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
         
         from itertools import product
-        from common import infomsg, errormsg, debugmsg, options
+        from common import infomsg, verbosemsg, errormsg, debugmsg, options
         from run import Run
 
         if dims["tests"].isEmpty():       # TODO: check every dimension for emptiness, not just 'tests' -- requires more structure in Spec classes
@@ -91,12 +91,13 @@ class Iterate():
                     
                     # poll for finished jobs until all done
                     if numSubmitted > 0:
+                        verbosemsg(">>> polling for finished jobs...")
                         while submittedJobs:
                             finished = Run.pollForFinishedJobs()
                             submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
                             for jobID in finished:
                                 infomsg("run {} finished".format(Run.descriptionForJob(jobID)))
-                        infomsg("all runs done")
+                        infomsg("all runs finished")
 
                 except Exception as e:
                     errormsg("batch failure: {}".format(e))

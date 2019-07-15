@@ -273,8 +273,7 @@ def readYamlFile(path):
         else:
             object, msg = None, "yaml file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
     
-    if "verbose" in options:
-        debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
+    debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
     
     return object, msg
 
@@ -314,7 +313,8 @@ def writeYamlFile(path, object):
             
     except Exception as e:
         msg = "file cannot be opened for writing: (error {})".format(e)
-    if "verbose" in options: debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
+    
+    debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
 
 
 

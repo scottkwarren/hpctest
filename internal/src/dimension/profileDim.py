@@ -77,6 +77,16 @@ class ProfileDim(StringDim):
         stripped = value.rstrip(" ;")
         return stripped.replace(" ", ".").replace(";", ":") if forName else stripped
 
+    
+    def __init__(self, spec):
+        # 'spec' is a comma-separated list of '+'-separated lists of metric-specs
+        # such as 'REALTIME@10000 + IO@100 + MEMLEAK@10, CPUTIME@10000, WALLTIME@1000'
+        
+        self.valueList = \
+            [ metrics.replace("+", " ")
+                for metrics in spec.split(',')
+            ]
+
 
     # everything else is inherited from StringDim
 

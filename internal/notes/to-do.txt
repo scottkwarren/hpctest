@@ -3,9 +3,14 @@ HPCTEST TO DO
 
 Bugs
 
+- found a study directory created inside a previous study directory!
+- build time is always reported as 0
+
+
+
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
-- check each dimension for emptiness; requires each Spec class to evaluate its spec
+- check each dimension for emptiness; requires each Dimension class to evaluate its spec
 
 - hpctest clean -d does not delete all built dependencies. Survivors are:
   - libtool

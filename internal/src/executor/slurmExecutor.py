@@ -107,15 +107,22 @@ class SlurmExecutor(Executor):
         userid = os.environ["USER"]
         out, err = _shell("squeue --user={} --noheader".format(userid))
         
-        # start with all remaining jobs and remove ones mentioned by 'squeue' and hence still running
+        # 'out' is a possibly-empty sequence of lines that look like this:
+        # '           278061   commons app--lul  skw0897  R       9:53      1 c1'
+
+
+        # compute the set of jobs finished since last poll:
+        # start with all previously-running jobs and remove the ones still running per 'squeue'
         finished = self.runningJobs.copy()
         for line in out.splitlines():
+            # match the job id, the first nonblank character (digit) sequence on the line
             match = re.match(r" *([0-9]+) ", line)
             if match:
                 jobid = match.group(1)
-                finished.remove(jobid)
+                if jobid in finished:
+                    finished.remove(jobid)
             else:
-                errormsg("unexpected output from 'squeue':\n {}".format(out))
+                errormsg("unexpected output from squeue:\n {}".format(out))
         
         # clean up finished jobs
         for p in finished:
@@ -124,12 +131,12 @@ class SlurmExecutor(Executor):
         return finished
 
     
-    def kill(self, process):
+    def kill(self, jobid):
 
-        return    ## TODO: DEBUG
-
-
-
+        out, err = _shell("scancel {}".format(jobid))
+        if err != 0:
+            errormsg("attempt to cancel batch job {} failed".format(jobid))
+            
 
 def _shell(cmd):
            
@@ -156,7 +163,6 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
     
     from os import getcwd
     import textwrap, tempfile
-    from pipes import quote
     from common import options, verbosemsg
     
     # slurm srun command template
@@ -183,7 +189,7 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         account      = account,
         partition    = partition,
         runPath      = runPath,
-        env          = quote(str(env)),
+        env          = "'PATH={}'".format(env["PATH"]),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -201,10 +207,10 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     
     import textwrap, tempfile
     from os import getcwd
+    from os.path import join
     import re
-    from pipes import quote
     import common
-    from common import verbosemsg, errormsg
+    from common import options, verbosemsg, errormsg
     
     # slurm sbatch command file template
     Slurm_batch_file_template = textwrap.dedent(
@@ -227,13 +233,14 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     account, partition, time = _paramsFromConfiguration()
     
     # prepare slurm command file
+    slurmfilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
     f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
-                                    dir=getcwd(), prefix='sbatch-', suffix=".slurm")
+                                    dir=slurmfilesDir, prefix='slurm-', suffix=".sbatch")
     f.write(Slurm_batch_file_template.format(
         jobName      = name,
         account      = account,
         partition    = partition,
-        env          = quote(str(env)),
+        env          = "'PATH={}'".format(env["PATH"]),
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
@@ -243,8 +250,8 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
     f.close()
     
     # submit command file for batch execution with 'sbatch'
-    options = "--verbose " if "debug" in common.options else ""
-    command = "    sbatch {}{}".format(options, f.name)
+    sbatchOpts = "--verbose " if "debug" in options else ""
+    command = "sbatch {}{}".format(sbatchOpts, f.name)
     
     verbosemsg("submitting job {} ...".format(description))
     verbosemsg("    " + command)
@@ -264,7 +271,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
             jobid = match.group(1)
         else:
             jobid = None
-            err = "unexpected output from 'sbatch': {}".format(out)
+            err = "unexpected output from sbatch: {}".format(out)
             errormsg(err)
     
     return (jobid, out, err if err else 0)
@@ -280,6 +287,14 @@ def _paramsFromConfiguration():
     
     return (account, partition, time)
 
+
+def _envDictToString(envDict):
+    
+        s = ""
+        for key, value in envDict.iteritems():
+            s += (key + "=" + value + " ")
+        return s
+    
 
 
 

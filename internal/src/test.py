@@ -78,6 +78,11 @@ class Test():
             fatalmsg("Test.__init__: dir must be a path to a valid test directory but is not ({})").format(dir)
 
 
+    def name(self):
+            
+        return self.yaml("info.name")
+        
+
     def description(self, config, hpctoolkit, profile, forName=False):
         
         ## TODO: use 'hpctoolkit', eg if not the default one, but need short names for the paths
