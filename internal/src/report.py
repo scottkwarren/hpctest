@@ -68,7 +68,8 @@ class Report():
             return keylist
     
         studypath = study.path
-        tableWidth = 113    # width of table row manually determined    # TODO: better
+####    tableWidth = 113    # width of table row manually determined    # TODO: better
+        tableWidth = 110    # width of table row manually determined    # TODO: better
         
         debugmsg("reporting on study at {} with options {}".format(studypath, options))
             
@@ -129,12 +130,14 @@ class Report():
                     line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.extractRunInfoMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 elif info.wantProfiling and info.status == "OK":
-                    line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
+####                line2 = ("| overhead: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | suspicious: {:>5} | trolled: {:>5} |"
+                    line2 = ("| overhead: {:>5} | samples: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | trolled: {:>5}  |"
                             ).format(_pct(info.overhead,   100), 
+                                     info.samples, 
                                      _pct(info.recorded,   info.samples), 
                                      _pct(info.blocked,    info.samples), 
                                      _pct(info.errant,     info.samples), 
-                                     _pct(info.suspicious, info.samples), 
+####                                 _pct(info.suspicious, info.samples), 
                                      _pct(info.trolled,    info.samples)
                                     )
                 else:

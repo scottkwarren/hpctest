@@ -52,9 +52,9 @@ hpctest run app/amgmk --profile REALTIME@10000
 
 hpctest run app/amgmk --profile REALTIME@10000,CPUTIME@10000
 
-hpctest run app/amgmk --profile REALTIME@10000+IO@100000+MEMLEAKS@1000000
+hpctest run app/amgmk --profile REALTIME@10000+IO@100000+MEMLEAK@1000000
 
-hpctest run app/amgmk --profile REALTIME@10000+IO@100000,CPUTIME@10000+MEMLEAKS@1000000
+hpctest run app/amgmk --profile REALTIME@10000+IO@100000,CPUTIME@10000+MEMLEAK@1000000
 
 hpctest run app/amgmk --hpctoolkit ~/hpctoolkit/INSTALL
 
