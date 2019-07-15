@@ -1,18 +1,19 @@
 HPCTEST EXAMPLE COMMANDS
 
 Compiler versions mentioned in commands must already exist on your PATH
-or in a packages.py file.
+or in a packages.yaml file.
 
 Currently hpctest can only build one test at a time. (Spack isn't reentrant
-and hpctest doesn't yet use mutual exclusion around buiilds.) When using batch
+and hpctest doesn't yet use mutual exclusion around builds.) When using batch
 execution, all the tests on a single command line are submitted at once
 and will run concurrently; this only works if the tests have been built
-already. Currently to build a test you must run it. Once a number of tests
+previouly. Currently to build a test you must run it; Spack caches the built
+test for reuse until the test's directory is modified. Once a number of tests
 have been built this way, they can safely run together in one hpctest command.
 
 The first test or two you build after cloning hpctest will take a long time
 while the internal Spack builds all the prerequisites. If you place a
-packages.py file in your ~/.spack directory pointing to prebuilt compilers,
+packages.yaml file in your ~/.spack directory pointing to prebuilt compilers,
 MPIs, and OpenMPs, things will speed up a lot.
 
 Each command line argument must be free of spaces. Due to limitations of the
@@ -25,6 +26,8 @@ Available tests are:
 	app/lulesh
 	app/miniAMR
 	unit-test/cpp_threads
+	
+	app/nekbone is hpctest-ready, but currently does not build
 
 
 # hpctest requires Python 2.7.x but does not yet check for it
