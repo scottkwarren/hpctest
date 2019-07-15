@@ -1,0 +1,63 @@
+HPCTEST EXAMPLE COMMANDS
+
+Compiler versions mentioned in commands must already exist on your PATH
+or in a packages.py file.
+
+Currently hpctest can only build one test at a time. (Spack isn't reentrant
+and hpctest doesn't yet use mutual exclusion around buiilds.) When using batch
+execution, all the tests on a single command line are submitted at once
+and will run concurrently; this only works if the tests have been built
+already. Currently to build a test you must run it. Once a number of tests
+have been built this way, they can safely run together in one hpctest command.
+
+The first test or two you build after cloning hpctest will take a long time
+while the internal Spack builds all the prerequisites. If you place a
+packages.py file in your ~/.spack directory pointing to prebuilt compilers,
+MPIs, and OpenMPs, things will speed up a lot.
+
+Each command line argument must be free of spaces. Due to limitations of the
+Python cmdline parser, putting them in single or double quotes doesn't help.
+
+Available tests are:
+	app/amgmk
+	app/AMG2006
+	app/AMG2013
+	app/lulesh
+	app/miniAMR
+	unit-test/cpp_threads
+
+
+# hpctest requires Python 2.7.x but does not yet check for it
+git clone -b 'v0.2' --single-branch --depth 1 https://github.com/scottkwarren/hpctest
+cd hpctest
+
+# Uncomment the 'batch:' section in config.py if you're on a machine using Slurm.
+# No other batch systems are supported yet. Add the -B or --batch flag to run a
+# command in batch; otherwise it will be run interactively using srun.
+
+hpctest run app/amgmk
+
+hpctest run app/amgmk --verbose
+
+hpctest run app/amgmk --build %gcc
+
+hpctest run app/amgmk --build %gcc@4.8.5,%gcc@5.0,clang@8.0.0
+
+hpctest run app/amgmk,app/AMG*,app/miniAMR --build %gcc@4.8.5,%gcc@5.0
+
+hpctest run app/amgmk --profile REALTIME@10000
+
+hpctest run app/amgmk --profile REALTIME@10000,CPUTIME@10000
+
+hpctest run app/amgmk --profile REALTIME@10000+IO@100000+MEMLEAKS@1000000
+
+hpctest run app/amgmk --profile REALTIME@10000+IO@100000,CPUTIME@10000+MEMLEAKS@1000000
+
+hpctest run app/amgmk --hpctoolkit ~/hpctoolkit/INSTALL
+
+hpctest run app/amgmk --hpctoolkit ~/hpctoolkit/INSTALL,/projects/pkgs/hpctk-09-18
+
+hpctest clean	# means --studies
+
+hpctest clean --studies --tests --dependencies		# add --force if you're sure
+

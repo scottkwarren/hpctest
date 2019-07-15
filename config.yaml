@@ -13,14 +13,14 @@ profile:
 config:
 #    batch:
 #      manager: Slurm
-#      default: true
+#      default: false
 #      params:
 #        account:   commons
 #        partition: commons
 #        time:      "1:00:00"
 run:
   ulimit:
-#    t: unlimited  # cpu time (seconds)
+    t: unlimited  # cpu time (seconds)
 
 
  

@@ -83,7 +83,7 @@ class ProfileDim(StringDim):
         # such as 'REALTIME@10000 + IO@100 + MEMLEAK@10, CPUTIME@10000, WALLTIME@1000'
         
         self.valueList = \
-            [ metrics.replace("+", " ")
+            [ "-e " + metrics.replace("+", " -e ")
                 for metrics in spec.split(',')
             ]
 
