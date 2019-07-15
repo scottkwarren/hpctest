@@ -31,7 +31,7 @@ Available tests are:
 
 
 # hpctest requires Python 2.7.x but does not yet check for it
-git clone -b 'v0.2' --single-branch --depth 1 https://github.com/scottkwarren/hpctest
+git clone -b 'v1.1-alpha' --single-branch --depth 1 https://github.com/scottkwarren/hpctest
 cd hpctest
 
 # Uncomment the 'batch:' section in config.py if you're on a machine using Slurm.
