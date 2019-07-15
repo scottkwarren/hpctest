@@ -63,7 +63,7 @@ class ProfileDim(StringDim):
     def default(cls):
 
         import configuration
-        return ( configuration.get("profile.hpctoolkit.hpcrun params", "-e REALTIME@10000") +
+        return ( configuration.get("profile.hpctoolkit.hpcrun params", "REALTIME@10000") +
                  ";" +
                  configuration.get("profile.hpctoolkit.hpcstruct params", "") +
                  ";" +

@@ -80,7 +80,7 @@ run:
 profile:
   hpctoolkit:
     path:              null
-    hpcrun params:     "-e REALTIME@10000"
+    hpcrun params:     "REALTIME@10000"
     hpcstruct params:  ""
     hpcprof params:    ""
 
