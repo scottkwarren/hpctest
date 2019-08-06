@@ -1,7 +1,10 @@
 ################################################################################
 #                                                                              #
 # Local config settings to customize this HPCTest installation.                #
-# They override the builtin settings in internal/src/config-builtin.yaml.      #
+#                                                                              #
+# They override the builtin settings in                                        #
+#       internal/src/config-data/config-default.yaml                           #
+#                                                                              #
 # Edit as needed.                                                              #
 #                                                                              #
 ################################################################################
@@ -9,7 +12,17 @@
 
 profile:
   hpctoolkit:
-    path: ~/hpctoolkit/INSTALL/
+    # if path is commented out, the user's PATH setting will be used for the
+    #    bits to be tested.
+    # path: ~/hpctoolkit/INSTALL/
+    #
+    #  define the parameters used for the experiments run in the tests
+    hpcrun params:     "REALTIME@10000"
+    hpcstruct params:  ""  
+    hpcprof params:    ""  
+
+
+
 config:
 #    batch:
 #      manager: Slurm
