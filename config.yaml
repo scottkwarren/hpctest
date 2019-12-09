@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-# Local config settings to customize this HPCTest installation.                #
-# They override the builtin settings in                                        #
+# Example local config settings to customize this HPCTest installation.        #
+# These override the builtin settings in                                       #
 #       internal/src/config-data/config-default.yaml                           #
 # Edit as needed.                                                              #
 #                                                                              #
@@ -9,29 +9,30 @@
 
 
 profile:
-  hpctoolkit:
-    # if path is commented out, the user's PATH setting will be used for the
-    #    bits to be tested.
-    # path: ~/hpctoolkit/INSTALL/
-    #
-    #  define the parameters used for the experiments run in the tests
-    hpcrun params:     "REALTIME@10000"
-    hpcstruct params:  ""  
-    hpcprof params:    ""  
-
-
+# hpctoolkit:
+#   -- if no path is given, your PATH setting will be used
+#   path: ~/hpctoolkit/INSTALL/
+#    
+#   -- profiling params to use when none are specified on hpctest command line
+#   -- if none are given here, ("REALTIME@10000", "", "") will be used in that case
+#   hpcrun params:     "PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO"
+#   hpcstruct params:  ""  
+#   hpcprof params:    "--force-metric"  
 
 config:
-#    batch:
-#      manager: Slurm
-#      default: false
-#      params:
-#        account:   commons
-#        partition: commons
-#        time:      "1:00:00"
+# batch:
+#   -- default is 'manager: None', which runs jobs at the shell command line
+#   -- other 'batch' options are manager-dependent
+#   manager: Slurm
+#   default: false
+#   params:
+#     account:   commons
+#     partition: commons
+#     time:      "1:00:00"
+
 run:
-  ulimit:
-    t: unlimited  # cpu time (seconds)
+# ulimit:
+#   t: unlimited  # cpu time (seconds)
 
 
  
