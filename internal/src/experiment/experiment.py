@@ -278,7 +278,7 @@ class Experiment(object):
                 # limit on cpu time is a special case
                 if key == "t":
                     # time must be divided among child processes
-                    divisor = self.test.numRanks()
+                    divisor = self.numRanks
                 else:
                     divisor = 1
                     
