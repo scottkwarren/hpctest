@@ -51,7 +51,7 @@
 
 
 from experiment        import Experiment
-####from profileExperiment import ProfileExperiment
+from profileExperiment import ProfileExperiment
 
 
 

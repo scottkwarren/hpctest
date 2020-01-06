@@ -51,12 +51,20 @@
 from hpctest import HPCTest
 
 
-class Run():
+class Run(object):
 
 
     # batch job submission
     from executor import Executor
     executor = Executor.localExecutor()
+
+
+    # public operation parameter types
+    class ProfileParams(object):
+        def __init__(self):
+            binPath = ""        # location of the HPCToolkit installation to use
+            params  = ""        # profiling params for 'hpcrun'
+            outPath = ""        # where to put 'hpcrun' measurements file
 
     
     def __init__(self, test, config, hpctoolkit, profile, numrepeats, study, wantBatch):
@@ -98,6 +106,7 @@ class Run():
         from common import homepath, infomsg, sepmsg
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from experiment import Experiment
+        from experiment.profileExperiment import ProfileExperiment
         from llnl.util.tty.log import log_output
                 
         # job directory
@@ -124,16 +133,20 @@ class Run():
                 self._prepareJobDirs()
                 self._buildTest()
                 
+                # capture build-dependent useful paths
+                mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
+                self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
+                
                 # use an experiment instance to perform one run
                 cmd        = self.test.cmd()
-                mpiPrefix  = self.spec["mpi"].prefix if "+mpi" in self.spec else None
                 runSubdir  = self.test.runSubdir()
                 numRanks   = self.test.numRanks()
                 numThreads = self.test.numThreads()
                 wantMPI    = "+mpi" in self.spec
                 wantOMP    = "+openmp" in self.spec
                 self.experiment =  \
-                    Experiment(cmd, self.package.prefix, mpiPrefix, self.rundir, runSubdir,
+                    ProfileExperiment(self, 
+                               cmd, self.package.prefix, self.rundir, runSubdir,
                                numRanks, numThreads, wantMPI, wantOMP,
                                self.config, self.hpctoolkit, self.hpctoolkitParams, self.wantProfiling,
                                self.output)
@@ -354,10 +367,214 @@ class Run():
                 self.output.add("run", "hpcprof", "NA")
 
 
+#==========================
 
-   
+
+    def execute(self, cmd, subroot, label, mpi, openmp):
+
+        import os
+        from os.path import join
+        import sys
+        from subprocess import CalledProcessError
+        from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
+        from common import HPCTestError, ExecuteFailed
+        from configuration import currentConfig
+        from run import Run
+        
+        # compute command to be executed
+        # ... start with test's run command
+        env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
+        runSubdir = self.test.runSubdir()
+        env["PATH"] = join(self.package.prefix, "bin") + ":" + env["PATH"]
+        runPath  = join(self.rundir, runSubdir) if runSubdir else self.rundir
+        outPath  = self.output.makePath("{}-output.txt", label)
+        timePath = self.output.makePath("{}-time.txt", label)
+
+        # ... add OpenMP parameters if wanted
+        if openmp:
+            threads = self.test.numThreads()
+            env["OMP_NUM_THREADS"] = str(threads)
+        else:
+            threads = 1
+        
+        # ... add MPI launching code if wanted
+        if mpi:
+            ranks   = self.test.numRanks()
+            options = "-verbose" if "verbose" in options else ""
+            cmd     = "{}/mpiexec -np {} {} {}".format(self.mpiPrefixBin, ranks, options, cmd)
+        else:
+            ranks = 1
+        
+        # ... always add timing code
+        cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
+        
+        # ... always add resource limiting code
+        limitstring = self._makeLimitString()
+        cmd = "/bin/bash -c \"ulimit {}; {}\" ".format(limitstring, escape(cmd))
+        
+        self.output.add(label, "command", cmd, subroot=subroot)
+            
+        # execute the command
+        verbosemsg("Executing {} test:\n{}".format(label, cmd))
+        msg = None  # for cpu-time messaging below
+        try:
+            
+            Run.executor.run(cmd, runPath, env, ranks, threads, outPath, self.description())
+                
+        except HPCTestError as e:
+            failed, msg = True, str(e)
+        except Exception as e:
+            failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
+        else:
+            failed, msg = False, None
+            
+        if failed:
+            infomsg("{} execution failed: {}".format(label, msg))
+
+        # print test's output and cpu time
+        if "verbose" in options:
+            with open(outPath, "r") as f:
+                print f.read()
+            
+        if failed:
+            cputime, errno, errmsg = None, 0, None
+        else:
+            cputime, errno, errmsg = self._readTotalCpuTime(timePath)
+            if errno == 0:
+                infomsg("{} cpu time = {:<0.2f} seconds".format(label, cputime))
+            else:
+                cputime_msg = "{} cpu time collection failed: ({}) {}".format(label, errno, errmsg)
+                infomsg(cputime_msg)
+                if not msg:
+                    msg = cputime_msg            
+        
+        # save results
+        cpCmd = "cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir())
+        os.system(escape(cpCmd))
+        self.output.add(label, "cpu time", cputime, subroot=subroot, format="{:0.2f}" if cputime else None)
+        self.output.add(label, "status", "FAILED" if failed else "OK", subroot=subroot)
+        self.output.add(label, "status msg", msg, subroot=subroot)
+        
+        return cputime, msg
+             
+     
+    def _makeLimitString(self, limitDict=None):
+         
+        import configuration
+         
+        unitsDict = {"k": 2**10, "K": 2**10, "m": 2**20, "M": 2**20, "g": 2**30, "G": 2**30}
+         
+        if not limitDict:
+            limitDict = configuration.get("run.ulimit", {})
+         
+        s = ""
+        for key in limitDict:
+             
+            value = str(limitDict[key])
+             
+            if value != "unlimited":
+                 
+                # check for units modifier, e.g. '16K'
+                lastChar = value[-1]
+                if lastChar in unitsDict:
+                    multiplier = unitsDict[lastChar]
+                    value = value[:-1]
+                else:
+                    multiplier = 1
+                 
+                # limit on cpu time is a special case
+                if key == "t":
+                    # time must be divided among child processes
+                    divisor = self.test.numRanks()
+                else:
+                    divisor = 1
+                     
+                # compute effective limit accordingly
+                value = str( int(value) * multiplier / divisor )
+ 
+            # append a limit option for this resource
+            s += "-{} {} ".format(key, value)
+             
+        return s
+ 
+     
+    def _readTotalCpuTime(self, timePath):
+             
+        import csv
+         
+        try:
+             
+            with open(timePath, "r") as f:
+                line = f.read()
+                times = csv.reader([line], delimiter=" ").next()
+                cpuTime = float(times[1]) + float(times[2])
+                 
+        except IOError as e:
+            cpuTime    = None
+            errno, msg = e.errno, e.strerror + " " + e.filename
+        except Exception as e:
+            cpuTime    = None
+            errno, msg = e.errno, e.message
+        else:
+            errno, msg = 0, None
+         
+        return cpuTime, errno, msg
+
+
+
+
 ##########################################
-# SUPPORT FOR BATCH EXECUTION            #
+# RESULT CHECKING                        #
+##########################################
+
+
+    @classmethod
+    def checkFileExists(cls, description, path):
+
+        from os.path import isfile
+
+        if isfile(path):
+            msg = None
+        else:
+            msg = "no {} was produced".format(description)
+        
+        return msg
+
+
+
+
+    @classmethod
+    def checkTextFile(cls, description, path, minLen, goodFirstLines, goodLastLines):
+
+        from os.path import isfile
+
+        msg = None
+
+        if isfile(path):
+            
+            with open(path, "r") as f:
+                
+                lines = f.readlines()
+                if type(goodFirstLines) is not list: goodFirstLines = [ goodFirstLines ]
+                if type(goodLastLines)  is not list: goodLastLines  = [ goodLastLines  ]
+                
+                n = len(lines)
+                plural = "s are" if n > 1 else " is"
+                if n < minLen:                                        msg = "{} is too short ({} < {})".format(description, n, minLen)
+                elif lines[-len(goodFirstLines):] != goodFirstLines:  msg = "{}'s first line{} invalid".format(description, plural)
+                elif lines[-len(goodLastLines): ] != goodLastLines:   msg = "{}'s first line{} invalid".format(description, plural)
+                else:                                                 msg = None
+                
+        else:
+            msg = "no {} was produced".format(description)
+        
+        return msg
+
+
+
+
+##########################################
+# BATCH EXECUTION                        #
 ##########################################
 
 

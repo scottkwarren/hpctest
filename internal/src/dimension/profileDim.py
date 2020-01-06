@@ -82,6 +82,9 @@ class ProfileDim(StringDim):
         # 'spec' is a comma-separated list of '+'-separated lists of metric-specs
         # such as 'REALTIME@10000 + IO@100 + MEMLEAK@10, CPUTIME@10000, WALLTIME@1000'
         
+        # TODO: add some way to pass non-metric options to hpcrun, eg '--trace'
+        # TODO: add some way to set HPCToolkit environment variables for hpcrun
+        
         self.valueList = \
             [ "-e " + metrics.replace("+", " -e ")
                 for metrics in spec.split(',')

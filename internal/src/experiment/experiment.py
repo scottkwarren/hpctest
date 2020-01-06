@@ -45,23 +45,22 @@
 #                                                                              #
 ################################################################################
 
-####from __builtin__ import None
-
 
 
 
 class Experiment(object):
     
 
-    def __init__(self,
-                 cmd, packagePrefix, mpiPrefix, rundir, runSubdir,  # pre-built test case to use
-                 numRanks, numThreads, wantMPI, wantOMP,            # runtime details for test case
-                 config, hpctoolkit, profile, wantProfiling,        # test-matrix coordinates
-                 output):                                           # recordkeeping details
+    def __init__(self, run,
+                cmd, packagePrefix, mpiPrefix, rundir, runSubdir,    # pre-built test case to use
+                numRanks, numThreads, wantMPI, wantOMP,              # runtime details for test case
+                output):                                             # recordkeeping details
         
         from os.path import join
 
         # save parameters
+        self.runOb             = run
+        
         self.cmd               = cmd
         self.exeName           = cmd.split()[0]
         self.prefixBin         = join(packagePrefix, "bin")
@@ -73,14 +72,14 @@ class Experiment(object):
         self.wantMPI           = wantMPI
         self.wantOMP           = wantOMP
         
-        self.config            = config         # Spack spec for desired build configuration
-        self.hpctoolkitBinPath = join(hpctoolkit, "bin")
-        self.hpctoolkitParams  = profile.strip(" ;:").replace(";", ":")
-        paramList              = self.hpctoolkitParams.split(":")
-        self.hpcrunParams      = paramList[0]
-        self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
-        self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
-        self.wantProfiling     = wantProfiling
+#         self.config            = config         # Spack spec for desired build configuration
+#         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
+#         self.hpctoolkitParams  = profile.strip(" ;:").replace(";", ":")
+#         paramList              = self.hpctoolkitParams.split(":")
+#         self.hpcrunParams      = paramList[0]
+#         self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
+#         self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
+#         self.wantProfiling     = wantProfiling
         
         self.output            = output
         
@@ -102,39 +101,43 @@ class Experiment(object):
     def _runBuiltTest(self):
 
         from os.path import join
+        from run import Run
         from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
 
         # (1) execute test case without profiling
-        normalTime, normalFailMsg = self._execute(self.cmd, ["run"], "normal",  profile=False)
+        normalTime, normalFailMsg = self.runOb.execute(self.cmd, ["run"], "normal", self.wantMPI, self.wantOMP)
         
         # if requested, do complete HPCTkit profiling pipeline
         if self.wantProfiling:
             
             # (2) execute test case with profiling
-            self.hprunOutputPath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
-            profiledTime, profiledFailMsg = self._execute(self.cmd, ["run"], "profiled", profile=True)
+            self.runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
+
+            runCmd = "{}/hpcrun -o {} -t {} {}" \
+                .format(self.hpctoolkitBinPath, self.runOutpath, self.hpcrunParams, self.cmd)
+            profiledTime, profiledFailMsg = self.runOb.execute(runCmd, ["run"], "profiled", self.wantMPI, self.wantOMP)
             self._checkHpcrunExecution(normalTime, normalFailMsg, profiledTime, profiledFailMsg)
             
             if "verbose" in options: sepmsg()
             
             # (3) run hpcstruct on test executable
-            structPath = self.output.makePath("{}.hpcstruct".format(self.exeName))
+            structOutpath = self.output.makePath("{}.hpcstruct".format(self.exeName))
             structCmd = "{}/hpcstruct -o {} {} -I {} {}" \
-                .format(self.hpctoolkitBinPath, structPath, self.hpcstructParams, self.testIncs, join(self.prefixBin, self.exeName))
-            structTime, structFailMsg = self._execute(structCmd, ["run", "profiled"], "hpcstruct", profile=False, mpi=False, openmp=False)
-            self._checkHpcstructExecution(structTime, structFailMsg, structPath)
+                .format(self.hpctoolkitBinPath, structOutpath, self.hpcstructParams, self.testIncs, join(self.prefixBin, self.exeName))
+            structTime, structFailMsg = self.runOb.execute(structCmd, ["run", "profiled"], "hpcstruct", False, False)
+            self._checkHpcstructExecution(structTime, structFailMsg, structOutpath)
         
             # (4) run hpcprof on test measurements
             if profiledFailMsg or structFailMsg:
                 infomsg("hpcprof not run due to previous failure")
             else:
-                profPath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
+                profOutpath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
                 profCmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
-                    .format(self.hpctoolkitBinPath, profPath, structPath, self.hpcprofParams, self.testIncs, self.hprunOutputPath)
-                profTime, profFailMsg = self._execute(profCmd, ["run", "profiled"], "hpcprof", profile=False, mpi=False, openmp=False)
-                self._checkHpcprofExecution(profTime, profFailMsg, profPath)
+                    .format(self.hpctoolkitBinPath, profOutpath, structOutpath, self.hpcprofParams, self.testIncs, self.runOutpath)
+                profTime, profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
+                self._checkHpcprofExecution(profTime, profFailMsg, profOutpath)
             
-            # TODO: (5) open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
+            # (5) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
             #           -- omplicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
                 
         else:
@@ -155,165 +158,6 @@ class Experiment(object):
             raise ExecuteFailed(msg)
     
     
-    def _execute(self, cmd, subroot, label,  profile=None, mpi=None, openmp=None):
-
-        import os
-        from os.path import join
-        import sys
-        from subprocess import CalledProcessError
-        from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
-        from common import HPCTestError, ExecuteFailed
-        from configuration import currentConfig
-        from run import Run
-        
-        # respect caller's desired for this specific execution
-        if profile is None: profile = self.wantProfiling
-        if mpi     is None: mpi     = self.wantMPI
-        if openmp  is None: openmp  = self.wantOMP
-        
-        # compute command to be executed
-        # ... start with test's run command
-        env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
-        env["PATH"] = self.prefixBin + ":" + env["PATH"]
-        runPath  = join(self.rundir, self.runSubdir) if self.runSubdir else self.rundir
-        outPath  = self.output.makePath("{}-output.txt", label)
-        timePath = self.output.makePath("{}-time.txt", label)
-
-        # ... add profiling code if wanted
-        if profile:
-            cmd = "{}/hpcrun -o {} -t {} {}".format(self.hpctoolkitBinPath, self.hprunOutputPath, self.hpcrunParams, cmd)
-
-        # ... add OpenMP parameters if wanted
-        if openmp:
-            threads = self.numThreads
-            env["OMP_NUM_THREADS"] = str(threads)
-        else:
-            threads = 1
-        
-        # ... add MPI launching code if wanted
-        if mpi:
-            ranks      = self.numRanks
-            options    = "-verbose" if "verbose" in options else ""
-            cmd        = "{}/mpiexec -np {} {} {}".format(self.mpiPrefixBin, ranks, options, cmd)
-        else:
-            ranks = 1
-        
-        # ... always add timing code
-        cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
-        
-        # ... always add resource limiting code
-        limitstring = self._makeLimitString()
-        cmd = "/bin/bash -c \"ulimit {}; {}\" ".format(limitstring, escape(cmd))
-        
-        self.output.add(label, "command", cmd, subroot=subroot)
-            
-        # execute the command
-        verbosemsg("Executing {} test:\n{}".format(label, cmd))
-        msg = None  # for cpu-time messaging below
-        try:
-            
-            Run.executor.run(cmd, runPath, env, ranks, threads, outPath, self.description())
-                
-        except HPCTestError as e:
-            failed, msg = True, str(e)
-        except Exception as e:
-            failed, msg = True, "{} ({})".format(type(e).__name__, e.message.rstrip(":"))   # 'rstrip' b/c CalledProcessError.message ends in ':' fsr
-        else:
-            failed, msg = False, None
-            
-        if failed:
-            infomsg("{} execution failed: {}".format(label, msg))
-
-        # print test's output and cpu time
-        if "verbose" in options:
-            with open(outPath, "r") as f:
-                print f.read()
-            
-        if failed:
-            cputime, errno, errmsg = None, 0, None
-        else:
-            cputime, errno, errmsg = self._readTotalCpuTime(timePath)
-            if errno == 0:
-                infomsg("{} cpu time = {:<0.2f} seconds".format(label, cputime))
-            else:
-                cputime_msg = "{} cpu time collection failed: ({}) {}".format(label, errno, errmsg)
-                infomsg(cputime_msg)
-                if not msg:
-                    msg = cputime_msg            
-        
-        # save results
-        cpCmd = "cd {}; cp core.* {}  > /dev/null 2>&1".format(runPath, self.output.getDir())
-        os.system(escape(cpCmd))
-        self.output.add(label, "cpu time", cputime, subroot=subroot, format="{:0.2f}" if cputime else None)
-        self.output.add(label, "status", "FAILED" if failed else "OK", subroot=subroot)
-        self.output.add(label, "status msg", msg, subroot=subroot)
-        
-        return cputime, msg
-            
-    
-    def _makeLimitString(self, limitDict=None):
-        
-        import configuration
-        
-        unitsDict = {"k": 2**10, "K": 2**10, "m": 2**20, "M": 2**20, "g": 2**30, "G": 2**30}
-        
-        if not limitDict:
-            limitDict = configuration.get("run.ulimit", {})
-        
-        s = ""
-        for key in limitDict:
-            
-            value = str(limitDict[key])
-            
-            if value != "unlimited":
-                
-                # check for units modifier, e.g. '16K'
-                lastChar = value[-1]
-                if lastChar in unitsDict:
-                    multiplier = unitsDict[lastChar]
-                    value = value[:-1]
-                else:
-                    multiplier = 1
-                
-                # limit on cpu time is a special case
-                if key == "t":
-                    # time must be divided among child processes
-                    divisor = self.test.numRanks()
-                else:
-                    divisor = 1
-                    
-                # compute effective limit accordingly
-                value = str( int(value) * multiplier / divisor )
-
-            # append a limit option for this resource
-            s += "-{} {} ".format(key, value)
-            
-        return s
-
-    
-    def _readTotalCpuTime(self, timePath):
-            
-        import csv
-        
-        try:
-            
-            with open(timePath, "r") as f:
-                line = f.read()
-                times = csv.reader([line], delimiter=" ").next()
-                cpuTime = float(times[1]) + float(times[2])
-                
-        except IOError as e:
-            cpuTime    = None
-            errno, msg = e.errno, e.strerror + " " + e.filename
-        except Exception as e:
-            cpuTime    = None
-            errno, msg = e.errno, e.message
-        else:
-            errno, msg = 0, None
-        
-        return cpuTime, errno, msg
-            
-
     def _checkTestResults(self):
 
         pass        # TODO
@@ -355,7 +199,7 @@ class Experiment(object):
         from common import debugmsg, errormsg
         from spackle import writeYamlFile
 
-        if isdir(self.hprunOutputPath):
+        if isdir(self.runOutpath):
             
             pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
                         "         frames: D (trolled: D)\n"
@@ -369,8 +213,8 @@ class Experiment(object):
     
             scrapedResultTupleList = []
             
-            for item in listdir(self.hprunOutputPath):
-                itemPath = join(self.hprunOutputPath, item)
+            for item in listdir(self.runOutpath):
+                itemPath = join(self.runOutpath, item)
                 if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
                     with open(itemPath, "r") as f:
                         
@@ -395,51 +239,31 @@ class Experiment(object):
         return summedResultDict
 
 
-    def _checkHpcstructExecution(self, structTime, structFailMsg, structPath):
+    def _checkHpcstructExecution(self, structTime, structFailMsg, structOutpath):
         
+        from run import Run
+
         if structFailMsg:
             msg = structFailMsg
         else:
-            msg = self._checkTextFile("structure file", structPath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
+            msg = self.runOb.checkTextFile("structure file", structOutpath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
             
         self.output.add("run", "hpcstruct", "output checks", "FAILED" if msg else "OK")
         self.output.add("run", "hpcstruct", "output msg",    msg)
 
 
-    def _checkHpcprofExecution(self, profTime, profFailMsg, profPath):
+    def _checkHpcprofExecution(self, profTime, profFailMsg, profOutpath):
         
+        from run import Run
         from common import infomsg
 
         if profFailMsg:
             msg = profFailMsg
         else:
-            msg = self._checkTextFile("performance db", profPath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
+            msg = self.runOb.checkTextFile("performance db", profOutpath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
             
         self.output.add("run", "hpcprof", "output checks", "FAILED" if msg else "OK")
         self.output.add("run", "hpcprof", "output msg",    msg)
-
-
-    def _checkTextFile(self, description, path, minLen, goodFirstLines, goodLastLines):
-
-        from os.path import isfile
-
-        if isfile(path):
-            
-            with open(path, "r") as f:
-                
-                lines = f.readlines()
-                if type(goodFirstLines) is not list: goodFirstLines = [ goodFirstLines ]
-                if type(goodLastLines)  is not list: goodLastLines  = [ goodLastLines  ]
-                
-                n = len(lines)
-                plural = "s are" if n > 1 else " is"
-                if n < minLen:                                        msg = "{} is too short ({} < {})".format(description, n, minLen)
-                elif lines[-len(goodFirstLines):] != goodFirstLines:  msg = "{}'s first line{} invalid".format(description, plural)
-                elif lines[-len(goodLastLines): ] != goodLastLines:   msg = "{}'s first line{} invalid".format(description, plural)
-                else:                                                 msg = None
-                
-        else:
-            msg = "no {} was produced".format(description)
     
 
 
