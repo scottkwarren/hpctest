@@ -110,12 +110,12 @@ class Experiment(object):
         if self.wantProfiling:
             
             # (2) execute test case with profiling
-            self.runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
+            runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
 
             runCmd = "{}/hpcrun -o {} -t {} {}" \
-                .format(self.hpctoolkitBinPath, self.runOutpath, self.hpcrunParams, self.cmd)
+                .format(self.hpctoolkitBinPath, runOutpath, self.hpcrunParams, self.cmd)
             profiledTime, profiledFailMsg = self.runOb.execute(runCmd, ["run"], "profiled", self.wantMPI, self.wantOMP)
-            self._checkHpcrunExecution(normalTime, normalFailMsg, profiledTime, profiledFailMsg)
+            self._checkHpcrunExecution(runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg)
             
             if "verbose" in options: sepmsg()
             
@@ -132,12 +132,12 @@ class Experiment(object):
             else:
                 profOutpath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
                 profCmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
-                    .format(self.hpctoolkitBinPath, profOutpath, structOutpath, self.hpcprofParams, self.testIncs, self.runOutpath)
+                    .format(self.hpctoolkitBinPath, profOutpath, structOutpath, self.hpcprofParams, self.testIncs, runOutpath)
                 profTime, profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
                 self._checkHpcprofExecution(profTime, profFailMsg, profOutpath)
             
             # (5) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
-            #           -- omplicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
+            #           -- complicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
                 
         else:
             verbosemsg("profiling is disabled by hpctest.yaml")
@@ -163,7 +163,7 @@ class Experiment(object):
 #       self.output.addSummaryStatus("CHECK FAILED", xxx)
 
     
-    def _checkHpcrunExecution(self, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
+    def _checkHpcrunExecution(self, runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
         
         from common import infomsg
 
@@ -182,7 +182,7 @@ class Experiment(object):
             infomsg("hpcrun log not summarized")
             self.output.add("run", "profiled", "hpcrun summary",  "NA")
         else:
-            summaryDict = self._summarizeHpcrunLog()
+            summaryDict = self._summarizeHpcrunLog(runOutpath)
             self.output.add("run", "profiled", "hpcrun summary", summaryDict)
         
         # no checks yet, so always record success
@@ -190,7 +190,7 @@ class Experiment(object):
         self.output.add("run", "hpcrun", "output msg",    None)
 
 
-    def _summarizeHpcrunLog(self):
+    def _summarizeHpcrunLog(self, runOutpath):
         
         from os import listdir
         from os.path import join, isdir, isfile, basename, splitext
@@ -198,7 +198,7 @@ class Experiment(object):
         from common import debugmsg, errormsg
         from spackle import writeYamlFile
 
-        if isdir(self.runOutpath):
+        if isdir(runOutpath):
             
             pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
                         "         frames: D (trolled: D)\n"
@@ -212,8 +212,8 @@ class Experiment(object):
     
             scrapedResultTupleList = []
             
-            for item in listdir(self.runOutpath):
-                itemPath = join(self.runOutpath, item)
+            for item in listdir(runOutpath):
+                itemPath = join(runOutpath, item)
                 if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
                     with open(itemPath, "r") as f:
                         
