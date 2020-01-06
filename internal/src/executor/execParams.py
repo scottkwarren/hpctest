@@ -1,10 +1,9 @@
 ################################################################################
 #                                                                              #
-#  executor.py                                                                 #
+#  execParams.py                                                               #
 #                                                                              #
-#  Run obs immediately or in batch/background using one of various supported   #
-#  schedulers (defined elsewhere). Knows which schedulers are supported on the #
-#  current system and whether to run jobs immediately or in batch by default.  #
+#  Parameters controlling how an executable is to be run, such as the number   #
+#  of threads or amount of RAM to use.                                         #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -49,161 +48,19 @@
 ################################################################################
 
 
+class ExecParams(object):
 
-#################################################
-#  ABSTRACT SUPERCLASS                          #
-#################################################
-
-
-class Executor(object):
-
+    numRanks   = 1
+    numThreads = 1
+    wantMPI    = True
+    wantOMP    = True
     
-    # System inquiries
-
-    _local_executor_class = None
-    _local_executor       = None
-    
-    
-    @classmethod
-    def localExecutorClass(cls):
+    def __init__(self, numRanks, numThreads, wantMPI, wantOMP):
         
-        import configuration
-        from common import fatalmsg
-        
-        if not cls._local_executor_class:
-            
-            # local configuration may specify the job launcher
-            name  = configuration.get("config.batch.manager", "Shell")
-            force = configuration.get("config.batch.force",   "False")
-            
-            # validate the name
-            if name not in cls._subclasses:
-                fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
-            
-            # validate the corresponding executor class
-            executorClass = cls._subclasses[name]
-            available, msg = executorClass.isAvailable()
-            if not (available or force):
-                fatalmsg("config files specify {} as config.batch.manager, "
-                         "but {}".format(name, msg if msg else  name + " is not available"))
-            
-            # memoize for subsequent calls
-            cls._local_executor_class = executorClass
-
-        return cls._local_executor_class
-    
-    
-    @classmethod
-    def localExecutor(cls):
-        
-        if not cls._local_executor:
-            cls._local_executor = cls.localExecutorClass() ()
-        
-        return cls._local_executor
-    
-
-    @classmethod
-    def defaultToBackground(cls):
-        
-        return cls.localExecutorClass().defaultToBackground()
-
-
-    @classmethod
-    def isAvailable(cls):                               # returns (available, msg_or_None)
-        
-        return cls.localExecutorClass().isAvailable()
-
-
-    # Registry of available executor subclasses
-
-    _subclasses = dict()
-
-
-    @classmethod
-    def register(cls, name, subclass):
-        cls._subclasses[name] = subclass
-
-
-    # Scheduling operations
-    
-    def __init__(self):
-        
-        self.jobDescriptions = dict()
-        self.runningJobs = set()
-         
-    
-    def run(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):
-        
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "run")
-
-    
-    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
-
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "submitJob")
-
-    
-    def description(self, jobID):
-        return self.jobDescriptions[jobID]
-
-    
-    def stdout(self, jobID):
-        
-        return self.jobStdouts[jobID]
-
-                                    
-    def isFinished(self, jobID):
-        
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "isFinished")
-
-    
-    def waitFinished(self, jobID):
-        
-        import time
-        while not self.isFinished(jobID): time.sleep(5)     # seconds
-
-    
-    def pollForFinishedJobs(self):
-        
-        # general method; a subclass might override with more efficient specific one
-        
-        finished = set()
-        
-        for p in self.runningJobs:
-            if self.isFinished(p):
-                finished.add(p)
-        
-        for p in finished:
-            self.runningJobs.remove(p)
-        
-        return finished
-
-    
-    def kill(self, job):
-        
-        from common import subclassResponsibility
-        subclassResponsibility("Executor", "kill")
-    
-    
-    def killAll(self):
-        
-        for p in self.runningJobs:
-            p.kill()
-
-
-    def _addJob(self, job, description):
-
-        self.runningJobs.add(job)
-        self.jobDescriptions[job] = description        
-
-
-    def _removeJob(self, job):
-
-        self.runningJobs.remove(job)
-        self.jobDescriptions.pop(job)
-
+        self.numRanks   = numRanks
+        self.numThreads = numThreads
+        self.wantMPI    = wantMPI
+        self.wantOMP    = wantOMP
 
 
 
