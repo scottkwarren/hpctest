@@ -1,6 +1,6 @@
 # HPCTest internals
-/runner/repos/**
-/runner/spack/**
+internal/repos/**
+internal/spack/**
 /work
 .checksum
 
