@@ -52,9 +52,9 @@ class Experiment(object):
     
 
     def __init__(self, run,
-                cmd, packagePrefix, mpiPrefix, rundir, runSubdir,    # pre-built test case to use
-                numRanks, numThreads, wantMPI, wantOMP,              # runtime details for test case
-                output):                                             # recordkeeping details
+                cmd, packagePrefix, rundir, runSubdir,    # pre-built test case to use
+                numRanks, numThreads, wantMPI, wantOMP,   # runtime details for test case
+                output):                                  # recordkeeping details
         
         from os.path import join
 
@@ -64,7 +64,6 @@ class Experiment(object):
         self.cmd               = cmd
         self.exeName           = cmd.split()[0]
         self.prefixBin         = join(packagePrefix, "bin")
-        self.mpiPrefixBin      = join(mpiPrefix, "bin") if mpiPrefix else None
         self.rundir            = rundir
         self.runSubdir         = runSubdir
         self.numRanks          = numRanks
