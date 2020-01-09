@@ -50,6 +50,7 @@
 
 
 from hpctest import HPCTest
+
 global HPCTestOb
 HPCTestOb = None
 
@@ -57,8 +58,18 @@ HPCTestOb = None
 
 
 def main():
-        
-    args = parseCommandLine()    
+    
+    from help import help_message    
+    from util.docopt import docopt, DocoptExit
+    
+    # preliminary support for docopt argument parsing
+    try:
+        args = docopt(doc=help_message, help=False)
+    except DocoptExit as d:
+        args = None
+
+    # original argparse version of argument parsing    
+    args = parseCommandLine()
     return execute(args)
 
 
@@ -130,7 +141,6 @@ def parseCommandLine():
     selftestParser = subparsers.add_parser("selftest", help="run HPCTest's builtin self tests")
     selftestParser.add_argument("tests_arg", nargs="?", type=str, default="default",  help="testspec for which self tests to run")
     selftestParser.add_argument("--tests", "-t", type=str,  default="default",  help="testspec for which self tests to run")
-    selftestParser.add_argument("--study", "-s", type=str,  default="default",  help="where to put study directory for this study")
     _addOptionArgs(selftestParser)
 
     # -------------------------------------------------------------------------------------------------------
@@ -165,6 +175,7 @@ def _addOptionArgs(subparser):
     subparser.add_argument("--force",      "-F",  dest="options", action="append_const", const="force",      help="do not ask for confirmation and ignore errors")
     subparser.add_argument("--traceback",  "-T",  dest="options", action="append_const", const="traceback",  help="print stack traces with error messages")
     subparser.add_argument("--nochecksum", "-C",  dest="options", action="append_const", const="nochecksum", help="ignore checksum of 'tests' directory tree")
+#   subparser.add_argument("--help",       "-h",  dest="options", action="append_const", const="help",       help="print this message")
     
 
 def execute(args):
