@@ -119,7 +119,6 @@ class Run(object):
         with log_output(outPath, echo=echoStdout):
             
             startTime = time.time()
-########    self.hpcrunParams.replace(" ", ".")
             
             sepmsg(True)
             infomsg( "running test {}".format(self.description()) )
