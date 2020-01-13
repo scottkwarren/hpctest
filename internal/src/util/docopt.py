@@ -577,5 +577,6 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+####    return Dict((a.name, a.value) for a in (pattern.flat() + collected))    # SKW
+        return Dict((a.name, a.value) for a in collected)    # SKW: only return args given on command line
     raise DocoptExit()

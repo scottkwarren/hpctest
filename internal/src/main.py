@@ -64,7 +64,7 @@ def main():
     
     # preliminary support for docopt argument parsing
     try:
-        args = docopt(doc=help_message, help=False)
+        args = docopt(doc=help_message, help=True)
     except DocoptExit as d:
         args = None
 

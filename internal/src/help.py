@@ -48,68 +48,73 @@
 ################################################################################
 
 
+# NOTE: the docstring must be at the left margin for 'docopt' to interpret it correctly
+#       (ie no leading spaces before 'Usage:' et al)
 
 
 help_message = \
-    """
-    HPCTest.
+"""
+HPCTest.
 
-    Conduct a study using a "testing matrix" of alternative test conditions. A test run is carried out
-    for each matrix element using that element's parameters, and the results for all test runs are
-    saved to a "study directory" for subsequent inspection. Each matrix dimension specifies a set of
-    alternative values for one testing parameter, such as the test case to run or Spack configuration
-    to build it with; thus each matrix element is a tuple of parameters for a single test run.
+Conduct a study using a "testing matrix" of alternative test conditions. A test run is carried out
+for each matrix element using that element's parameters, and the results for all test runs are
+saved to a "study directory" for subsequent inspection. Each matrix dimension specifies a set of
+alternative values for one testing parameter, such as the test case to run or Spack configuration
+to build it with; thus each matrix element is a tuple of parameters for a single test run.
+  
+Usage:
+  hpctest init
+  hpctest run [options]
+          [TESTS]
+          [--tests TESTSPEC]
+          [--build CONFIGSPEC]
+          [--hpctoolkit PATHSPEC]
+          [--profile PROFILESPEC]
+          [--study PATH]
+          [--report REPORTSPEC]
+          [--sort SORTSPEC]
+          [--background] [--batch]
+  hpctest report [options]
+          [--study PATH]
+          [--which WHICHSPEC]
+          [--report REPORTSPEC]
+          [--sort SORTSPEC]
+  hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH] 
+  hpctest spack [options] CMD
+  
+Options:
+  -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives [default: all].
+                             Each test's executable will be executed as the test case for some runs of the study.
+  -b, --build CONFIGSPEC     Add a matrix dimension with the specified set of build configurations as alternatives;
+                             each configuration is used to build the test executable for some runs of the study.
+  -k, --hpctoolkit PATHSPEC  Add a matrix dimension with the specified set of paths as alternatives; each path
+                             points to an HPCToolkit installation's 'install/bin' directory and is used to profile
+                             the test executable for some runs of the study.
+  -p, --profile PROFILESPEC  Add a matrix dimension with the specified set of profile strings as alternatives;
+                             each string is used to profile the test executable for some runs of the study.
+  -s, --study PATH           xxx.
+  -r, --report REPORTSPEC    xxx [Default: all].
+  -S, --sort SORTSPEC        xxx.
+  -d, --dependencies         xxx.
+  -V, --version              Print this hpctest's version string.
+  -v, --verbose              xxx.
+  -D, --debug                xxx.
+  -h, --help                 Print this message.
+  
+Arguments:
+  CMD                        xxx.
+  CONFIGSPEC                 a Spack spec minus the package name (eg @gcc^4.7).
+  PATH                       xxx.
+  PATHSPEC                   xxx.
+  PROFILESPEC                a sequence of profiling arguments to 'hpcrun'.
+  REPORTSPEC                 xxx.
+  SORTSPEC                   xxx.
+  TESTS                      xxx.
+  TESTSPEC                   xxx.
+  WHICHSPEC                  xxx.
     
-    Usage:
-      hpctest init
-      hpctest [options] run
-              [TESTS]
-              [--tests TESTSPEC]
-              [--build CONFIGSPEC]
-              [--hpctoolkit PATHSPEC]
-              [--profile PROFILESPEC]
-              [--study PATH]
-              [--report REPORTSPEC]
-              [--sort SORTSPEC]
-              [--background] [--batch]
-      hpctest report [options]
-              [--study PATH]
-              [--which WHICHSPEC]
-              [--report REPORTSPEC]
-              [--sort SORTSPEC]
-      hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH] 
-      hpctest spack [options] CMD
-    
-    Options:
-      -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives [default: all].
-                                 Each test's executable will be executed as the test case for some runs of the study.
-      -b, --build CONFIGSPEC     Add a matrix dimension with the specified set of build configurations as alternatives;
-                                 each configuration is used to build the test executable for some runs of the study.
-      -k, --hpctoolkit PATHSPEC  Add a matrix dimension with the specified set of paths as alternatives; each path
-                                 points to an HPCToolkit installation's 'install/bin' directory and is used to profile
-                                 the test executable for some runs of the study.
-      -p, --profile PROFILESPEC  Add a matrix dimension with the specified set of profile strings as alternatives;
-                                 each string is used to profile the test executable for some runs of the study.
-      -s, --study PATH           xxx.
-      -r, --report REPORTSPEC    xxx [Default: all].
-      -S, --sort SORTSPEC        xxx.
-      -d, --dependencies         xxx.
-      -V, --version              Print this hpctest's version string.
-      -v, --verbose              xxx.
-      -D, --debug                xxx.
-      -h, --help                 Print this message.
-    
-    Arguments:
-      CMD                        xxx.
-      CONFIGSPEC                 a Spack spec minus the package name (eg @gcc^4.7).
-      PATH                       xxx.
-      PATHSPEC                   xxx.
-      PROFILESPEC                a sequence of profiling arguments to 'hpcrun'.
-      REPORTSPEC                 xxx.
-      SORTSPEC                   xxx.
-      TESTS                      xxx.
-      TESTSPEC                   xxx.
-      WHICHSPEC                  xxx.
-      
-    """
+"""
+
+
+
 
