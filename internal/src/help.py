@@ -89,7 +89,7 @@ Usage:
           [--built]
           [--dependencies]
           [--all]
-  hpctest spack [options] COMMAND
+  hpctest spack [options] COMMAND ...
   hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH]
   hpctest _miniapps
   hpctest _runOne ENCODED_ARGS
@@ -117,8 +117,8 @@ Options:
   -h, --help                 Print this message.
   
 Arguments:
-  COMMAND                    xxx.
-  CONFIGSPEC                 a Spack spec minus the package name (eg @gcc^4.7).
+  COMMAND                    xxx. (Caution about [options] in Spack command: quote the command.)
+  CONFIGSPEC                 a Spack spec minus the package name and caret (eg gcc@4.7).
   PATH                       xxx.
   PATHSPEC                   xxx.
   PROFILESPEC                a sequence of profiling arguments to 'hpcrun'.

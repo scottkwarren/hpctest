@@ -141,7 +141,7 @@ def execute(args):
         
     elif args["spack"]:
         
-        HPCTestOb.spack(" ".join(args["CMD"]))
+        HPCTestOb.spack(" ".join(args["COMMAND"]))
     
         
     elif args["selftest"]:
@@ -169,7 +169,7 @@ def execute(args):
             
     else:
         
-        fatalmsg("in main.execute, unexpected subcommand name")
+        errormsg("in main.execute, unexpected subcommand name")
     
 
 
