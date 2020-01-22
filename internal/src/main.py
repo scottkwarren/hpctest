@@ -123,20 +123,20 @@ def execute(args):
     elif args["clean"]:    
         
         s = args["--studies"]
-        t = args["--tests"]
+        b = args["--built"]
         d = args["--dependencies"]
         
-        if s or t or d:
+        if s or b or d:
             if args["--all"]:
                 infomsg("option '--all' may not be combined with other options, so is ignored")
         elif args["--all"]:
             s = "<default>"
-            t = True
+            b = True
             d = True
         else:
             s = "<default>"
             
-        HPCTestOb.clean(s, t, d)
+        HPCTestOb.clean(s, b, d)
 
         
     elif args["spack"]:
