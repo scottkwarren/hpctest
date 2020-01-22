@@ -139,5 +139,19 @@ Examples:
 """
 
 
+optionNames = \
+    [
+    '--background',
+    '--batch',
+    '--debug',
+    "--force",
+    '--help',
+    "--nochecksum"
+    "--quiet",
+    "--traceback",
+    '--verbose',
+    ]
+
+
 
 

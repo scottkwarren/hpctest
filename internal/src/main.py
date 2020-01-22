@@ -60,27 +60,14 @@ HPCTestOb = None
 def main():
     
     import common
-    from help import help_message    
+    from help import help_message, optionNames
     from util.docopt import docopt, DocoptExit
-    
-    optionNames = \
-        [
-        '--background',
-        '--batch',
-        '--debug',
-        "--force",
-        '--help',
-        "--nochecksum"
-        "--quiet",
-        "--traceback",
-        '--verbose',
-        ]
-        
+            
     # parse the command line and execute it if valid
     try:
         args = docopt(doc=help_message, help=False)
         common.args = args
-        common.options = { key[2:] : args[key] for key in args if key in optionNames }
+        common.options = { key[2:] : args[key] for key in args if key in optionNames and args[key] }
         common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
         return execute(args)
     except DocoptExit:
