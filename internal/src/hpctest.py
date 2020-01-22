@@ -70,7 +70,7 @@ class HPCTest(object):
         from common import infomsg, warnmsg, errormsg
         from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
                 
-        msgfunc = warnmsg if common.subcommand == "init" else errormsg if common.subcommand == "run" else None
+        msgfunc = warnmsg if common.args["init"] else errormsg if common.args["run"] else None
         if (not common.hpctk_default) and msgfunc:
             msgfunc("no default HPCToolkit specified for profiling.\n"
                     "\n"
@@ -94,7 +94,7 @@ class HPCTest(object):
         pass
 
         
-    def run(self, argDimSpecs=dict(), args=dict(), numrepeats=1, reportspec="", sortKeys=[], studyPath=None, wantBatch=False):
+    def run(self, argDimSpecs=dict(), numrepeats=1, reportspec="", sortKeys=[], studyPath=None, wantBatch=False):
         
         import common
         import configuration
@@ -117,7 +117,7 @@ class HPCTest(object):
             study = Study(studyPath if studyPath else common.workpath)
             if not wantBatch:
                 wantBatch = configuration.get("config.batch.default", Executor.defaultToBackground())
-            Iterate.doForAll(dims, args, numrepeats, study, wantBatch)
+            Iterate.doForAll(dims, numrepeats, study, wantBatch)
             print
             
             # report results

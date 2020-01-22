@@ -59,186 +59,90 @@ HPCTestOb = None
 
 def main():
     
+    import common
     from help import help_message    
     from util.docopt import docopt, DocoptExit
     
-    # preliminary support for docopt argument parsing
+    optionNames = \
+        [
+        '--background',
+        '--batch',
+        '--debug',
+        "--force",
+        '--help',
+        "--nochecksum"
+        "--quiet",
+        "--traceback",
+        '--verbose',
+        ]
+        
+    # parse the command line and execute it if valid
     try:
-        args = docopt(doc=help_message, help=True)
+        args = docopt(doc=help_message, help=False)
+        common.args = args
+        common.options = { key[2:] : args[key] for key in args if key in optionNames }
+        common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
+        return execute(args)
     except DocoptExit:
-        args = None
+        print help_message
 
-    # original argparse version of argument parsing    
-    args = parseCommandLine()
-    return execute(args)
-
-
-def parseCommandLine():
-    # see https://docs.python.org/2/howto/argparse.html
-    
-    import argparse
-    from os.path import join
-    import common
-    global HPCTestOb
-    
-    # parsers
-    parser = argparse.ArgumentParser(prog="hpctest")
-    subparsers = parser.add_subparsers(dest="subcommand")
-
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest init
-    # -------------------------------------------------------------------------------------------------------
-    initParser = subparsers.add_parser("init", help="initialize HPCTest")
-    _addOptionArgs(initParser)   # useless, but avoids special case in 'execute'
-    
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest run [tspec | --tests tspec] [--build cspec] [--hpctoolkit tkspec] [--profile pspec] [--study study] <options>
-    # -------------------------------------------------------------------------------------------------------
-    runParser = subparsers.add_parser("run", help="run a set of tests on each of a set of cofigurations")
-    runParser.add_argument("tests_arg",     nargs="?", type=str,  default="default",  help="testspec for which test cases to run")
-    runParser.add_argument("--tests",            "-t", type=str,  default="default",  help="testspec for which test cases to rum")
-    runParser.add_argument("--build",            "-b", type=str,  default="default",  help="buildspec for which build configs on which to use")
-    runParser.add_argument("--hpctoolkit",       "-k", type=str,  default="default",  help="paths to hpctoolkit instances to use")
-    runParser.add_argument("--profile",          "-p", type=str,  default="default",  help="profiling parameters to pass to hpctoolkit tools")
-    runParser.add_argument("--study",            "-s", type=str,  default="default",  help="where to put study directory for this study")
-##  runParser.add_argument("--numrepeats",       "-n", type=int,  default=1,          help="number of times to repeat each test run")
-    runParser.add_argument("--report",           "-r", type=str,  default="default",  help="details of report to print")
-    runParser.add_argument("--sort",             "-S", type=str,  default="default",  help="sequence of dimensions to sort report by")
-    runParser.add_argument("--background",       "-Z", dest="options", action="append_const", const="background", help="run in the background")
-    runParser.add_argument("--batch",            "-B", dest="options", action="append_const", const="batch",      help="run in batch jobs")
-    _addOptionArgs(runParser)
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest report [--study study] [--which whichspec] [--sort sortspec] <options>
-    # -------------------------------------------------------------------------------------------------------
-    reportParser = subparsers.add_parser("report",                                    help="print report summarizing a study")
-    reportParser.add_argument("--study",     "-s",     type=str,  default="default",  help="path to study directory to report on")
-    reportParser.add_argument("--which",     "-w",     type=str,  default="default",  help="which test runs to report on")
-    reportParser.add_argument("--sort",      "-S",     type=str,  default="default",  help="sequence of dimensions to sort report by")
-    _addOptionArgs(reportParser)
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest clean [ --all | [-s|--study  [study] ] [-t|-tests] [-d|--dependencies] ]   <options>
-    # -------------------------------------------------------------------------------------------------------
-    cleanParser = subparsers.add_parser("clean",                                      help="clean up by deleting unwanted testing byproducts")
-    cleanParser.add_argument("--studies",      "-s",   type=str, nargs="?", const="<default>", help="delete study directories from workspace")
-    cleanParser.add_argument("--tests",        "-t",   action="store_true",           help="uninstall built tests")
-    cleanParser.add_argument("--dependencies", "-d",   action="store_true",           help="uninstall packages built to satisfy tests' dependencies")
-    cleanParser.add_argument("--all",          "-a",   action="store_true",           help="clean studies, tests, and dependencies")
-    _addOptionArgs(cleanParser)
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest spack <cmd>
-    # -------------------------------------------------------------------------------------------------------
-    spackParser = subparsers.add_parser("spack", help="run a Spack command with hpctest's private Spack")
-    spackParser.add_argument('spackcmd', nargs=argparse.REMAINDER)
-    _addOptionArgs(spackParser)
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest selftest ... <options>
-    # -------------------------------------------------------------------------------------------------------
-    selftestParser = subparsers.add_parser("selftest", help="run HPCTest's builtin self tests")
-    selftestParser.add_argument("tests_arg", nargs="?", type=str, default="default",  help="testspec for which self tests to run")
-    selftestParser.add_argument("--tests", "-t", type=str,  default="default",  help="testspec for which self tests to run")
-    _addOptionArgs(selftestParser)
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest _miniapps <options>
-    # -------------------------------------------------------------------------------------------------------
-
-#     miniappsParser = subparsers.add_parser("miniapps", help="find all builtin miniapp packages and add test cases for them to tests/miniapp")
-#     _addOptionArgs(miniappsParser)
-
-    # -------------------------------------------------------------------------------------------------------
-    # hpctest runOne <encodedArgs>
-    # -------------------------------------------------------------------------------------------------------
-    runOneParser = subparsers.add_parser("_runOne", help="private subcommand to perform one batch run")
-    runOneParser.add_argument("encodedArgs", nargs="?", type=str, default="default",  help="encoded tuple of args for Run.__init__")
-    _addOptionArgs(runOneParser)
-
-    # parse the command line
-    args = parser.parse_args()
-    if args.options is None: args.options = {}          # can argparse do this automagically?
-    common.subcommand = args.subcommand
-    common.options = args.options
-    common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
-
-    return args
-
-
-def _addOptionArgs(subparser):
-    
-    subparser.add_argument("--quiet",      "-q",  dest="options", action="append_const", const="quiet",      help="run silently")
-    subparser.add_argument("--verbose",    "-v",  dest="options", action="append_const", const="verbose",    help="print additional details as testing is performed")
-    subparser.add_argument("--debug",      "-D",  dest="options", action="append_const", const="debug",      help="print debugging information as testing is performed")
-    subparser.add_argument("--force",      "-F",  dest="options", action="append_const", const="force",      help="do not ask for confirmation and ignore errors")
-    subparser.add_argument("--traceback",  "-T",  dest="options", action="append_const", const="traceback",  help="print stack traces with error messages")
-    subparser.add_argument("--nochecksum", "-C",  dest="options", action="append_const", const="nochecksum", help="ignore checksum of 'tests' directory tree")
-#   subparser.add_argument("--help",       "-h",  dest="options", action="append_const", const="help",       help="print this message")
-    
 
 def execute(args):
     # perform the requested operation by calling methods of HPCTest
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
 
-    global HPCTestOb
+    global HPCTestObm
     from collections import OrderedDict
     from os.path import join
     from common import options, errormsg, fatalmsg
 
     HPCTestOb = HPCTest()      # must come early b/c initializes paths in common.*
 
-    if args.subcommand == "init":
+    if args["init"]:
         
         HPCTestOb.init()
         
-    elif args.subcommand == "run":
+    elif args["run"]:
         
         dims = OrderedDict()
-        if args.tests_arg != "default":
-            dims["tests"] = args.tests_arg
-            del args.tests_arg
-        if args.tests != "default":
+        if args["TESTS"]:
+            dims["tests"] = args["TESTS"]
+        if args["--tests"]:
             if "tests" in dims:
                 errormsg("'--tests' cannot be combined with <tests> positional argument (ignored).")
             else:
-                dims["tests"] = args.tests
-                del args.tests
-        if args.build != "default":
-            dims["build"] = args.build
-            del args.build
-        if args.hpctoolkit != "default":
-            dims["hpctoolkit"] = args.hpctoolkit
-            del args.hpctoolkit
-        if args.profile != "default":                                             # TODO: finish rework of 'profile' into three args
-            dims["profile"] = args.profile.replace("_", "-").replace(".", " ")    # undo the workaround for argparse fail on quoted args
-            del args.profile
-        studyPath = args.study if args.study != "default" else None; del args.study
-        numrepeats = 1  ## args.numrepeats
-        otherargs  = args
-        reportspec = args.report if args.report != "default" else "all"
-        sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
-        wantBatch  = ("batch" in options) or ("background" in options)
-        HPCTestOb.run(dims, otherargs, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
+                dims["tests"] = args["--tests"]
+        if "tests" not in dims: dims["tests"] = "all"
+        if args["--build"]:
+            dims["build"] = args["--build"]
+        if args["--hpctoolkit"]:
+            dims["hpctoolkit"] = args["--hpctoolkit"]
+        if args["--profile"]:                                             # TODO: finish rework of 'profile' into three args
+            dims["profile"] = args["--profile"].replace("_", "-").replace(".", " ")    # TODO: REMOVE THIS LEGACY PROCESSING
+        studyPath = args["--study"]
+        numrepeats = 1  ## args["--numrepeats"]
+        reportspec = args["--report"] if args["--report"] else "all"
+        sortKeys   = [ key.strip() for key in (args["--sort"]).split(",") ] if args["--sort"] else []
+        wantBatch  = args["--batch"] or args["--background"]
+        HPCTestOb.run(dims, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
         
-    elif args.subcommand == "report":
+    elif args["report"]:
         
-        studyPath  = args.study if args.study != "default" else None; del args.study
-        whichspec  = args.which if args.which != "default" else "all" 
-        sortKeys   = [ key.strip() for key in (args.sort).split(",") ] if args.sort != "default" else []
+        studyPath  = args["--study"]
+        whichspec  = args["--which"] if args["--which"] else "all" 
+        sortKeys   = [ key.strip() for key in (args["--sort"]).split(",") ] if args["--sort"] else []
         HPCTestOb.report(studyPath, whichspec, sortKeys)
         
-    elif args.subcommand == "clean":    
+    elif args["clean"]:    
         
-        s = args.studies
-        t = args.tests
-        d = args.dependencies
+        s = args["--studies"]
+        t = args["--tests"]
+        d = args["--dependencies"]
         
         if s or t or d:
-            if args.all:
+            if args["--all"]:
                 infomsg("option '--all' may not be combined with other options, so is ignored")
-        elif args.all:
+        elif args["--all"]:
             s = "<default>"
             t = True
             d = True
@@ -248,36 +152,32 @@ def execute(args):
         HPCTestOb.clean(s, t, d)
 
         
-    elif args.subcommand == "spack":
+    elif args["spack"]:
         
-        HPCTestOb.spack(" ".join(args.spackcmd))
+        HPCTestOb.spack(" ".join(args["CMD"]))
     
         
-    elif args.subcommand == "selftest":
+    elif args["selftest"]:
         
-        if args.tests_arg != "default":
-            testspec = args.tests_arg
-            del args.tests_arg
-        if args.tests != "default":
-            if args.tests_arg != "default":
+        if args["TESTS"]:
+            testspec = args["TESTS"]
+        if args["--tests"]:
+            if args["TESTS"]:
                 errormsg("'--tests' cannot be combined with <tests> positional argument (ignored).")
             else:
-                testspec = args.tests
-                del args.tests
-        studyPath = args.study if args.study != "default" else None; del args.study
-        otherargs  = args
-        reportspec = args.report if args.report != "default" else "all"
-        HPCTestOb.selftest(testspec, otherargs, reportspec, studyPath)
+                testspec = args["--tests"]
+        studyPath = args["--study"]
+        reportspec = args["--report"] if args["--report"] else "all"
+        HPCTestOb.selftest(testspec, reportspec, studyPath)
     
-    elif args.subcommand == "miniapps":
+    elif args["_miniapps"]:
         
             HPCTestOb.miniapps()
     
         
-    elif args.subcommand == "_runOne":
+    elif args["_runOne"]:
         
-        encodedArgs = args.encodedArgs
-        HPCTestOb._runOne(encodedArgs)
+        HPCTestOb._runOne(args["ENCODED_ARGS"])
             
             
     else:

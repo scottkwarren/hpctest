@@ -53,7 +53,7 @@ class Iterate():
 
     
     @classmethod
-    def doForAll(myClass, dims, args, numrepeats, study, wantBatch):
+    def doForAll(myClass, dims, numrepeats, study, wantBatch):
         
         from itertools import product
         from common import infomsg, verbosemsg, errormsg, debugmsg, options
@@ -64,8 +64,8 @@ class Iterate():
             return False
         else:
             
-            debugmsg("experiment space = crossproduct( {} ) with args = {} and options = {} in study dir = {}"
-                        .format(dims, args, options, study.path))
+            debugmsg("experiment space = crossproduct( {} ) with options = {} in study dir = {}"
+                        .format(dims, options, study.path))
 
             if wantBatch:
             

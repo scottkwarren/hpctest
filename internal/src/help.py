@@ -48,11 +48,16 @@
 ################################################################################
 
 
+# This string serves two purposes:
+# it defines and implements the 'hpctest' command line syntax ( via 'docopt'), and
+# it provides the help message printed by 'hpctest --help' and on cmd line errors.
+
 # NOTE: the docstring must be at the left margin for 'docopt' to interpret it correctly
 #       (ie no leading spaces before 'Usage:' et al)
 
 
 help_message = \
+               \
 """
 HPCTest.
 
@@ -79,11 +84,18 @@ Usage:
           [--which WHICHSPEC]
           [--report REPORTSPEC]
           [--sort SORTSPEC]
-  hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH] 
-  hpctest spack [options] CMD
+  hpctest clean [options]
+          [--studies]
+          [--built]
+          [--dependencies]
+          [--all]
+  hpctest spack [options] COMMAND
+  hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH]
+  hpctest _miniapps
+  hpctest _runOne ENCODED_ARGS
   
 Options:
-  -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives [default: all].
+  -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
                              Each test's executable will be executed as the test case for some runs of the study.
   -b, --build CONFIGSPEC     Add a matrix dimension with the specified set of build configurations as alternatives;
                              each configuration is used to build the test executable for some runs of the study.
@@ -92,9 +104,12 @@ Options:
                              the test executable for some runs of the study.
   -p, --profile PROFILESPEC  Add a matrix dimension with the specified set of profile strings as alternatives;
                              each string is used to profile the test executable for some runs of the study.
-  -s, --study PATH           xxx.
+  -o, --study PATH           xxx.
+  -w, --which WHICHSPEC      xxx.
   -r, --report REPORTSPEC    xxx [Default: all].
   -S, --sort SORTSPEC        xxx.
+  -s, --studies              xxx.
+  -B, --built                xxx.
   -d, --dependencies         xxx.
   -V, --version              Print this hpctest's version string.
   -v, --verbose              xxx.
@@ -102,7 +117,7 @@ Options:
   -h, --help                 Print this message.
   
 Arguments:
-  CMD                        xxx.
+  COMMAND                    xxx.
   CONFIGSPEC                 a Spack spec minus the package name (eg @gcc^4.7).
   PATH                       xxx.
   PATHSPEC                   xxx.
@@ -112,7 +127,15 @@ Arguments:
   TESTS                      xxx.
   TESTSPEC                   xxx.
   WHICHSPEC                  xxx.
-    
+
+Examples:
+  hpctest run all
+  hpctest run app/amgmk
+  hpctest run app/amgmk --build %gcc@4.4.7,%gcc@4.8.5
+  hpctest run app/AMG2006 --build  %gcc^mpich@3.1.4
+  hpctest run "unit-test/cpp_threads,app/amgmk" --build "%gcc,%clang"
+  hpctest run "unit-test/cpp_threads,app/amgmk" --build "%gcc@4.4.7,%gcc@4.8.5" --profile "REALTIME@10000,REALTIME@100"
+  
 """
 
 
