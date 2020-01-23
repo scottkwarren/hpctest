@@ -206,17 +206,18 @@ class ElapsedTimer(object):
     def __init__(self, verbose=False):
         
         import time
-        self.timer = time.time
         self.secs  = 0.0        # works around mystery bug where < __exit__ not called > => "unexpected error AttributeError ('ElapsedTimer' object has no attribute 'secs')"
 
     def __enter__(self):
         
-        self.start = self.timer()
+        import time
+        self.start = time.time()
         return self
 
     def __exit__(self, *args):
         
-        self.secs = self.timer() - self.start
+        import time
+        self.secs = time.time() - self.start
 
 
 # Finding executables on $PATH

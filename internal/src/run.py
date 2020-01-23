@@ -213,6 +213,7 @@ class Run(object):
                 spackString += " +openmp"
                 self.spec = spackle.parseSpec(spackString)[0]            # TODO: deal better with possibility that returned list length != 1
             spackle.concretizeSpec(self.spec)
+            self.output.add("build", "concretized spack spec", str(self.spec))
             
         except Exception as e:
             self.output.addSummaryStatus("CONFIG INVALID", e.message)
@@ -294,7 +295,7 @@ class Run(object):
                     except BaseException as e:
                         print "unexpected error: {}".format(e.message)
                         
-                    buildTime = t.secs
+                buildTime = t.secs
         
         # make alias(es) in build directory to the built product(s)
         products = self.test.installProducts()
