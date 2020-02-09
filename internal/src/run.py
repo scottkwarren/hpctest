@@ -103,6 +103,7 @@ class Run(object):
         
         from os.path import join, relpath
         import time
+        import common
         from common import homepath, infomsg, sepmsg
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from experiment import Experiment
@@ -132,26 +133,28 @@ class Run(object):
                 self._prepareJobDirs()
                 self._buildTest()
                 
-                # capture build-dependent useful paths
-                mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
-                self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
+                if not common.args["build"]:    # not buiild-only
                 
-                # use an experiment instance to perform one run
-                cmd        = self.test.cmd()
-                runSubdir  = self.test.runSubdir()
-                numRanks   = self.test.numRanks()
-                numThreads = self.test.numThreads()
-                wantMPI    = "+mpi" in self.spec
-                wantOMP    = "+openmp" in self.spec
-                self.experiment =  \
-                    ProfileExperiment(self, 
-                               cmd, self.package.prefix, self.rundir, runSubdir,
-                               numRanks, numThreads, wantMPI, wantOMP,
-                               self.config, self.hpctoolkit, self.hpctoolkitParams, self.wantProfiling,
-                               self.output)
-                self.experiment.run()
-                
-                self.output.addSummaryStatus("OK", None)
+                    # capture build-dependent useful paths
+                    mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
+                    self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
+                    
+                    # use an experiment instance to perform one run
+                    cmd        = self.test.cmd()
+                    runSubdir  = self.test.runSubdir()
+                    numRanks   = self.test.numRanks()
+                    numThreads = self.test.numThreads()
+                    wantMPI    = "+mpi" in self.spec
+                    wantOMP    = "+openmp" in self.spec
+                    self.experiment =  \
+                        ProfileExperiment(self, 
+                                   cmd, self.package.prefix, self.rundir, runSubdir,
+                                   numRanks, numThreads, wantMPI, wantOMP,
+                                   self.config, self.hpctoolkit, self.hpctoolkitParams, self.wantProfiling,
+                                   self.output)
+                    self.experiment.run()
+                    
+                    self.output.addSummaryStatus("OK", None)
                 
             except BadTestDescription as e:
                 msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)

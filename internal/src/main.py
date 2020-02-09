@@ -59,7 +59,9 @@ HPCTestOb = None
 
 def main():
     
+    import sys
     import common
+    from common import debugmsg, errormsg
     from help import help_message, optionNames
     from util.docopt import docopt, DocoptExit
             
@@ -68,9 +70,11 @@ def main():
         args = docopt(doc=help_message, help=False)
         common.args = args
         common.options = { key[2:] : args[key] for key in args if key in optionNames and args[key] }
-        common.debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
+        debugmsg("main's argv = {}".format(sys.argv))
+        debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
         return execute(args)
-    except DocoptExit:
+    except DocoptExit as d:
+        errormsg("docopt failed")
         print help_message
 
 
@@ -89,7 +93,7 @@ def execute(args):
         
         HPCTestOb.init()
         
-    elif args["run"]:
+    elif args["run"] or args["debug"]:
         
         dims = OrderedDict()
         if args["TESTS"]:

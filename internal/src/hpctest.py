@@ -121,9 +121,12 @@ class HPCTest(object):
             print
             
             # report results
-            reporter = Report()
-            reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else argDimSpecs.keys())
-                
+            if not common.args["build"]:
+                reporter = Report()
+                reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else argDimSpecs.keys())
+            else:
+                print
+                print "building complete."
         else:
             # error message was printed during self._init_
             pass
@@ -224,10 +227,14 @@ class HPCTest(object):
     def _runOne(self, encodedArgs):
         
         from run import Run
+        from common import debugmsg
         
+        debugmsg("_runOne {}".format(encodedArgs))
         runArgs = Run.decodeInitArgs(encodedArgs) + (False, )  # + wantBatch
+        debugmsg("_runOne runArgs = {}".format(runArgs))
         runOb   = Run(*runArgs)
         runOb.run(echoStdout=False)
+        debugmsg("_runOne done")
 
         
 #    def miniapps(self):

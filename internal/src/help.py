@@ -59,7 +59,7 @@
 help_message = \
                \
 """
-HPCTest.
+HPCTest:
 
 Conduct a study using a "testing matrix" of alternative test conditions. A test run is carried out
 for each matrix element using that element's parameters, and the results for all test runs are
@@ -69,8 +69,7 @@ to build it with; thus each matrix element is a tuple of parameters for a single
   
 Usage:
   hpctest init
-  hpctest run [options]
-          [TESTS]
+  hpctest ( build | run | debug ) [options] [TESTS]
           [--tests TESTSPEC]
           [--build CONFIGSPEC]
           [--hpctoolkit PATHSPEC]
@@ -92,7 +91,7 @@ Usage:
   hpctest spack [options] COMMAND ...
   hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH]
   hpctest _miniapps
-  hpctest _runOne ENCODED_ARGS
+  hpctest _runOne [options] ENCODED_ARGS
   
 Options:
   -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
@@ -111,10 +110,16 @@ Options:
   -s, --studies              xxx.
   -B, --built                xxx.
   -d, --dependencies         xxx.
+  -h, --help                 Print this message.
   -V, --version              Print this hpctest's version string.
   -v, --verbose              xxx.
   -D, --debug                xxx.
-  -h, --help                 Print this message.
+  -x, --background           xxx.
+  -x, --batch                xxx.
+  -x, --force                xxx.
+  -x, --nochecksum           xxx.
+  -x, --quiet                xxx.
+  -x, --traceback            xxx.
   
 Arguments:
   COMMAND                    xxx. (Caution about [options] in Spack command: quote the command.)
