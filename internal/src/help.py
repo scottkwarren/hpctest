@@ -56,17 +56,9 @@
 #       (ie no leading spaces before 'Usage:' et al)
 
 
-help_message = \
-               \
+usage_message = \
+                \
 """
-HPCTest:
-
-Conduct a study using a "testing matrix" of alternative test conditions. A test run is carried out
-for each matrix element using that element's parameters, and the results for all test runs are
-saved to a "study directory" for subsequent inspection. Each matrix dimension specifies a set of
-alternative values for one testing parameter, such as the test case to run or Spack configuration
-to build it with; thus each matrix element is a tuple of parameters for a single test run.
-  
 Usage:
   hpctest init
   hpctest ( build | run | debug ) [options] [TESTS]
@@ -92,7 +84,24 @@ Usage:
   hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH]
   hpctest _miniapps
   hpctest _runOne [options] ENCODED_ARGS
+  hpctest (--help | --version)
+"""
+
+
+help_message = \
+               \
+"""
+HPCTest:
+
+Conduct a study using a "testing matrix" of alternative test conditions. A test run is carried out
+for each matrix element using that element's parameters, and the results for all test runs are
+saved to a "study directory" for subsequent inspection. Each matrix dimension specifies a set of
+alternative values for one testing parameter, such as the test case to run or Spack configuration
+to build it with; thus each matrix element is a tuple of parameters for a single test run.
   
+"""                \
++ usage_message +  \
+"""
 Options:
   -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
                              Each test's executable will be executed as the test case for some runs of the study.
@@ -110,8 +119,6 @@ Options:
   -s, --studies              xxx.
   -B, --built                xxx.
   -d, --dependencies         xxx.
-  -h, --help                 Print this message.
-  -V, --version              Print this hpctest's version string.
   -v, --verbose              xxx.
   -D, --debug                xxx.
   -x, --background           xxx.

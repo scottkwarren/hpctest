@@ -46,6 +46,10 @@
 ################################################################################
 
 
+# manually maintained version id for hpctest
+version = "1.0b3"
+
+
 # shared variables, set in HPCTest at startup
 subcommand           = ""       # name of subcommand being executed
 options              = []       # list of options parsed from command line
@@ -62,7 +66,6 @@ workpath             = None     # path to this HPCTest's arena for studies
 logger               = None     # used to write test results (TODO)
 
 
-    
 # Options
   
 def optionsArgString(options=None):
@@ -78,8 +81,6 @@ def optionsArgString(options=None):
     if "traceback"  in options:    optString += " --traceback"
     
     return optString
-
-
 
 
 # Message output

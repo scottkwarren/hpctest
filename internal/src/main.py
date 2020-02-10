@@ -62,7 +62,7 @@ def main():
     import sys
     import common
     from common import debugmsg, errormsg
-    from help import help_message, optionNames
+    from help import usage_message, help_message, optionNames
     from util.docopt import docopt, DocoptExit
             
     # parse the command line and execute it if valid
@@ -74,8 +74,7 @@ def main():
         debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
         return execute(args)
     except DocoptExit as d:
-        errormsg("docopt failed")
-        print help_message
+        print usage_message + "\n" + "For more information use '--help'." + "\n"
 
 
 def execute(args):
@@ -85,7 +84,8 @@ def execute(args):
     global HPCTestObm
     from collections import OrderedDict
     from os.path import join
-    from common import options, errormsg, fatalmsg
+    from common import options, errormsg, fatalmsg, version
+    from help import help_message
 
     HPCTestOb = HPCTest()      # must come early b/c initializes paths in common.*
 
@@ -160,6 +160,16 @@ def execute(args):
         studyPath = args["--study"]
         reportspec = args["--report"] if args["--report"] else "all"
         HPCTestOb.selftest(testspec, reportspec, studyPath)
+    
+    elif args["--help"]:
+        
+            print help_message
+            
+    
+    elif args["--version"]:
+        
+            print version
+            
     
     elif args["_miniapps"]:
         
