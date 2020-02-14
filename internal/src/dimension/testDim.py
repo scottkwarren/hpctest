@@ -77,22 +77,25 @@ class TestDim(StringDim):
     def __init__(self, spec):
         # 'spec' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
                 
-        from os.path import join                                                                                                                                                                                                 
+        from os.path import join, relpath                                                                                                                                                                                            
         from glob import glob
-        from common import homepath
+        from common import homepath, errormsg
         from test import Test
                   
         if spec == "all":
             self.valueList = []
             Test.forEachDo( lambda test: self.valueList.append(test.path()) )
         else:
+            self.valueList = []
             testsDir = join(homepath, "tests")
-            self.valueList = \
-                [ path
-                    for testPattern in spec.split(',')
-                        for path in glob( join(testsDir, testPattern.strip()) )
-                ]
-        
+            for testPattern in spec.split(','):
+                for path in glob( join(testsDir, testPattern.strip()) ):
+                    if Test.isTestDir(path):
+                        self.valueList.append(path)
+                    else:
+                        relativePath = relpath(path, testsDir)
+                        errormsg("{} is not a valid test directory, will be ignored".format(relativePath))
+
 
     def values(self):
             

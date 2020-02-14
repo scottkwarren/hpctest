@@ -55,6 +55,13 @@ class Test():
 
 
     @classmethod
+    def isTestDir(cls, path):
+        
+        from os.path import isfile, join
+        return isfile(join(path, Test._yamlFilename))
+
+
+    @classmethod
     def forEachDo(cls, action):
         
         import os
@@ -63,7 +70,7 @@ class Test():
         
         testsRoot = join(homepath, "tests")
         for dir, _, _ in os.walk(testsRoot, topdown=False):
-            if Test._isTestDir(dir):
+            if Test.isTestDir(dir):
                 action(Test(dir))
 
     
@@ -71,7 +78,7 @@ class Test():
         
         from common import fatalmsg
         
-        if Test._isTestDir(dir):
+        if Test.isTestDir(dir):
             self.dir = dir
             self.yamlDict, self.yamlMsg = self._readYaml()
         else:
@@ -207,13 +214,6 @@ class Test():
     #-----------------#
     # Private methods #
     #-----------------#
-
-    @classmethod
-    def _isTestDir(cls, path):
-        
-        from os.path import isfile, join
-        return isfile(join(path, Test._yamlFilename))
-
 
     def _computeChecksum(self):
         
