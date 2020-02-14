@@ -392,7 +392,7 @@ if not isdir(common.own_spack_home):
     infomsg("Spack found these compilers automatically:")
     spackle.do("compilers")
     infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
-    infomsg("see 'Getting Started / Compiler configuration' at spack.readthedocs.io.\n")
+    infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
 
 # Spack is needed to read yaml files in initConfig
 spackle.initSpack()
