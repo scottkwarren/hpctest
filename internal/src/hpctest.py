@@ -154,13 +154,13 @@ class HPCTest(object):
             
 
 
-    def clean(self, workpath, tests, dependencies):
+    def clean(self, studies, tests, dependencies):
         
         from os        import listdir
         from os.path   import join
         import spackle        
         import common
-        from common    import options, yesno, verbosemsg, debugmsg
+        from common    import options, yesno, verbosemsg, debugmsg, workpath
         from study     import Study                                      
 
         def confirm(what):
@@ -169,8 +169,7 @@ class HPCTest(object):
             return ("force" in options) or yesno(ask, cancel)
             
         # delete studies if desired
-        if workpath and confirm("study directories"):
-            if workpath == "<default>": workpath = common.workpath         ## TODO: pass None instead of "<default>" to keep command-line details out of here
+        if studies and confirm("study directories"):
             debugmsg("cleaning work directory {}".format(workpath))
             for name in listdir(workpath):
                 path = join(workpath, name)

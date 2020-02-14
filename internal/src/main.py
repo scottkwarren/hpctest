@@ -134,11 +134,12 @@ def execute(args):
             if args["--all"]:
                 infomsg("option '--all' may not be combined with other options, so is ignored")
         elif args["--all"]:
-            s = "<default>"
+            s = True
             b = True
             d = True
         else:
-            s = "<default>"
+            # default if no options
+            s = True
             
         HPCTestOb.clean(s, b, d)
 
