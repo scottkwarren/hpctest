@@ -88,8 +88,9 @@ Usage:
 """
 
 
-help_message = \
-               \
+# The '{}' below must appear at the end of line to avoid extra newline in 'help_message'
+_template = \
+            \
 """
 HPCTest:
 
@@ -103,30 +104,12 @@ to build it with; thus each matrix element is a tuple of parameters for a single
 + usage_message +  \
 """
 Options:
-  -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
-                             Each test's executable will be executed as the test case for some runs of the study.
-  -b, --build CONFIGSPEC     Add a matrix dimension with the specified set of build configurations as alternatives;
-                             each configuration is used to build the test executable for some runs of the study.
-  -k, --hpctoolkit PATHSPEC  Add a matrix dimension with the specified set of paths as alternatives; each path
-                             points to an HPCToolkit installation's 'install/bin' directory and is used to profile
-                             the test executable for some runs of the study.
-  -p, --profile PROFILESPEC  Add a matrix dimension with the specified set of profile strings as alternatives;
-                             each string is used to profile the test executable for some runs of the study.
-  -o, --study PATH           xxx.
-  -w, --which WHICHSPEC      xxx.
-  -r, --report REPORTSPEC    xxx [Default: all].
-  -S, --sort SORTSPEC        xxx.
-  -s, --studies              xxx.
-  -B, --built                xxx.
-  -d, --dependencies         xxx.
   -v, --verbose              xxx.
   -D, --debug                xxx.
-  -x, --background           xxx.
-  -x, --batch                xxx.
   -x, --force                xxx.
   -x, --nochecksum           xxx.
   -x, --quiet                xxx.
-  -x, --traceback            xxx.
+  -x, --traceback            xxx.{}
   
 Arguments:
   COMMAND                    xxx. (Caution about [options] in Spack command: quote the command.)
@@ -149,6 +132,32 @@ Examples:
   hpctest run "unit-test/cpp_threads,app/amgmk" --build "%gcc@4.4.7,%gcc@4.8.5" --profile "REALTIME@10000,REALTIME@100"
   
 """
+
+
+_hidden_options = \
+                  \
+"""
+  -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
+                             Each test's executable will be executed as the test case for some runs of the study.
+  -b, --build CONFIGSPEC     Add a matrix dimension with the specified set of build configurations as alternatives;
+                             each configuration is used to build the test executable for some runs of the study.
+  -k, --hpctoolkit PATHSPEC  Add a matrix dimension with the specified set of paths as alternatives; each path
+                             points to an HPCToolkit installation's 'install/bin' directory and is used to profile
+                             the test executable for some runs of the study.
+  -p, --profile PROFILESPEC  Add a matrix dimension with the specified set of profile strings as alternatives;
+                             each string is used to profile the test executable for some runs of the study.
+  -o, --study PATH           xxx.
+  -w, --which WHICHSPEC      xxx.
+  -r, --report REPORTSPEC    xxx [Default: all].
+  -S, --sort SORTSPEC        xxx.
+  -s, --studies              xxx.
+  -B, --built                xxx.
+  -d, --dependencies         xxx.
+"""
+
+
+help_message = _template.format("")
+doc_message  = _template.format(_hidden_options)
 
 
 optionNames = \

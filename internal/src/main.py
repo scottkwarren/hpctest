@@ -62,12 +62,12 @@ def main():
     import sys
     import common
     from common import debugmsg, errormsg
-    from help import usage_message, help_message, optionNames
+    from help import usage_message, doc_message, optionNames
     from util.docopt import docopt, DocoptExit
             
     # parse the command line and execute it if valid
     try:
-        args = docopt(doc=help_message, help=False)
+        args = docopt(doc=doc_message, help=False)
         common.args = args
         common.options = { key[2:] : args[key] for key in args if key in optionNames and args[key] }
         debugmsg("main's argv = {}".format(sys.argv))
