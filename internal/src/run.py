@@ -133,7 +133,7 @@ class Run(object):
                 self._prepareJobDirs()
                 self._buildTest()
                 
-                if not common.args["build"]:    # not buiild-only
+                if not common.args["build"]:    # not build-only
                 
                     # capture build-dependent useful paths
                     mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
