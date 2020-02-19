@@ -93,7 +93,7 @@ def execute(args):
         
         HPCTestOb.init()
         
-    elif args["run"] or args["debug"]:
+    elif args["build"] or args["run"] or args["debug"]:
         
         dims = OrderedDict()
         if args["TESTS"]:
