@@ -177,7 +177,7 @@ class Test():
 
     def builtin(self):
         
-        return self.yamlDict["config"] == "spack-builtin"
+        return self.yamlDict["config"] == "spack-builtin" if "config" in self.yamlDict else False
 
 
     def installProducts(self):
