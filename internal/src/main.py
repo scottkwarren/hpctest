@@ -67,12 +67,15 @@ def main():
             
     # parse the command line and execute it if valid
     try:
+        
         args = docopt(doc=doc_message, help=False)
         common.args = args
         common.options = { key[2:] : args[key] for key in args if key in optionNames and args[key] }
-        debugmsg("main's argv = {}".format(sys.argv))
-        debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
+        if "verbose" in common.options:
+            debugmsg("main's argv = {}".format(sys.argv))
+            debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
         return execute(args)
+    
     except DocoptExit as d:
         print usage_message + "\n" + "For more information use '--help'." + "\n"
 
