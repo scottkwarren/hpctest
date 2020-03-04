@@ -70,9 +70,8 @@ class HPCTest(object):
         from common import infomsg, warnmsg, errormsg
         from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
                 
-        msgfunc = warnmsg if common.args["init"] else errormsg if common.args["run"] else None
-        if (not common.hpctk_default) and msgfunc:
-            msgfunc("no default HPCToolkit specified for profiling.\n"
+        if (not common.hpctk_default):
+            warnmsg("no default HPCToolkit specified for profiling.\n"
                     "\n"
                     "To run profiling tests, specify '--hpctookit <path to install directory>' on each 'hpctest run' command line.\n"
                     "To avoid specifying '--hpctoolkit' every time, do one of the following:\n"
