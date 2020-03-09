@@ -68,7 +68,8 @@ def main():
     # parse the command line and execute it if valid
     try:
         
-        argv = filter(lambda s: s != "\n", sys.argv[1:])
+        argv = filter(lambda s: s != "\n", sys.argv[1:])                    # remove standalone newlines, eg at end of lines
+        argv = map(lambda s: s.replace("\n"," ").replace("\\"," "), argv)   # remove newlines and backslashes within each string, eg in continued string constants
         args = docopt(doc=doc_message, argv=argv, help=False)
         common.args = args
         common.options = { key[2:] : args[key] for key in args if key in optionNames and args[key] }
