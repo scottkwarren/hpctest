@@ -68,7 +68,8 @@ def main():
     # parse the command line and execute it if valid
     try:
         
-        args = docopt(doc=doc_message, help=False)
+        argv = filter(lambda s: s != "\n", sys.argv[1:])
+        args = docopt(doc=doc_message, argv=argv, help=False)
         common.args = args
         common.options = { key[2:] : args[key] for key in args if key in optionNames and args[key] }
         if "verbose" in common.options:
