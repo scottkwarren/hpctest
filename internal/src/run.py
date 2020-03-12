@@ -108,7 +108,7 @@ class Run(object):
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from experiment import Experiment
         from experiment.profileExperiment import ProfileExperiment
-        from llnl.util.tty.log import log_output
+        from util.tee import StdoutTee, StderrTee
                 
         # job directory
         self.jobdir = self.study.addRunDir(self.description(forName=True))
@@ -117,7 +117,8 @@ class Run(object):
         
         # save console output in OUT directory
         outPath = self.output.makePath("console-output.txt")
-        with log_output(outPath, echo=echoStdout):
+        filter  = lambda s: s if echoStdout else lambda s: None
+        with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
             
             startTime = time.time()
             
@@ -262,7 +263,7 @@ class Run(object):
         from os.path import basename, join, isfile
         from shutil import copyfileobj
         from sys import stdout
-        from llnl.util.tty.log import log_output
+        from util.tee import StdoutTee, StderrTee
         from common import escape
         import spackle
 
@@ -278,8 +279,9 @@ class Run(object):
             if not self.builtin:
                 spackle.setDIY(self.package, self.builddir)     # TODO: cf separable vs inseparable builds
             
-            outputPath = self.output.makePath("{}-output.txt", "build")
-            with log_output(outputPath, echo="verbose" in options):
+            outPath = self.output.makePath("{}-output.txt", "build")
+            filter  = lambda s: s if "verbose" in options else lambda s: None
+            with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
                 with ElapsedTimer() as t:
                     
                     try:
