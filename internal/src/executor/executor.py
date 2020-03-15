@@ -74,9 +74,7 @@ class Executor(object):
             
             # local configuration may specify the job launcher
             name  = configuration.get("config.batch.manager", "Shell")
-            force = configuration.get("config.batch.force",   "False")
-            
-            # validate the name
+            force = configuration.get("config.batch.force",    False)
             if name not in cls._subclasses:
                 fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
             
@@ -86,8 +84,6 @@ class Executor(object):
             if not (available or force):
                 fatalmsg("config files specify {} as config.batch.manager, "
                          "but {}".format(name, msg if msg else  name + " is not available"))
-            
-            # memoize for subsequent calls
             cls._local_executor_class = executorClass
 
         return cls._local_executor_class
@@ -105,7 +101,10 @@ class Executor(object):
     @classmethod
     def defaultToBackground(cls):
         
-        return cls.localExecutorClass().defaultToBackground()
+        import configuration
+        
+        config = configuration.get("config.batch.default", None)
+        return config if config is not None else cls.localExecutorClass().defaultToBackground()
 
 
     @classmethod

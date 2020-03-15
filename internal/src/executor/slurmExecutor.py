@@ -159,7 +159,7 @@ def _shell(cmd):
     return out, err
 
 
-def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+def _srun(cmds, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
     
     from os import getcwd
     import textwrap, tempfile
@@ -177,14 +177,14 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         "     --cpus-per-task={numThreads} "
         "     --time={time} "
         "     --mail-type=NONE "
-        "     {cmd}"
+        "     {cmds}"
         )
 
     # template params from configuration
     account, partition, time = _paramsFromConfiguration()
 
     # prepare slurm command
-    cmd = Slurm_run_cmd_template.format(
+    scommand = Slurm_run_cmd_template.format(
         options      = "--verbose" if "debug" in options else "",
         account      = account,
         partition    = partition,
@@ -193,17 +193,17 @@ def _srun(cmd, runPath, env, numRanks, numThreads, outPath, description): # retu
         numRanks     = numRanks,
         numThreads   = numThreads,
         time         = time,
-        cmd          = cmd
+        cmds         = cmds
         )
     
     # run the command immediately with 'srun'
-    verbosemsg("Executing via srun:\n{}".format(cmd))
-    out, err = _shell(cmd)
+    verbosemsg("Executing via srun:\n{}".format(scommand))
+    out, err = _shell(scommand)
     
     return out, (err if err else 0)
 
 
-def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+def _sbatch(cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
     
     import textwrap, tempfile
     from os import getcwd
@@ -226,7 +226,7 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         #SBATCH --time={time}
         #  #SBATCH --output={outPath}
         #SBATCH --mail-type=NONE
-        {cmd} 
+        {cmds} 
         """)
 
     # template params from configuration
@@ -245,18 +245,18 @@ def _sbatch(cmd, env, numRanks, numThreads, outPath, name, description): # retur
         numThreads   = numThreads,
         time         = time,
         outPath      = outPath,     # commented out in template
-        cmd          = cmd,
+        cmds         = cmds,
         ))
     f.close()
     
     # submit command file for batch execution with 'sbatch'
     sbatchOpts = "--verbose " if "debug" in options else ""
-    command = "sbatch {}{}".format(sbatchOpts, f.name)
+    scommand = "sbatch {}{}".format(sbatchOpts, f.name)
     
     verbosemsg("submitting job {} ...".format(description))
-    verbosemsg("    " + command)
+    verbosemsg("    " + scommand)
     
-    out, err = _shell(command)
+    out, err = _shell(scommand)
     
     verbosemsg("    " + out)
     verbosemsg("\n")
@@ -281,9 +281,9 @@ def _paramsFromConfiguration():
     
     import configuration
 
-    account   =  configuration.get("batch.params.account",   "commons")
-    partition =  configuration.get("batch.params.partition", "commons")
-    time      =  configuration.get("batch.params.time",      "1:00:00")
+    account   =  configuration.get("config.batch.params.account",   "commons")
+    partition =  configuration.get("config.batch.params.partition", "commons")
+    time      =  configuration.get("config.batch.params.time",      "1:00:00")
     
     return (account, partition, time)
 

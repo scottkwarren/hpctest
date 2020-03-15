@@ -53,7 +53,14 @@
 
 
 config:
-  batch: null
+# batch: null
+#   default: false
+#   force: null
+#   manager: null
+#   params:
+#     account: null
+#     partition: null
+#     time: Null
 
 build:
   compiler: "%gcc"  # Spack spec
