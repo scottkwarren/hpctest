@@ -73,7 +73,6 @@ def main():
         args = docopt(doc=doc_message, argv=argv, help=False)
         common.args = args
         common.options = { key[2:] for key in args if key in optionNames and args[key] }
-        common.options.add("verbose")   ### workaround for Xiaoxhu
         if "verbose" in common.options:
             debugmsg("main's argv = {}".format(sys.argv))
             debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set

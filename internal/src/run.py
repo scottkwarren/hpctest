@@ -117,7 +117,7 @@ class Run(object):
         
         # save console output in OUT directory
         outPath = self.output.makePath("console-output.txt")
-        filter  = lambda s: s if echoStdout else lambda s: None
+        filter  = (lambda s: s) if echoStdout else (lambda s: None)
         with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
             
             startTime = time.time()
