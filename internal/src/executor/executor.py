@@ -204,6 +204,51 @@ class Executor(object):
         self.jobDescriptions.pop(job)
 
 
+            
+
+
+
+    def _shell(self, cmd):
+               
+        import subprocess
+        
+        try:
+            
+            proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err_out = proc.communicate()
+            err = proc.returncode
+            if err: out = err_out.strip()
+            
+        except StandardError as e:
+            out = e.strerror
+            err = e.errno
+        except Exception as e:
+            out = str(e)
+            err = -1   ## TODO: is there a better property of Exception to use for 'err'?
+            
+        return out, err
+
+
+    def _paramsFromConfiguration(self):
+        
+        import configuration
+    
+        account   =  configuration.get("config.batch.params.account",   "commons")
+        partition =  configuration.get("config.batch.params.partition", "commons")
+        time      =  configuration.get("config.batch.params.time",      "1:00:00")
+        
+        return (account, partition, time)
+    
+
+#    NOT USED
+#     def _envDictToString(self, envDict):
+#         
+#             s = ""
+#             for key, value in envDict.iteritems():
+#                 s += (key + "=" + value + " ")
+#             return s
+
+
 
 
 

@@ -47,18 +47,25 @@
 ################################################################################
 
 
+# First draft, based on the information in:
+#    "Summit jsrun Introduction" (slides) by Chris Fuson
+#     OLCF February User Call, February 28, 2018
+#     https://www.olcf.ornl.gov/wp-content/uploads/2018/02/SummitJobLaunch.pdf
+#
+# LSF User;s Guide:
+#     https://tin6150.github.io/psg/3rdParty/lsf4_userGuide/users-title.html
+
 
 from executor import Executor
 from common import options
 
 
-class SlurmExecutor(Executor):
-    
+class SummitExecutor(Executor):
     
     def __init__(self):
         
-        super(SlurmExecutor, self).__init__()
-        # nothing for SlurmExecutor
+        super(SummitExecutor, self).__init__()
+        # nothing for SummitExecutor
     
 
     @classmethod
@@ -71,14 +78,14 @@ class SlurmExecutor(Executor):
     def isAvailable(cls):
         
         from common import whichDir
-        available = whichDir("srun") is not None and whichDir("sbatch") is not None
-        return available, "srun and sbatch are missing"
+        available = whichDir("jsrun") and whichDir("bsub")
+        return available, "jsrun and bsub are missing"
 
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         from common import ExecuteFailed
-        out, err = _srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
+        out, err = self._jsrun(cmd, runPath, env, numRanks, numThreads, outPath, description)
         if err:
             raise ExecuteFailed(out, err)
 
@@ -87,7 +94,7 @@ class SlurmExecutor(Executor):
         
         from common import ExecuteFailed
 
-        jobid, out, err = _sbatch(cmd, env, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = self._bsub(cmd, env, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -103,18 +110,26 @@ class SlurmExecutor(Executor):
         
         import os, re
         
-        # ask Slurm for all our jobs that are still running
+        # ask Summit for all our jobs that are still running
         userid = os.environ["USER"]
-        out, err = _shell("squeue --user={} --noheader".format(userid))
+        out, err = self._shell("bjobs -UF") # UF == "don't format output", makes parsing easier
         
-        # 'out' is a possibly-empty sequence of lines that look like this:
-        # '           278061   commons app--lul  skw0897  R       9:53      1 c1'
+        # 'out' is a sequence of lines that look like this:
+        #
+        # % bjobs 
+        # JOBID USER     STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
+        # 3926  user1    RUN   priority   hostF        hostC      verilog    Oct 22 13:51
+        # 605   user1    SSUSP idle       hostQ        hostC      Test4      Oct 17 18:07
+        # 1480  user1    PEND  priority   hostD                   generator  Oct 19 18:13
+        # 7678  user1    PEND  priority   hostD                   verilog    Oct 28 13:08
+        # 7679  user1    PEND  priority   hostA                   coreHunter Oct 28 13:12
+        # 7680  user1    PEND  priority   hostB                   myjob      Oct 28 13:17
 
 
         # compute the set of jobs finished since last poll:
         # start with all previously-running jobs and remove the ones still running per 'squeue'
         finished = self.runningJobs.copy()
-        for line in out.splitlines():
+        for line in out.splitlines()[1:]    # skip header line
             # match the job id, the first nonblank character (digit) sequence on the line
             match = re.match(r" *([0-9]+) ", line)
             if match:
@@ -122,7 +137,7 @@ class SlurmExecutor(Executor):
                 if jobid in finished:
                     finished.remove(jobid)
             else:
-                errormsg("unexpected output from squeue:\n {}".format(out))
+                errormsg("unexpected output from bjobs:\n {}".format(out))
         
         # clean up finished jobs
         for p in finished:
@@ -133,173 +148,132 @@ class SlurmExecutor(Executor):
     
     def kill(self, jobid):
 
-        out, err = _shell("scancel {}".format(jobid))
+        out, err = _shell("bkill {}".format(jobid))
         if err != 0:
-            errormsg("attempt to cancel batch job {} failed".format(jobid))
-            
+            errormsg("attempt to kill batch job {} failed".format(jobid))
 
-def _shell(cmd):
-           
-    import subprocess
-    
-    try:
+
+    def _jsrun(self, cmds, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
         
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err_out = proc.communicate()
-        err = proc.returncode
-        if err: out = err_out.strip()
+        from os import getcwd
+        import textwrap, tempfile
+        from common import options, verbosemsg
         
-    except StandardError as e:
-        out = e.strerror
-        err = e.errno
-    except Exception as e:
-        out = str(e)
-        err = -1   ## TODO: is there a better property of Exception to use for 'err'?
+        # slurm srun command template
+        Summit_run_cmd_template = textwrap.dedent(
+            "srun {options} "
+            "     --account={account} "
+            "     --partition={partition} "
+            "     --chdir={runPath} "
+            "     --export={env} "
+            "     --exclusive "
+            "     --ntasks={numRanks} "
+            "     --cpus-per-task={numThreads} "
+            "     --time={time} "
+            "     --mail-type=NONE "
+            "     {cmds}"
+            )
+    
+        # template params from configuration
+        account, partition, time = self._paramsFromConfiguration()
+    
+        # prepare slurm command
+        scommand = Summit_run_cmd_template.format(
+            options      = "--verbose" if "debug" in options else "",
+            account      = account,
+            partition    = partition,
+            runPath      = runPath,
+            env          = "'PATH={}'".format(env["PATH"]),
+            numRanks     = numRanks,
+            numThreads   = numThreads,
+            time         = time,
+            cmds         = cmds
+            )
         
-    return out, err
-
-
-def _srun(cmds, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+        # run the command immediately with 'srun'
+        verbosemsg("Executing via srun:\n{}".format(scommand))
+        out, err = self._shell(scommand)
+        
+        return out, (err if err else 0)
     
-    from os import getcwd
-    import textwrap, tempfile
-    from common import options, verbosemsg
     
-    # slurm srun command template
-    Slurm_run_cmd_template = textwrap.dedent(
-        "srun {options} "
-        "     --account={account} "
-        "     --partition={partition} "
-        "     --chdir={runPath} "
-        "     --export={env} "
-        "     --exclusive "
-        "     --ntasks={numRanks} "
-        "     --cpus-per-task={numThreads} "
-        "     --time={time} "
-        "     --mail-type=NONE "
-        "     {cmds}"
-        )
-
-    # template params from configuration
-    account, partition, time = _paramsFromConfiguration()
-
-    # prepare slurm command
-    scommand = Slurm_run_cmd_template.format(
-        options      = "--verbose" if "debug" in options else "",
-        account      = account,
-        partition    = partition,
-        runPath      = runPath,
-        env          = "'PATH={}'".format(env["PATH"]),
-        numRanks     = numRanks,
-        numThreads   = numThreads,
-        time         = time,
-        cmds         = cmds
-        )
+    def _bsub(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+        
+        import textwrap, tempfile
+        from os import getcwd
+        from os.path import join
+        import re
+        import common
+        from common import options, verbosemsg, errormsg
+        
+        # slurm sbatch command file template
+        Summit_batch_file_template = textwrap.dedent(
+            """\
+            #!/bin/bash
+            #BSUB --job-name={jobName}
+            #BSUB --account={account}
+            #BSUB --partition={partition}
+            #BSUB --export={env}
+            #BSUB --exclusive
+            #BSUB --ntasks={numRanks}
+            #BSUB --cpus-per-task={numThreads}
+            #BSUB --time={time}
+            #  #BSUB --output={outPath}
+            #BSUB --mail-type=NONE
+            {cmds} 
+            """)
     
-    # run the command immediately with 'srun'
-    verbosemsg("Executing via srun:\n{}".format(scommand))
-    out, err = _shell(scommand)
-    
-    return out, (err if err else 0)
-
-
-def _sbatch(cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
-    
-    import textwrap, tempfile
-    from os import getcwd
-    from os.path import join
-    import re
-    import common
-    from common import options, verbosemsg, errormsg
-    
-    # slurm sbatch command file template
-    Slurm_batch_file_template = textwrap.dedent(
-        """\
-        #!/bin/bash
-        #SBATCH --job-name={jobName}
-        #SBATCH --account={account}
-        #SBATCH --partition={partition}
-        #SBATCH --export={env}
-        #SBATCH --exclusive
-        #SBATCH --ntasks={numRanks}
-        #SBATCH --cpus-per-task={numThreads}
-        #SBATCH --time={time}
-        #  #SBATCH --output={outPath}
-        #SBATCH --mail-type=NONE
-        {cmds} 
-        """)
-
-    # template params from configuration
-    account, partition, time = _paramsFromConfiguration()
-    
-    # prepare slurm command file
-    slurmfilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
-    f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
-                                    dir=slurmfilesDir, prefix='slurm-', suffix=".sbatch")
-    f.write(Slurm_batch_file_template.format(
-        jobName      = name,
-        account      = account,
-        partition    = partition,
-        env          = "'PATH={}'".format(env["PATH"]),
-        numRanks     = numRanks,
-        numThreads   = numThreads,
-        time         = time,
-        outPath      = outPath,     # commented out in template
-        cmds         = cmds,
-        ))
-    f.close()
-    
-    # submit command file for batch execution with 'sbatch'
-    sbatchOpts = "--verbose " if "debug" in options else ""
-    scommand = "sbatch {}{}".format(sbatchOpts, f.name)
-    
-    verbosemsg("submitting job {} ...".format(description))
-    verbosemsg("    " + scommand)
-    
-    out, err = _shell(scommand)
-    
-    verbosemsg("    " + out)
-    verbosemsg("\n")
-    
-    # handle output from submit command
-    if err:
-        jobid = None
-    else:
-        # extract job id from 'out'
-        match = re.match(r".* ([0-9]+)$", out)
-        if match:
-            jobid = match.group(1)
-        else:
+        # template params from configuration
+        account, partition, time = self._paramsFromConfiguration()
+        
+        # prepare slurm command file
+        summitfilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
+        f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
+                                        dir=summitfilesDir, prefix='summit-', suffix=".bsub")
+        f.write(Summit_batch_file_template.format(
+            jobName      = name,
+            account      = account,
+            partition    = partition,
+            env          = "'PATH={}'".format(env["PATH"]),
+            numRanks     = numRanks,
+            numThreads   = numThreads,
+            time         = time,
+            outPath      = outPath,     # commented out in template
+            cmds         = cmds,
+            ))
+        f.close()
+        
+        # submit command file for batch execution with 'sbatch'
+        scommand = "bsub < {}".format(f.name)
+        
+        verbosemsg("submitting job {} ...".format(description))
+        verbosemsg("    " + scommand)
+        
+        out, err = _shell(scommand)
+        
+        verbosemsg("    " + out)
+        verbosemsg("\n")
+        
+        # handle output from submit command
+        if err:
             jobid = None
-            err = "unexpected output from sbatch: {}".format(out)
-            errormsg(err)
-    
-    return (jobid, out, err if err else 0)
-
-
-def _paramsFromConfiguration():
-    
-    import configuration
-
-    account   =  configuration.get("config.batch.params.account",   "commons")
-    partition =  configuration.get("config.batch.params.partition", "commons")
-    time      =  configuration.get("config.batch.params.time",      "1:00:00")
-    
-    return (account, partition, time)
-
-
-def _envDictToString(envDict):
-    
-        s = ""
-        for key, value in envDict.iteritems():
-            s += (key + "=" + value + " ")
-        return s
+        else:
+            # extract job id from 'out'
+            match = re.match(r".*([0-9]+)$", out)
+            if match:
+                jobid = match.group(1)
+            else:
+                jobid = None
+                err = "unexpected output from bsub: {}".format(out)
+                errormsg(err)
+        
+        return (jobid, out, err if err else 0)
     
 
 
 
 # register this executor class by name
-Executor.register("Slurm", SlurmExecutor)
+Executor.register("Summit", SummitExecutor)
 
 
 

@@ -50,9 +50,10 @@
 
 
 
-from executor      import Executor
-from shellExecutor import ShellExecutor
-from slurmExecutor import SlurmExecutor
+from executor       import Executor
+from shellExecutor  import ShellExecutor
+from slurmExecutor  import SlurmExecutor
+from summitExecutor import SummitExecutor
 
 
 
