@@ -280,7 +280,7 @@ class Run(object):
                 spackle.setDIY(self.package, self.builddir)     # TODO: cf separable vs inseparable builds
             
             outPath = self.output.makePath("{}-output.txt", "build")
-            filter  = lambda s: s if "verbose" in options else lambda s: None
+            filter  = (lambda s: s) if "verbose" in options else (lambda s: None)
             with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
                 with ElapsedTimer() as t:
                     
