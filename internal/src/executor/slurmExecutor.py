@@ -138,41 +138,46 @@ class SlurmExecutor(Executor):
             errormsg("attempt to cancel batch job {} failed".format(jobid))
 
 
-    def _srun(self, cmds, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+    def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
         
         from os import getcwd
         import textwrap, tempfile
         from common import options, verbosemsg
         
         # slurm srun command template
-        Slurm_run_cmd_template = textwrap.dedent(
-            "srun {options} "
-            "     --account={account} "
-            "     --partition={partition} "
-            "     --chdir={runPath} "
-            "     --export={env} "
-            "     --exclusive "
-            "     --ntasks={numRanks} "
-            "     --cpus-per-task={numThreads} "
-            "     --time={time} "
-            "     --mail-type=NONE "
-            "     {cmds}"
-            )
+        if common.options["_runOne"]:   # now running nested in a batch script
+            Slurm_run_cmd_template = textwrap.dedent(
+                "srun {options} "
+                "     --chdir={runPath} "
+                "     {cmd}"
+                )
+        else:
+            Slurm_run_cmd_template = textwrap.dedent(
+                "srun {options} "
+                "     --account={account} "
+                "     --partition={partition} "
+                "     --time={time} "
+                "     --exclusive "
+                "     --chdir={runPath} "
+                "     --ntasks={numRanks} "
+                "     --cpus-per-task={numThreads} "
+                "     --mail-type=NONE "
+                "     {cmd}"
+                )
     
         # template params from configuration
         account, partition, time = self._paramsFromConfiguration()
     
         # prepare slurm command
         scommand = Slurm_run_cmd_template.format(
-            options      = "--verbose" if "debug" in options else "",
+            options      = "--slurmd-debug=verbose" if "debug" in options else "",
             account      = account,
             partition    = partition,
+            time         = time,
             runPath      = runPath,
-            env          = "'PATH={}'".format(env["PATH"]),
             numRanks     = numRanks,
             numThreads   = numThreads,
-            time         = time,
-            cmds         = cmds
+            cmd          = cmd
             )
         
         # run the command immediately with 'srun'
@@ -198,13 +203,12 @@ class SlurmExecutor(Executor):
             #SBATCH --job-name={jobName}
             #SBATCH --account={account}
             #SBATCH --partition={partition}
-            #SBATCH --export={env}
             #SBATCH --exclusive
             #SBATCH --ntasks={numRanks}
             #SBATCH --cpus-per-task={numThreads}
             #SBATCH --time={time}
-            #  #SBATCH --output={outPath}
             #SBATCH --mail-type=NONE
+            export OMP_NUM_THREADS={numThreads}
             {cmds} 
             """)
     
@@ -216,20 +220,19 @@ class SlurmExecutor(Executor):
         f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
                                         dir=slurmfilesDir, prefix='slurm-', suffix=".sbatch")
         f.write(Slurm_batch_file_template.format(
-            jobName      = name,
-            account      = account,
-            partition    = partition,
-            env          = "'PATH={}'".format(env["PATH"]),
-            numRanks     = numRanks,
-            numThreads   = numThreads,
-            time         = time,
-            outPath      = outPath,     # commented out in template
-            cmds         = cmds,
+            jobName       = name,
+            account       = account,
+            partition     = partition,
+            numRanks      = numRanks,
+            numThreads    = numThreads,
+            time          = time,
+            outPath       = outPath,     # commented out in template
+            cmds          = cmds,
             ))
         f.close()
         
         # submit command file for batch execution with 'sbatch'
-        sbatchOpts = "--verbose " if "debug" in options else ""
+        sbatchOpts = "--slurmd-debug=verbose" if "debug" in options else "",
         scommand = "sbatch {}{}".format(sbatchOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))

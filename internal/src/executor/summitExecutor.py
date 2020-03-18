@@ -129,7 +129,7 @@ class SummitExecutor(Executor):
         # compute the set of jobs finished since last poll:
         # start with all previously-running jobs and remove the ones still running per 'squeue'
         finished = self.runningJobs.copy()
-        for line in out.splitlines()[1:]    # skip header line
+        for line in out.splitlines()[1:]:    # skip header line
             # match the job id, the first nonblank character (digit) sequence on the line
             match = re.match(r" *([0-9]+) ", line)
             if match:
