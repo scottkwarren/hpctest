@@ -77,6 +77,8 @@ class SlurmExecutor(Executor):
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
+        # 'env' arg ignored! What if higher levels need to add to environment??
+        
         from common import ExecuteFailed
         out, err = self._srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
         if err:
@@ -84,6 +86,8 @@ class SlurmExecutor(Executor):
 
     
     def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+        
+        # 'env' arg ignored! What if higher levels need to add to environment??
         
         from common import ExecuteFailed
 
@@ -140,6 +144,8 @@ class SlurmExecutor(Executor):
 
     def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
         
+        # 'env' arg ignored! What if higher levels need to add to environment??
+        
         from os import getcwd
         import textwrap, tempfile
         from common import options, verbosemsg
@@ -188,6 +194,8 @@ class SlurmExecutor(Executor):
 
 
     def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+        
+        # 'env' arg ignored! What if higher levels need to add to environment??
         
         import textwrap, tempfile
         from os import getcwd
