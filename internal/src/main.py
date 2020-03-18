@@ -75,7 +75,7 @@ def main():
         common.options = { key[2:] for key in args if key in optionNames and args[key] }
         if "verbose" in common.options:
             debugmsg("main's argv = {}".format(sys.argv))
-            debugmsg("parsed args = {}".format(args))    # requires 'common.options' to be set
+            debugmsg("parsed args = {}".format(args))
         return execute(args)
     
     except DocoptExit as d:

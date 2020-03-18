@@ -134,7 +134,7 @@ class Run(object):
                 self._prepareJobDirs()
                 self._buildTest()
                 
-                if not common.args["build"]:    # not build-only
+                if common.args["run"] or common.args["debug"]:    # not build-only
                 
                     # capture build-dependent useful paths
                     mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
@@ -388,12 +388,13 @@ class Run(object):
         
         # compute command to be executed
         # ... start with test's run command
-        env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
         runSubdir = self.test.runSubdir()
+        runPath   = join(self.rundir, runSubdir) if runSubdir else self.rundir
+        outPath   = self.output.makePath("{}-output.txt", label)
+        timePath  = self.output.makePath("{}-time.txt", label)
+
+        env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
         env["PATH"] = join(self.package.prefix, "bin") + ":" + env["PATH"]
-        runPath  = join(self.rundir, runSubdir) if runSubdir else self.rundir
-        outPath  = self.output.makePath("{}-output.txt", label)
-        timePath = self.output.makePath("{}-time.txt", label)
 
         # ... add OpenMP parameters if wanted
         if openmp:
@@ -404,9 +405,9 @@ class Run(object):
         
         # ... add MPI launching code if wanted
         if mpi:
+            mpipath = self.mpiPrefixBin + "/"
             ranks   = self.test.numRanks()
-            options = "-verbose" if "verbose" in options else ""
-            cmd     = "{}/mpiexec -np {} {} {}".format(self.mpiPrefixBin, ranks, options, cmd)
+            cmd     = "{}mpirun -np {} {}".format(mpipath, ranks, cmd)
         else:
             ranks = 1
         
