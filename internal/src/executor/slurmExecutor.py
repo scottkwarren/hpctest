@@ -145,13 +145,13 @@ class SlurmExecutor(Executor):
     def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
         
         # 'env' arg ignored! What if higher levels need to add to environment??
-        
         from os import getcwd
         import textwrap, tempfile
+        import common
         from common import options, verbosemsg
         
         # slurm srun command template
-        if common.options["_runOne"]:   # now running nested in a batch script
+        if common.args["_runOne"]:   # now running nested in a batch script
             Slurm_run_cmd_template = textwrap.dedent(
                 "srun {options} "
                 "     --chdir={runPath} "
@@ -188,7 +188,7 @@ class SlurmExecutor(Executor):
         
         # run the command immediately with 'srun'
         verbosemsg("Executing via srun:\n{}".format(scommand))
-        out, err = _shell(scommand)
+        out, err = self._shell(scommand)
         
         return out, (err if err else 0)
 
@@ -246,7 +246,7 @@ class SlurmExecutor(Executor):
         verbosemsg("submitting job {} ...".format(description))
         verbosemsg("    " + scommand)
         
-        out, err = _shell(scommand)
+        out, err = self._shell(scommand)
         
         verbosemsg("    " + out)
         verbosemsg("\n")
