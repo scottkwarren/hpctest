@@ -145,6 +145,7 @@ class SlurmExecutor(Executor):
     def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
         
         # 'env' arg ignored! What if higher levels need to add to environment??
+
         from os import getcwd
         import textwrap, tempfile
         import common
@@ -240,8 +241,8 @@ class SlurmExecutor(Executor):
         f.close()
         
         # submit command file for batch execution with 'sbatch'
-        sbatchOpts = "--slurmd-debug=verbose" if "debug" in options else "",
-        scommand = "sbatch {}{}".format(sbatchOpts, f.name)
+        sbatchOpts = "--slurmd-debug=verbose" if "debug" in options else ""
+        scommand = "sbatch {} {}".format(sbatchOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))
         verbosemsg("    " + scommand)
