@@ -61,7 +61,7 @@ usage_message = \
 """
 Usage:
   hpctest init
-  hpctest ( build | run | debug ) [options] [TESTS]
+  hpctest ( build | run | debug ) [options] [TESTS]...
           [--tests TESTSPEC]
           [--build CONFIGSPEC]
           [--hpctoolkit PATHSPEC]
@@ -69,7 +69,7 @@ Usage:
           [--study PATH]
           [--report REPORTSPEC]
           [--sort SORTSPEC]
-          [--background] [--batch]
+          [--background] [--foreground] [--batch] [--immediate]
   hpctest report [options]
           [--study PATH]
           [--which WHICHSPEC]
@@ -174,6 +174,8 @@ optionNames = \
     [
     '--background',
     '--batch',
+    '--foreground',
+    '--immediate',
     '--debug',
     "--force",
     '--help',

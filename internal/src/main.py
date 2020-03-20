@@ -119,7 +119,9 @@ def execute(args):
         numrepeats = 1  ## args["--numrepeats"]
         reportspec = args["--report"] if args["--report"] else "all"
         sortKeys   = [ key.strip() for key in (args["--sort"]).split(",") ] if args["--sort"] else []
-        wantBatch  = args["--batch"] or args["--background"]
+        wantBatch  = True  if args["--batch"]    or args["--background"]  else \
+                     False if args["--immediate"] or args["--foreground"] else \
+                     None
         HPCTestOb.run(dims, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
         
     elif args["report"]:
