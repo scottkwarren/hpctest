@@ -115,7 +115,7 @@ class HPCTest(object):
             # run all the tests
             study = Study(studyPath if studyPath else common.workpath)
             if not wantBatch:
-                wantBatch = configuration.get("config.batch.default", Executor.defaultToBackground())
+                wantBatch = Executor.defaultToBackground()
             Iterate.doForAll(dims, numrepeats, study, wantBatch)
             print
             
