@@ -82,6 +82,7 @@ class Iterate():
                         if not err:
                             submittedJobs.add(jobID)
                             numSubmitted += 1
+                            verbosemsg("submitted {} as job # {})".format(Run.descriptionForJob(jobID), jobID))
                         else:
                             errormsg("submit failed for test run {}: {} (errno {})".format(test.description(config, hpctoolkit, profile), out, err))
                     if numSubmitted > 0:
@@ -96,7 +97,7 @@ class Iterate():
                             finished = Run.pollForFinishedJobs()
                             submittedJobs.symmetric_difference_update(finished)  # since 'finished' containedIn 'submittedJobs', same as set subtract (not in Python)
                             for jobID in finished:
-                                infomsg("run {} finished".format(Run.descriptionForJob(jobID)))
+                                infomsg("{} finished".format(Run.descriptionForJob(jobID)))
                         infomsg("all runs finished")
 
                 except Exception as e:
