@@ -88,13 +88,14 @@ class TestDim(StringDim):
         else:
             self.valueList = []
             testsDir = join(homepath, "tests")
-            for testPattern in spec.split(','):
-                for path in glob( join(testsDir, testPattern.strip()) ):
-                    if Test.isTestDir(path):
-                        self.valueList.append(path)
-                    else:
-                        relativePath = relpath(path, testsDir)
-                        errormsg("{} is not a valid test directory, will be ignored".format(relativePath))
+            for elem in (spec if isinstance(spec, list) else [spec]):
+                for testPattern in elem.replace(',', ' ').split():
+                    for path in glob( join(testsDir, testPattern.strip()) ):
+                        if Test.isTestDir(path):
+                            self.valueList.append(path)
+                        else:
+                            relativePath = relpath(path, testsDir)
+                            errormsg("{} is not a valid test directory, will be ignored".format(relativePath))
 
 
     def values(self):

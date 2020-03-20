@@ -632,8 +632,12 @@ class Run(object):
     def _encodeInitArgs(cls, test, config, hpctoolkit, profile, numrepeats, study):
         
         from os.path import basename
+        import common
         
-        encodedArgs = ",".join([test.path(), config, hpctoolkit, profile, str(numrepeats), study.path])
+        verb = "build" if common.args["build"] else \
+               "run"   if common.args["run"]   else \
+               "debug" if common.args["debug"] else None
+        encodedArgs = ",".join([verb, test.path(), config, hpctoolkit, profile, str(numrepeats), study.path])
         encodedArgs = encodedArgs.replace(" ", "#")
         return encodedArgs
     
@@ -641,16 +645,19 @@ class Run(object):
     @classmethod
     def decodeInitArgs(cls, encodedArgs):
         
+        import common
         from study import Study
         from test import Test
         
         encodedArgs = encodedArgs.replace("#", " ")
         argStrings = encodedArgs.split(",")
         
-        testdir, config, hpctoolkit, profile = argStrings[:3+1]
-        numrepeats = int(argStrings[4])
-        study = Study(argStrings[5])
+        verb = argStrings[0]
+        testdir, config, hpctoolkit, profile = argStrings[1:5]
+        numrepeats = int(argStrings[5])
+        study = Study(argStrings[6])
         
+        common.args[verb] = True
         return (Test(testdir), config, hpctoolkit, profile, numrepeats, study)
 
 
