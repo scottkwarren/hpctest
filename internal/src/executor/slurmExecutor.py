@@ -177,7 +177,7 @@ class SlurmExecutor(Executor):
     
         # prepare slurm command
         scommand = Slurm_run_cmd_template.format(
-            options      = "--slurmd-debug=verbose" if "debug" in options else "",
+            options      = "--verbose" if "debug" in options else "",
             account      = account,
             partition    = partition,
             time         = time,
@@ -241,7 +241,7 @@ class SlurmExecutor(Executor):
         f.close()
         
         # submit command file for batch execution with 'sbatch'
-        sbatchOpts = "--slurmd-debug=verbose" if "debug" in options else ""
+        sbatchOpts = "--verbose" if "debug" in options else ""
         scommand = "sbatch {} {}".format(sbatchOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))
