@@ -72,12 +72,11 @@ class SlurmExecutor(Executor):
         
         from common import whichDir
         available = whichDir("srun") and whichDir("sbatch")
-        return available, "srun and sbatch are missing"
+####    return available, "srun and sbatch are missing"
+        return True, None
 
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
-        
-        # 'env' arg ignored! What if higher levels need to add to environment??
         
         from common import ExecuteFailed
         out, err = self._srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
@@ -86,8 +85,6 @@ class SlurmExecutor(Executor):
 
     
     def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
-        
-        # 'env' arg ignored! What if higher levels need to add to environment??
         
         from common import ExecuteFailed
 
@@ -155,16 +152,19 @@ class SlurmExecutor(Executor):
         if common.args["_runOne"]:   # now running nested in a batch script
             Slurm_run_cmd_template = textwrap.dedent(
                 "srun {options} "
+                "     --export=ALL,{exePathDef} "
                 "     --chdir={runPath} "
                 "     {cmd}"
                 )
         else:
             Slurm_run_cmd_template = textwrap.dedent(
+                "export PATH={testPath}:$PATH; \\"
                 "srun {options} "
                 "     --account={account} "
                 "     --partition={partition} "
                 "     --time={time} "
                 "     --exclusive "
+                "     --export=ALL,{exePathDef} "
                 "     --chdir={runPath} "
                 "     --ntasks={numRanks} "
                 "     --cpus-per-task={numThreads} "
@@ -181,6 +181,7 @@ class SlurmExecutor(Executor):
             account      = account,
             partition    = partition,
             time         = time,
+            exePathDef   = "PATH={}".format(env["PATH"]),
             runPath      = runPath,
             numRanks     = numRanks,
             numThreads   = numThreads,
@@ -196,7 +197,7 @@ class SlurmExecutor(Executor):
 
     def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
-        # 'env' arg ignored! What if higher levels need to add to environment??
+        # 'env' is ignored: caller can't know the install path when preparing batch file
         
         import textwrap, tempfile
         from os import getcwd

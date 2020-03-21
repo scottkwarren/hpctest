@@ -393,8 +393,7 @@ class Run(object):
         outPath   = self.output.makePath("{}-output.txt", label)
         timePath  = self.output.makePath("{}-time.txt", label)
 
-        env = os.environ.copy()         # needed b/c execute's subprocess.Popen discards existing environment if 'env' arg given
-        env["PATH"] = join(self.package.prefix, "bin") + ":" + env["PATH"]
+        env = {"PATH": join(self.package.prefix, "bin")}
 
         # ... add OpenMP parameters if wanted
         if openmp:

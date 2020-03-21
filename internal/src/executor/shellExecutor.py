@@ -75,12 +75,12 @@ class ShellExecutor(Executor):
     
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns nothing, raises
         
-        # NOT USED: numRanks, numThreads  -- 'cmd' haas necessary code for these already
-        
         import os, sys
         from subprocess import check_call, CalledProcessError
         from common import ExecuteFailed
            
+        currentEnv = os.environ.copy()
+        currentEnv["PATH"] = env["PATH"] + ":" + currentEnv["PATH"]
         try:
                
             if runPath:
@@ -89,7 +89,7 @@ class ShellExecutor(Executor):
             
             with open(outPath, "w") as output:
                 with open(outPath + ".err", "w") as error:
-                    check_call(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
+                    check_call(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=currentEnv)
         
         except CalledProcessError as e:
             raise ExecuteFailed(self._shellError(e.returncode), e.returncode)
@@ -105,15 +105,16 @@ class ShellExecutor(Executor):
     
     def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
-        # NOT USED: numRanks, numThreads - 'cmd' contains necessary code for these already
-        
+        import os
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
         
+        currentEnv = os.environ.copy()
+        currentEnv["PATH"] = env["PATH"] + ":" + currentEnv["PATH"]
         err = 0
         try:
             
-            process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=env)
+            process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=currentEnv)
             out     = ""
             err     = process.returncode
 
