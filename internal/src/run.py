@@ -301,10 +301,11 @@ class Run(object):
                         print "unexpected error: {}".format(e.message)
                         
                 buildTime = t.secs
+                
+        self.prefix = self.package.prefix      # prefix path is valid even if package failed to install
         
         # make alias(es) in build directory to the built product(s)
         products = self.test.installProducts()
-        self.prefix = self.package.prefix      # prefix path is valid even if package failed to install
         for productRelpath in products:
             productPath = join(self.rundir, productRelpath)
             productName = basename(productPath)
@@ -388,17 +389,16 @@ class Run(object):
         
         # compute command to be executed
         # ... start with test's run command
+        env       = os.environ.copy()
         runSubdir = self.test.runSubdir()
         runPath   = join(self.rundir, runSubdir) if runSubdir else self.rundir
         outPath   = self.output.makePath("{}-output.txt", label)
         timePath  = self.output.makePath("{}-time.txt", label)
 
-        env = {"PATH": join(self.package.prefix, "bin")}
 
         # ... add OpenMP parameters if wanted
         if openmp:
             threads = self.test.numThreads()
-            env["OMP_NUM_THREADS"] = str(threads)
         else:
             threads = 1
         

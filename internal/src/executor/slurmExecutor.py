@@ -152,7 +152,6 @@ class SlurmExecutor(Executor):
         if common.args["_runOne"]:   # now running nested in a batch script
             Slurm_run_cmd_template = textwrap.dedent(
                 "srun {options} "
-                "     --export=ALL,{exePathDef} "
                 "     --chdir={runPath} "
                 "     {cmd}"
                 )
@@ -164,7 +163,6 @@ class SlurmExecutor(Executor):
                 "     --partition={partition} "
                 "     --time={time} "
                 "     --exclusive "
-                "     --export=ALL,{exePathDef} "
                 "     --chdir={runPath} "
                 "     --ntasks={numRanks} "
                 "     --cpus-per-task={numThreads} "
@@ -181,7 +179,6 @@ class SlurmExecutor(Executor):
             account      = account,
             partition    = partition,
             time         = time,
-            exePathDef   = "PATH={}".format(env["PATH"]),
             runPath      = runPath,
             numRanks     = numRanks,
             numThreads   = numThreads,

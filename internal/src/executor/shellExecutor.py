@@ -79,8 +79,7 @@ class ShellExecutor(Executor):
         from subprocess import check_call, CalledProcessError
         from common import ExecuteFailed
            
-        currentEnv = os.environ.copy()
-        currentEnv["PATH"] = env["PATH"] + ":" + currentEnv["PATH"]
+        env["OMP_NUM_THREADS"] = str(numThreads)
         try:
                
             if runPath:
@@ -89,7 +88,7 @@ class ShellExecutor(Executor):
             
             with open(outPath, "w") as output:
                 with open(outPath + ".err", "w") as error:
-                    check_call(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=currentEnv)
+                    check_call(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
         
         except CalledProcessError as e:
             raise ExecuteFailed(self._shellError(e.returncode), e.returncode)
