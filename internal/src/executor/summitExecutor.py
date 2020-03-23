@@ -160,34 +160,39 @@ class SummitExecutor(Executor):
         from common import options, verbosemsg
         
         # slurm srun command template
-        Summit_run_cmd_template = textwrap.dedent(
-            "srun {options} "
-            "     --account={account} "
-            "     --partition={partition} "
-            "     --chdir={runPath} "
-            "     --export={env} "
-            "     --exclusive "
-            "     --ntasks={numRanks} "
-            "     --cpus-per-task={numThreads} "
-            "     --time={time} "
-            "     --mail-type=NONE "
-            "     {cmds}"
-            )
+        if common.args["_runOne"]:   # now running nested in a batch script
+            Summit_run_cmd_template = textwrap.dedent(
+                "srun {options} "
+                "     --chdir={runPath} "
+                "     {cmd}"
+                )
+        else:
+            Summit_run_cmd_template = textwrap.dedent(
+                "srun {options} "
+                "     --account={account} "
+                "     --partition={partition} "
+                "     --time={time} "
+                "     --exclusive "
+                "     --chdir={runPath} "
+                "     --ntasks={numRanks} "
+                "     --cpus-per-task={numThreads} "
+                "     --mail-type=NONE "
+                "     {cmd}"
+                )
     
         # template params from configuration
         account, partition, time = self._paramsFromConfiguration()
     
-        # prepare slurm command
+        # prepare summit command
         scommand = Summit_run_cmd_template.format(
             options      = "--verbose" if "debug" in options else "",
             account      = account,
             partition    = partition,
+            time         = time,
             runPath      = runPath,
-            env          = "'PATH={}'".format(env["PATH"]),
             numRanks     = numRanks,
             numThreads   = numThreads,
-            time         = time,
-            cmds         = cmds
+            cmd          = cmd
             )
         
         # run the command immediately with 'srun'
@@ -195,9 +200,11 @@ class SummitExecutor(Executor):
         out, err = self._shell(scommand)
         
         return out, (err if err else 0)
-    
-    
-    def _bsub(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+
+
+    def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+        
+        # 'env' is ignored
         
         import textwrap, tempfile
         from os import getcwd
@@ -210,16 +217,15 @@ class SummitExecutor(Executor):
         Summit_batch_file_template = textwrap.dedent(
             """\
             #!/bin/bash
-            #BSUB --job-name={jobName}
-            #BSUB --account={account}
-            #BSUB --partition={partition}
-            #BSUB --export={env}
-            #BSUB --exclusive
-            #BSUB --ntasks={numRanks}
-            #BSUB --cpus-per-task={numThreads}
-            #BSUB --time={time}
-            #  #BSUB --output={outPath}
-            #BSUB --mail-type=NONE
+            #SBATCH --job-name={jobName}
+            #SBATCH --account={account}
+            #SBATCH --partition={partition}
+            #SBATCH --exclusive
+            #SBATCH --ntasks={numRanks}
+            #SBATCH --cpus-per-task={numThreads}
+            #SBATCH --time={time}
+            #SBATCH --mail-type=NONE
+            export OMP_NUM_THREADS={numThreads}
             {cmds} 
             """)
     
@@ -234,7 +240,6 @@ class SummitExecutor(Executor):
             jobName      = name,
             account      = account,
             partition    = partition,
-            env          = "'PATH={}'".format(env["PATH"]),
             numRanks     = numRanks,
             numThreads   = numThreads,
             time         = time,
@@ -244,12 +249,13 @@ class SummitExecutor(Executor):
         f.close()
         
         # submit command file for batch execution with 'sbatch'
-        scommand = "bsub < {}".format(f.name)
+        bsubOpts = "--verbose" if "debug" in options else ""
+        scommand = "bsub {} < {}".format(bsubOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))
         verbosemsg("    " + scommand)
         
-        out, err = _shell(scommand)
+        out, err = self._shell(scommand)
         
         verbosemsg("    " + out)
         verbosemsg("\n")

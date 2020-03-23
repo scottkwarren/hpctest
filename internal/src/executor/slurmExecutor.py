@@ -72,8 +72,7 @@ class SlurmExecutor(Executor):
         
         from common import whichDir
         available = whichDir("srun") and whichDir("sbatch")
-####    return available, "srun and sbatch are missing"
-        return True, None
+        return available, "srun and sbatch are missing"
 
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
@@ -157,7 +156,6 @@ class SlurmExecutor(Executor):
                 )
         else:
             Slurm_run_cmd_template = textwrap.dedent(
-                "export PATH={testPath}:$PATH; \\"
                 "srun {options} "
                 "     --account={account} "
                 "     --partition={partition} "
@@ -194,7 +192,7 @@ class SlurmExecutor(Executor):
 
     def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
-        # 'env' is ignored: caller can't know the install path when preparing batch file
+        # 'env' is ignored
         
         import textwrap, tempfile
         from os import getcwd
