@@ -79,7 +79,8 @@ class SummitExecutor(Executor):
         
         from common import whichDir
         available = whichDir("jsrun") and whichDir("bsub")
-        return available, "jsrun and bsub are missing"
+####    return available, "jsrun and bsub are missing"
+        return True, None
 
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
@@ -111,10 +112,8 @@ class SummitExecutor(Executor):
         import os, re
         
         # ask Summit for all our jobs that are still running
-        userid = os.environ["USER"]
-        out, err = self._shell("bjobs -UF") # UF == "don't format output", makes parsing easier
-        
-        # 'out' is a sequence of lines that look like this:
+        out, err = self._shell("bjobs -P {project}".format(project)) # UF == "don't format output", makes parsing easier
+        # 'out' is a sequence of lines that look like this(see tinyurl.com/tttvygn):
         #
         # % bjobs 
         # JOBID USER     STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
@@ -130,8 +129,8 @@ class SummitExecutor(Executor):
         # start with all previously-running jobs and remove the ones still running per 'squeue'
         finished = self.runningJobs.copy()
         for line in out.splitlines()[1:]:    # skip header line
-            # match the job id, the first nonblank character (digit) sequence on the line
-            match = re.match(r" *([0-9]+) ", line)
+            # match the job id, the first digit) sequence on the line
+            match = re.match(r"([0-9]+) ", line)
             if match:
                 jobid = match.group(1)
                 if jobid in finished:
@@ -153,42 +152,25 @@ class SummitExecutor(Executor):
             errormsg("attempt to kill batch job {} failed".format(jobid))
 
 
-    def _jsrun(self, cmds, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+    def _jsrun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
         
         from os import getcwd
         import textwrap, tempfile
         from common import options, verbosemsg
         
+        # jsrun optiona per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
+        
         # slurm srun command template
-        if common.args["_runOne"]:   # now running nested in a batch script
-            Summit_run_cmd_template = textwrap.dedent(
-                "srun {options} "
-                "     --chdir={runPath} "
-                "     {cmd}"
-                )
-        else:
-            Summit_run_cmd_template = textwrap.dedent(
-                "srun {options} "
-                "     --account={account} "
-                "     --partition={partition} "
-                "     --time={time} "
-                "     --exclusive "
-                "     --chdir={runPath} "
-                "     --ntasks={numRanks} "
-                "     --cpus-per-task={numThreads} "
-                "     --mail-type=NONE "
-                "     {cmd}"
-                )
+        Summit_run_cmd_template = \
+            "jsrun {options} -n 1 -a {numRanks} -c {numThreads} -h {runPath} {cmd}"
     
         # template params from configuration
-        account, partition, time = self._paramsFromConfiguration()
+####    account, partition, time = self._paramsFromConfiguration()      # not used for Summit
     
         # prepare summit command
         scommand = Summit_run_cmd_template.format(
-            options      = "--verbose" if "debug" in options else "",
-            account      = account,
-            partition    = partition,
-            time         = time,
+####        options      = "--verbose" if "debug" in options else ""    # jsrun apparently has no verbose option
+            options      = "",
             runPath      = runPath,
             numRanks     = numRanks,
             numThreads   = numThreads,
@@ -196,13 +178,13 @@ class SummitExecutor(Executor):
             )
         
         # run the command immediately with 'srun'
-        verbosemsg("Executing via srun:\n{}".format(scommand))
+        verbosemsg("Executing via jsrun:\n{}".format(scommand))
         out, err = self._shell(scommand)
         
         return out, (err if err else 0)
 
 
-    def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+    def _bsub(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
         # 'env' is ignored
         
@@ -217,14 +199,10 @@ class SummitExecutor(Executor):
         Summit_batch_file_template = textwrap.dedent(
             """\
             #!/bin/bash
-            #SBATCH --job-name={jobName}
-            #SBATCH --account={account}
-            #SBATCH --partition={partition}
-            #SBATCH --exclusive
-            #SBATCH --ntasks={numRanks}
-            #SBATCH --cpus-per-task={numThreads}
-            #SBATCH --time={time}
-            #SBATCH --mail-type=NONE
+            #BSUB -J {jobName}
+            #BSUB -P {account}
+            #BSUB -nnodes {numRanks}
+            #BSUB -W {time}
             export OMP_NUM_THREADS={numThreads}
             {cmds} 
             """)
@@ -239,18 +217,17 @@ class SummitExecutor(Executor):
         f.write(Summit_batch_file_template.format(
             jobName      = name,
             account      = account,
-            partition    = partition,
             numRanks     = numRanks,
             numThreads   = numThreads,
             time         = time,
-            outPath      = outPath,     # commented out in template
             cmds         = cmds,
             ))
         f.close()
         
         # submit command file for batch execution with 'sbatch'
-        bsubOpts = "--verbose" if "debug" in options else ""
-        scommand = "bsub {} < {}".format(bsubOpts, f.name)
+####    bsubOpts = "--verbose" if "debug" in options else ""    ## apparently bsub has no verbose option
+        bsubOpts = ""
+        scommand = "bsub {} {}".format(bsubOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))
         verbosemsg("    " + scommand)
@@ -261,11 +238,13 @@ class SummitExecutor(Executor):
         verbosemsg("\n")
         
         # handle output from submit command
+        # ... apparently looks like this (see tinyurl.com/wuh7rtg):
+        # Job <29209> is submitted to default queue <batch>.
         if err:
             jobid = None
         else:
             # extract job id from 'out'
-            match = re.match(r".*([0-9]+)$", out)
+            match = re.match(r".*<([0-9]+)>", out)
             if match:
                 jobid = match.group(1)
             else:
