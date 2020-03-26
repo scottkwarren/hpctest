@@ -84,7 +84,7 @@ class Iterate():
                             numSubmitted += 1
                             verbosemsg("submitted {} as job # {})".format(Run.descriptionForJob(jobID), jobID))
                         else:
-                            errormsg("submit failed for test run {}: {} (errno {})".format(test.description(config, hpctoolkit, profile), out, err))
+                            errormsg("submit failed for test run {}:\n{}".format(test.description(config, hpctoolkit, profile), out))
                     if numSubmitted > 0:
                         infomsg("done")
                     else:
