@@ -262,6 +262,17 @@ class SlurmExecutor(Executor):
                 errormsg(err)
         
         return (jobid, out, err if err else 0)
+
+
+    def _paramsFromConfiguration(self,):
+        
+        import configuration
+    
+        account   =  configuration.get("config.batch.params.account",   "commons")
+        partition =  configuration.get("config.batch.params.partition", "commons")
+        time      =  configuration.get("config.batch.params.time",      "1:00:00")
+        
+        return account, partition, time
         
 
 

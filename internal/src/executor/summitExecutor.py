@@ -47,15 +47,6 @@
 ################################################################################
 
 
-# First draft, based on the information in:
-#    "Summit jsrun Introduction" (slides) by Chris Fuson
-#     OLCF February User Call, February 28, 2018
-#     https://www.olcf.ornl.gov/wp-content/uploads/2018/02/SummitJobLaunch.pdf
-#
-# LSF User;s Guide:
-#     https://tin6150.github.io/psg/3rdParty/lsf4_userGuide/users-title.html
-
-
 from executor import Executor
 from common import options
 
@@ -110,9 +101,11 @@ class SummitExecutor(Executor):
     def pollForFinishedJobs(self):
         
         import os, re
+        from common import fatalmsg
         
         # ask Summit for all our jobs that are still running
-        out, err = self._shell("bjobs -P {project}".format(project)) # UF == "don't format output", makes parsing easier
+        out, err = self._shell("bjobs") # -UF == "don't format output", makes parsing easier
+        if err: fatalmsg("can't invoke 'bjobs' to poll for unfinished jobs")
         # 'out' is a sequence of lines that look like this(see tinyurl.com/tttvygn):
         #
         # % bjobs 
@@ -164,9 +157,6 @@ class SummitExecutor(Executor):
         Summit_run_cmd_template = \
             "jsrun {options} -n 1 -a {numRanks} -c {numThreads} -h {runPath} {cmd}"
     
-        # template params from configuration
-####    account, partition, time = self._paramsFromConfiguration()      # not used for Summit
-    
         # prepare summit command
         scommand = Summit_run_cmd_template.format(
 ####        options      = "--verbose" if "debug" in options else ""    # jsrun apparently has no verbose option
@@ -200,7 +190,7 @@ class SummitExecutor(Executor):
             """\
             #!/bin/bash
             #BSUB -J {jobName}
-            #BSUB -P {account}
+            #BSUB -P {project}
             #BSUB -nnodes {numRanks}
             #BSUB -W {time}
             export OMP_NUM_THREADS={numThreads}
@@ -208,7 +198,7 @@ class SummitExecutor(Executor):
             """)
     
         # template params from configuration
-        account, partition, time = self._paramsFromConfiguration()
+        project, time = self._paramsFromConfiguration()
         
         # prepare slurm command file
         summitfilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
@@ -216,7 +206,7 @@ class SummitExecutor(Executor):
                                         dir=summitfilesDir, prefix='summit-', suffix=".bsub")
         f.write(Summit_batch_file_template.format(
             jobName      = name,
-            account      = account,
+            project      = project,
             numRanks     = numRanks,
             numThreads   = numThreads,
             time         = time,
@@ -227,7 +217,8 @@ class SummitExecutor(Executor):
         # submit command file for batch execution with 'sbatch'
 ####    bsubOpts = "--verbose" if "debug" in options else ""    ## apparently bsub has no verbose option
         bsubOpts = ""
-        scommand = "bsub {} {}".format(bsubOpts, f.name)
+####    scommand = "bsub {} {}".format(bsubOpts, f.name)
+        scommand = "/home/scott/TEMP/hpctest/bsub {} {}".format(bsubOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))
         verbosemsg("    " + scommand)
@@ -240,19 +231,28 @@ class SummitExecutor(Executor):
         # handle output from submit command
         # ... apparently looks like this (see tinyurl.com/wuh7rtg):
         # Job <29209> is submitted to default queue <batch>.
+            # extract job id from 'out'
         if err:
             jobid = None
         else:
-            # extract job id from 'out'
             match = re.match(r".*<([0-9]+)>", out)
             if match:
                 jobid = match.group(1)
             else:
+                err = 1
                 jobid = None
-                err = "unexpected output from bsub: {}".format(out)
-                errormsg(err)
         
         return (jobid, out, err if err else 0)
+
+
+    def _paramsFromConfiguration(self,):
+        
+        import configuration
+        
+        project = configuration.get("config.batch.params.project", "")
+        time    = configuration.get("config.batch.params.time",    "0:05")
+        
+        return project, time
     
 
 
