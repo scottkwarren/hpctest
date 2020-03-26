@@ -70,8 +70,7 @@ class SummitExecutor(Executor):
         
         from common import whichDir
         available = whichDir("jsrun") and whichDir("bsub")
-####    return available, "jsrun and bsub are missing"
-        return True, None
+        return available, "jsrun and bsub are missing"
 
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
