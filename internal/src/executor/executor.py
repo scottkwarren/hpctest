@@ -101,10 +101,7 @@ class Executor(object):
     @classmethod
     def defaultToBackground(cls):
         
-        import configuration
-        
-        config = configuration.get("config.batch.default", None)
-        return config if config is not None else cls.localExecutorClass().defaultToBackground()
+        return cls.localExecutorClass().defaultToBackground()
 
 
     @classmethod
@@ -227,17 +224,6 @@ class Executor(object):
             err = -1   ## TODO: is there a better property of Exception to use for 'err'?
             
         return out, err
-
-
-    def _paramsFromConfiguration(self):
-        
-        import configuration
-    
-        account   =  configuration.get("config.batch.params.account",   "commons")
-        partition =  configuration.get("config.batch.params.partition", "commons")
-        time      =  configuration.get("config.batch.params.time",      "1:00:00")
-        
-        return (account, partition, time)
     
 
 #    NOT USED
