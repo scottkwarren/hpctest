@@ -9,15 +9,22 @@
 
 
 config:
-# batch:
-#   -- default is 'manager: null', which runs jobs at the shell command line
-#   -- other 'batch' options are manager-dependent
-#   manager: Slurm
-#   default: false
-#   params:
-#     account:   commons
-#     partition: commons
-#     time:      "1:00:00"
+  batch:
+#-- default is 'manager: null', which runs jobs at the shell command line
+#-- other 'batch' options are manager-dependent
+#
+#-- Slurm batch manager
+#     manager: Slurm
+#     params:
+#       account:   myaccount
+#       partition: mypartition
+#       time:      "5:00"      # 5 min (time given in seconds)
+#
+#-- Summit batch manager (custom version of LSF)
+#     manager: Summit
+#     params:
+#       project:   myproject
+#       time:      "0:05"      # 5 min (time given in minutes)
 
 run:
 # ulimit:
