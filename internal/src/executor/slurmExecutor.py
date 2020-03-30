@@ -53,19 +53,68 @@ from common import options
 
 
 class SlurmExecutor(Executor):
-    
-    
+
+
     def __init__(self):
         
         super(SlurmExecutor, self).__init__()
         # nothing for SlurmExecutor
+        
     
+    # System inquiries
 
     @classmethod
     def defaultToBackground(cls):
         
         return True
 
+    
+    # Programming model support
+    
+    def wrap(self, cmd, numRanks, numThreads, spackMPIBin):
+        
+        # 'spackMPIBin' is unused
+        
+        from common import args, options
+        
+        # get template
+        if args["_runOne"]:   # now running nested in a batch script
+            if numRanks == 0:
+                Slurm_run_cmd_template = "srun {options} --ntasks=1 {cmd}"
+            else:
+                Slurm_run_cmd_template = "srun {options} {cmd}"
+        else:
+            Slurm_run_cmd_template = textwrap.dedent(
+                "srun {options} "
+                "     --account={account} "
+                "     --partition={partition} "
+                "     --time={time} "
+                "     --exclusive "
+                "     --ntasks={numRanks} "
+                "     --cpus-per-task={numThreads} "
+                "     --mail-type=NONE "
+                "     {cmd}"
+                )
+        
+        # insert parameters
+        account, partition, time = self._paramsFromConfiguration()
+        srunCmd = Slurm_run_cmd_template.format(
+            options      = "--verbose" if "debug" in options else "",
+            account      = account,
+            partition    = partition,
+            time         = time,
+            numRanks     = numRanks if numRanks > 0 else 1,
+            numThreads   = numThreads,
+            cmd          = cmd
+            )
+
+        # replace newlines by spaces, multiple spaces by one
+        srunCmd = " ".join(srunCmd.split())
+        
+        return srunCmd
+
+    
+    # Scheduling operations
     
     @classmethod
     def isAvailable(cls):
@@ -77,10 +126,12 @@ class SlurmExecutor(Executor):
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
-        from common import ExecuteFailed
-        out, err = self._srun(cmd, runPath, env, numRanks, numThreads, outPath, description)
-        if err:
-            raise ExecuteFailed(out, err)
+        from common import ExecuteFailed, verbosemsg
+        
+        verbosemsg("Running command immediately:\n{}".format(cmd))
+        out, err = self._shell(cmd, env, runPath, outPath)
+        
+        if err: raise ExecuteFailed(out, err)
 
     
     def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
@@ -138,56 +189,58 @@ class SlurmExecutor(Executor):
             errormsg("attempt to cancel batch job {} failed".format(jobid))
 
 
-    def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
-        
-        # 'env' arg ignored! What if higher levels need to add to environment??
-
-        from os import getcwd
-        import textwrap, tempfile
-        import common
-        from common import options, verbosemsg
-        
-        # slurm srun command template
-        if common.args["_runOne"]:   # now running nested in a batch script
-            Slurm_run_cmd_template = textwrap.dedent(
-                "srun {options} "
-                "     --chdir={runPath} "
-                "     {cmd}"
-                )
-        else:
-            Slurm_run_cmd_template = textwrap.dedent(
-                "srun {options} "
-                "     --account={account} "
-                "     --partition={partition} "
-                "     --time={time} "
-                "     --exclusive "
-                "     --chdir={runPath} "
-                "     --ntasks={numRanks} "
-                "     --cpus-per-task={numThreads} "
-                "     --mail-type=NONE "
-                "     {cmd}"
-                )
-    
-        # template params from configuration
-        account, partition, time = self._paramsFromConfiguration()
-    
-        # prepare slurm command
-        scommand = Slurm_run_cmd_template.format(
-            options      = "--verbose" if "debug" in options else "",
-            account      = account,
-            partition    = partition,
-            time         = time,
-            runPath      = runPath,
-            numRanks     = numRanks,
-            numThreads   = numThreads,
-            cmd          = cmd
-            )
-        
-        # run the command immediately with 'srun'
-        verbosemsg("Executing via srun:\n{}".format(scommand))
-        out, err = self._shell(scommand)
-        
-        return out, (err if err else 0)
+#### UNUSED NOW
+####
+#     def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+#         
+#         # 'env' arg ignored! What if higher levels need to add to environment??
+# 
+#         from os import getcwd
+#         import textwrap, tempfile
+#         import common
+#         from common import options, verbosemsg
+#         
+#         # slurm srun command template
+#         if common.args["_runOne"]:   # now running nested in a batch script
+#             Slurm_run_cmd_template = textwrap.dedent(
+#                 "srun {options} "
+#                 "     --chdir={runPath} "
+#                 "     {cmd}"
+#                 )
+#         else:
+#             Slurm_run_cmd_template = textwrap.dedent(
+#                 "srun {options} "
+#                 "     --account={account} "
+#                 "     --partition={partition} "
+#                 "     --time={time} "
+#                 "     --exclusive "
+#                 "     --chdir={runPath} "
+#                 "     --ntasks={numRanks} "
+#                 "     --cpus-per-task={numThreads} "
+#                 "     --mail-type=NONE "
+#                 "     {cmd}"
+#                 )
+#     
+#         # template params from configuration
+#         account, partition, time = self._paramsFromConfiguration()
+#     
+#         # prepare slurm command
+#         scommand = Slurm_run_cmd_template.format(
+#             options      = "--verbose" if "debug" in options else "",
+#             account      = account,
+#             partition    = partition,
+#             time         = time,
+#             runPath      = runPath,
+#             numRanks     = numRanks,
+#             numThreads   = numThreads,
+#             cmd          = cmd
+#             )
+#         
+#         # run the command immediately with 'srun'
+#         verbosemsg("Executing via srun:\n{}".format(scommand))
+#         out, err = self._shell(scommand)
+#         
+#         return out, (err if err else 0)
 
 
     def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)

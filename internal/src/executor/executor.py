@@ -58,6 +58,12 @@
 class Executor(object):
 
     
+    def __init__(self):
+        
+        self.jobDescriptions = dict()
+        self.runningJobs = set()
+         
+    
     # System inquiries
 
     _local_executor_class = None
@@ -74,7 +80,7 @@ class Executor(object):
             
             # local configuration may specify the job launcher
             name  = configuration.get("config.batch.manager", "Shell")
-            force = configuration.get("config.batch.force",    False)
+            force = configuration.get("config.batch.debug.force", False)
             if name not in cls._subclasses:
                 fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
             
@@ -120,13 +126,17 @@ class Executor(object):
         cls._subclasses[name] = subclass
 
 
-    # Scheduling operations
+    # Programming model support
     
-    def __init__(self):
+    def wrap(self, cmd, numRanks, numThreads, spackMPIBin):
         
-        self.jobDescriptions = dict()
-        self.runningJobs = set()
-         
+        # numRanks == 0 means don't use MPI
+        # numThreads == 0 means don't use OpenMP
+        
+        subclassResponsibility("Executor", "wrap")
+
+
+    # Scheduling operations
     
     def run(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):
         
@@ -201,20 +211,25 @@ class Executor(object):
         self.jobDescriptions.pop(job)
 
 
-            
-
-
-
-    def _shell(self, cmd):
+    def _shell(self, cmd, env=None, runPath=None, outPath=None):
                
-        import subprocess
+        import os, subprocess, sys
         
         try:
             
-            proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err_out = proc.communicate()
-            err = proc.returncode
-            if err: out = err_out.strip()
+            path = outPath if outPath else "/dev/stdout"
+            with open(path, "w") as output:
+                
+                proc = subprocess.Popen(cmd, shell = True,
+                                        env = env if env else os.environ.copy(),
+                                        cwd = runPath if runPath else os.getcwd(),
+                                        stdout = output, stderr = output)
+                out, err_out = proc.communicate()
+                err = proc.returncode
+                
+                if not out:     out = ""
+                if not err_out: err_out = ""
+                if err: out = err_out.strip()
             
         except StandardError as e:
             out = e.strerror

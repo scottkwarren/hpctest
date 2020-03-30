@@ -59,10 +59,22 @@ class ShellExecutor(Executor):
         super(ShellExecutor, self).__init__()
 
     
+    # System inquiries
+
     @classmethod
     def defaultToBackground(cls):
         
         return False
+
+
+    # Programming model support
+    
+    def wrap(self, cmd, numRanks, numThreads, spackMPIBin):
+        
+        if numRanks:
+            cmd = "{}mpirun -np {} {}".format(spackMPIBin, numRanks, cmd)
+
+        return cmd
 
     
     @classmethod

@@ -396,19 +396,22 @@ class Run(object):
         timePath  = self.output.makePath("{}-time.txt", label)
 
 
-        # ... add OpenMP parameters if wanted
+        # ... OpenMP parameters if wanted
         if openmp:
             threads = self.test.numThreads()
         else:
-            threads = 1
+            threads = 0     # tells executor.wrap not to use OpenMP
         
-        # ... add MPI launching code if wanted
+        # ... MPI launching code if wanted
         if mpi:
-            mpipath = self.mpiPrefixBin + "/"
             ranks   = self.test.numRanks()
-            cmd     = "{}mpirun -np {} {}".format(mpipath, ranks, cmd)
+            mpipath = self.mpiPrefixBin + "/"
         else:
-            ranks = 1
+            ranks = 0       # tells executor.wrap not to use MPI
+            mpipath = None
+        
+        # ... let executor add code immediately surrounding cmd 
+        cmd = Run.executor.wrap(cmd, ranks, threads, spackMPIBin=mpipath)
         
         # ... always add timing code
         cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
