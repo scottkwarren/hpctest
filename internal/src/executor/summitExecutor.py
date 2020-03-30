@@ -53,16 +53,26 @@ from common import options
 
 class SummitExecutor(Executor):
     
+ 
     def __init__(self):
         
         super(SummitExecutor, self).__init__()
         # nothing for SummitExecutor
     
 
+    # System inquiries
+
     @classmethod
     def defaultToBackground(cls):
         
         return True
+
+    
+    # Programming model support
+    
+    def wrapForMPI(self, cmd, numRanks, numThreads, spackMPIBin):
+        
+        return xxx;
 
     
     @classmethod
