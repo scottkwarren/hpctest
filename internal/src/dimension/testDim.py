@@ -82,7 +82,7 @@ class TestDim(StringDim):
         from common import homepath, errormsg
         from test import Test
                   
-        if spec == "all":
+        if spec == ["all"]:
             self.valueList = []
             Test.forEachDo( lambda test: self.valueList.append(test.path()) )
         else:
