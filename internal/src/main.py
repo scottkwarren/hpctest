@@ -64,7 +64,7 @@ def main():
     from common import debugmsg, errormsg
     from help import usage_message, doc_message, optionNames
     from util.docopt import docopt, DocoptExit
-            
+    
     # parse the command line and execute it if valid
     try:
         
