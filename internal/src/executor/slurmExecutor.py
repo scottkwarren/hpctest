@@ -122,6 +122,7 @@ class SlurmExecutor(Executor):
         
         from common import whichDir
         available = whichDir("srun") and whichDir("sbatch")
+        available = available or configuration.get("batch.debug.force")
         return available, "srun and sbatch are missing"
 
 
