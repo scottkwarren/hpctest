@@ -71,7 +71,7 @@ class SlurmExecutor(Executor):
     
     # Programming model support
     
-    def wrap(self, cmd, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
         
         # 'spackMPIBin' is unused
         
@@ -112,6 +112,7 @@ class SlurmExecutor(Executor):
         srunCmd = " ".join(srunCmd.split())
         
         return srunCmd
+#------------------------------------------------------------------------------
 
     
     # Scheduling operations
@@ -126,9 +127,11 @@ class SlurmExecutor(Executor):
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
+        # assumes that 'cmd' has been "wrapped" appropriately
+        
         from common import ExecuteFailed, verbosemsg
         
-        verbosemsg("Running command immediately:\n{}".format(cmd))
+        verbosemsg("Running this command:\n{}".format(cmd))
         out, err = self._shell(cmd, env, runPath, outPath)
         
         if err: raise ExecuteFailed(out, err)
@@ -250,10 +253,10 @@ class SlurmExecutor(Executor):
         import textwrap, tempfile
         from os import getcwd
         from os.path import join
-        import re
+        import os, re
         import common
         from common import options, verbosemsg, errormsg
-        
+                
         # slurm sbatch command file template
         Slurm_batch_file_template = textwrap.dedent(
             """\
@@ -306,12 +309,14 @@ class SlurmExecutor(Executor):
             jobid = None
         else:
             # extract job id from 'out'
-            match = re.match(r".* ([0-9]+)$", out)
-            if match:
-                jobid = match.group(1)
-            else:
-                jobid = None
-                err = "unexpected output from sbatch: {}".format(out)
+            jobid = None
+            for line in out.splitlines():
+                match = re.match(r"Submitted .* ([0-9]+)$", line)
+                if match:
+                    jobid = match.group(1)
+                    break
+            if not jobid:
+                err = "unexpected output from sbatch:\n{}".format(out)
                 errormsg(err)
         
         return (jobid, out, err if err else 0)

@@ -69,10 +69,10 @@ class ShellExecutor(Executor):
 
     # Programming model support
     
-    def wrap(self, cmd, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
         
         if numRanks:
-            cmd = "{}mpirun -np {} {}".format(spackMPIBin, numRanks, cmd)
+            cmd = "{}/mpirun -np {} {}".format(spackMPIBin, numRanks, cmd)
 
         return cmd
 

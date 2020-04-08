@@ -405,13 +405,13 @@ class Run(object):
         # ... MPI launching code if wanted
         if mpi:
             ranks   = self.test.numRanks()
-            mpipath = self.mpiPrefixBin + "/"
+            mpipath = self.mpiPrefixBin
         else:
             ranks = 0       # tells executor.wrap not to use MPI
             mpipath = None
         
         # ... let executor add code immediately surrounding cmd 
-        cmd = Run.executor.wrap(cmd, ranks, threads, spackMPIBin=mpipath)
+        cmd = Run.executor.wrap(cmd, runPath, env, ranks, threads, spackMPIBin=mpipath)
         
         # ... always add timing code
         cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)

@@ -59,7 +59,6 @@ class SummitExecutor(Executor):
         super(SummitExecutor, self).__init__()
         # nothing for SummitExecutor
     
-
     # System inquiries
 
     @classmethod
@@ -70,25 +69,51 @@ class SummitExecutor(Executor):
     
     # Programming model support
     
-    def wrapForMPI(self, cmd, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
         
-        return xxx;
+        # 'spackMPIBin' is unused
+        # jsrun optiona per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
+        
+        from os import getcwd
+        import textwrap, tempfile
+        from common import options, verbosemsg
+                
+        # get template
+        template = \
+            "jsrun {options} -i -n {numRanks} -a 1 -c {numThreads} {cmd}"   # could also say  -h {runPath}
 
+        # insert parameters
+        jsrunCmd = template.format(
+            options      = "",          # or "--verbose" if "debug" in options else "", but jsrun apparently has no verbose option
+            numRanks     = numRanks,
+            numThreads   = numThreads,
+            cmd          = cmd
+            )
+        
+        return jsrunCmd
+
+    
+    # Scheduling operations
     
     @classmethod
     def isAvailable(cls):
         
         from common import whichDir
         available = whichDir("jsrun") and whichDir("bsub")
-        return available, "jsrun and bsub are missing"
+####    return available, "jsrun and bsub are missing"
+        return True, "jsrun and bsub are missing"
 
 
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
-        from common import ExecuteFailed
-        out, err = self._jsrun(cmd, runPath, env, numRanks, numThreads, outPath, description)
-        if err:
-            raise ExecuteFailed(out, err)
+        # assumes that 'cmd' has been "wrapped" appropriately
+        
+        from common import ExecuteFailed, verbosemsg
+        
+        verbosemsg("Running this command:\n{}".format(cmd))
+        out, err = self._shell(cmd, env, runPath, outPath)
+        
+        if err: raise ExecuteFailed(out, err)
 
     
     def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
@@ -194,7 +219,7 @@ class SummitExecutor(Executor):
         import common
         from common import options, verbosemsg, errormsg
         
-        # slurm sbatch command file template
+        # Summit sbatch command file template
         Summit_batch_file_template = textwrap.dedent(
             """\
             #!/bin/bash
@@ -209,7 +234,7 @@ class SummitExecutor(Executor):
         # template params from configuration
         project, time = self._paramsFromConfiguration()
         
-        # prepare slurm command file
+        # prepare Summit command file
         summitfilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
         f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
                                         dir=summitfilesDir, prefix='summit-', suffix=".bsub")
@@ -223,11 +248,9 @@ class SummitExecutor(Executor):
             ))
         f.close()
         
-        # submit command file for batch execution with 'sbatch'
-####    bsubOpts = "--verbose" if "debug" in options else ""    ## apparently bsub has no verbose option
-        bsubOpts = ""
-####    scommand = "bsub {} {}".format(bsubOpts, f.name)
-        scommand = "/home/scott/TEMP/hpctest/bsub {} {}".format(bsubOpts, f.name)
+        # submit command file for batch execution with 'bsub'
+        bsubOpts = ""    ## apparently bsub has no verbose option
+        scommand = "bsub {} {}".format(bsubOpts, f.name)
         
         verbosemsg("submitting job {} ...".format(description))
         verbosemsg("    " + scommand)
@@ -244,12 +267,15 @@ class SummitExecutor(Executor):
         if err:
             jobid = None
         else:
-            match = re.match(r".*<([0-9]+)>", out)
-            if match:
-                jobid = match.group(1)
-            else:
-                err = 1
-                jobid = None
+            jobid = None
+            for line in out.splitlines():
+                match = re.match(r".*<([0-9]+)>", line)
+                if match:
+                    jobid = match.group(1)
+                    break
+            if not jobid:
+                err = "unexpected output from bsub:\n{}".format(out)
+                errormsg(err)
         
         return (jobid, out, err if err else 0)
 

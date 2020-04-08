@@ -128,7 +128,7 @@ class Executor(object):
 
     # Programming model support
     
-    def wrap(self, cmd, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
         
         # numRanks == 0 means don't use MPI
         # numThreads == 0 means don't use OpenMP
