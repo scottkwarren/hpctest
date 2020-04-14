@@ -79,7 +79,7 @@ class TestDim(StringDim):
                 
         from os.path import join, relpath                                                                                                                                                                                            
         from glob import glob
-        from common import homepath, errormsg
+        from common import options, homepath, warnmsg
         from test import Test
                   
         if spec == ["all"]:
@@ -94,8 +94,9 @@ class TestDim(StringDim):
                         if Test.isTestDir(path):
                             self.valueList.append(path)
                         else:
-                            relativePath = relpath(path, testsDir)
-                            errormsg("{} is not a valid test directory, will be ignored".format(relativePath))
+                            if "verbose" in options:
+                                relativePath = relpath(path, testsDir)
+                                warnmsg("{} is not a test directory, will be ignored".format(relativePath))
 
 
     def values(self):
