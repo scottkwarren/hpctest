@@ -99,8 +99,11 @@ class SummitExecutor(Executor):
     def isAvailable(cls):
         
         from common import whichDir
+        import configuration
+        
         available = whichDir("jsrun") and whichDir("bsub")
         available = available or configuration.get("batch.debug.force")
+        
         return available, "jsrun and bsub are missing"
 
 
