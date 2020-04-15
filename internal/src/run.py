@@ -195,7 +195,7 @@ class Run(object):
         else:
             self.version = self.test.version()  # TODO: let 'info.version' be missing, and use package default in such cases
             self.builtin = self.test.builtin()
-            self.wantProfiling = self.test.profile()
+            self.wantProfiling = self.test.wantProfile()
             self.output.add("input", "wantProfiling", str(self.wantProfiling))
 
 
@@ -238,7 +238,7 @@ class Run(object):
             
             # build directory -- make new or copy test's dir if not separable-build test
             self.builddir = join(self.jobdir, "build");
-            separate = self.test.yaml("build.separate")
+            separate = self.test.buildSeparate()
             if "build" in separate:
                 makedirs(self.builddir)
             else:

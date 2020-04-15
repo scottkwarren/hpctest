@@ -284,7 +284,7 @@ class HPCTest(object):
             # guards
             if "nochecksum" in options: return
             if not test.valid(): return
-            if test.config() == "spack-builtin": return
+            if test.builtin(): return
             
             # check if repo has an up-to-date package for the test
             name = test.yamlName()

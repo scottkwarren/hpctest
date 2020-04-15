@@ -85,9 +85,19 @@ class Test():
             fatalmsg("Test.__init__: dir must be a path to a valid test directory but is not ({})").format(dir)
 
 
-    def name(self):
-            
-        return self.yaml("info.name")
+    def buildSeparate(self):
+    
+        return self._yaml("build.separate")
+                         
+
+    def builtin(self):
+        
+        return self.yamlDict["config"] == "spack-builtin" if "config" in self.yamlDict else False
+
+
+    def cmd(self):
+        
+        return self._yaml("run.cmd")
         
 
     def description(self, config, hpctoolkit, profile, forName=False):
@@ -102,11 +112,6 @@ class Test():
         p = ProfileDim.format(profile,     forName)
         
         return f.format(t, c, p)
-
-
-    def path(self):
-            
-        return self.dir
 
 
     def hasChanged(self):
@@ -128,6 +133,12 @@ class Test():
         return newChecksum != oldChecksum
 
 
+    def installProducts(self):
+        
+        from common import noneOrMore
+        return noneOrMore( self._yaml("build.install") )
+
+
     def markUnchanged(self):
         
         from os.path import join
@@ -137,25 +148,28 @@ class Test():
             cs.write(self._computeChecksum())
 
 
-    def valid(self):
+    def name(self):
+            
+        return self._yaml("info.name")
+
+
+    def numRanks(self):
         
-        return self.yamlDict is not None;
-    
+        return self._yaml("run.ranks", 1)
 
-    def yaml(self, keypath=None, default=None):
+
+    def numThreads(self):
         
-        from common import getValueAtKeypath
-        return getValueAtKeypath(self.yamlDict, keypath, default)
+        return self._yaml("run.threads", 1)
 
 
-    def yamlErrorMsg(self):
-        
-        return self.yamlMsg
+    def path(self):
+            
+        return self.dir
 
 
-    def yamlName(self):
-                
-        return self.yamlDict["info"]["name"]
+    def profile(self):
+        return self.yamlDict.get("profile", True)
 
 
     def relpath(self):
@@ -165,50 +179,33 @@ class Test():
         return relpath(self.dir, join(homepath, "tests"))
 
 
-    def version(self):
-        
-        return self.yamlDict["info"]["version"]
-
-
-    def config(self):
-        
-        return self.yamlDict["config"] if "config" in self.yamlDict else None
-
-
-    def builtin(self):
-        
-        return self.yamlDict["config"] == "spack-builtin" if "config" in self.yamlDict else False
-
-
-    def installProducts(self):
-        
-        from common import noneOrMore
-        return noneOrMore( self.yaml("build.install") )
-
-
-    def profile(self):
-        
-        return self.yamlDict.get("profile", True)
-
-
-    def cmd(self):
-        
-        return self.yaml("run.cmd")
-
-
     def runSubdir(self):
         
-        return self.yaml("run.dir", ".")
+        return self._yaml("run.dir", ".")
 
 
-    def numRanks(self):
+    def valid(self):
         
-        return self.yaml("run.ranks", 1)
+        return self.yamlDict is not None;
 
 
-    def numThreads(self):
+    def version(self):
         
-        return self.yaml("run.threads", 1)
+        return self._yaml("info.version", "1.0")
+    
+    
+    def wantProfile(self):
+        return bool(self.profile())
+    
+
+    def yamlErrorMsg(self):
+        
+        return self.yamlMsg
+
+
+    def yamlName(self):
+                
+        return self._yaml("info.name", "<some test>")
     
 
     #-----------------#
@@ -242,6 +239,14 @@ class Test():
             # TODO...
      
         return yaml, msg
+
+    
+    def _yaml(self, keypath=None, default=None):
+        
+        from common import getValueAtKeypath
+        return getValueAtKeypath(self.yamlDict, keypath, default)
+
+
 
 
 
