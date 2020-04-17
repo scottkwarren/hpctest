@@ -195,17 +195,13 @@ class Test():
     
     
     def wantProfile(self):
+        
         return bool(self.profile())
     
 
     def yamlErrorMsg(self):
         
         return self.yamlMsg
-
-
-    def yamlName(self):
-                
-        return self._yaml("info.name", "<some test>")
     
 
     #-----------------#

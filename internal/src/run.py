@@ -67,6 +67,8 @@ class Run(object):
             outPath = ""        # where to put 'hpcrun' measurements file
 
     
+    # METHODS
+    
     def __init__(self, test, config, hpctoolkit, profile, numrepeats, study, wantBatch):
         
         from os.path import basename, join
@@ -205,7 +207,7 @@ class Run(object):
         from common import BadBuildSpec
         
         namespace = "builtin" if self.builtin else "tests"
-        spackString = "{}@{}{}".format(namespace + "." + self.test.yamlName(), self.version, self.config)
+        spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.version, self.config)
         try:
             
             self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
