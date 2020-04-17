@@ -115,6 +115,20 @@ class Executor(object):
         
         return cls.localExecutorClass().isAvailable()
 
+    
+    @classmethod
+    def _checkCmdsAvailable(cls, cmdList):
+        
+        from common import whichDir
+        
+        missing = [cmd for cmd in cmdList if not whichDir(cmd)]
+        if missing:
+            ok, msg = False, ", ".join(missing) + " {} missing".format("are" if len(missing) > 1 else "is")
+        else:
+            ok, msg = True, None
+        
+        return ok, msg
+        
 
     # Registry of available executor subclasses
 
@@ -213,17 +227,18 @@ class Executor(object):
 
     def _shell(self, cmd, env=None, runPath=None, outPath=None):
                
-        import os, subprocess, sys
+        import os, sys
+        from subprocess import Popen, PIPE
         
         try:
             
             path = outPath if outPath else "/dev/stdout"
             with open(path, "w") as output:
                 
-                proc = subprocess.Popen(cmd, shell = True,
-                                        env = env if env else os.environ.copy(),
-                                        cwd = runPath if runPath else os.getcwd(),
-                                        stdout = output, stderr = output)
+                proc = Popen(cmd, shell = True,
+                                  env = env if env else os.environ.copy(),
+                                  cwd = runPath if runPath else os.getcwd(),
+                                  stdout = PIPE, stderr = PIPE)
                 out, err_out = proc.communicate()
                 err = proc.returncode
                 

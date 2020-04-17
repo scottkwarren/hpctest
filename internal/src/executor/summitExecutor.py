@@ -62,6 +62,18 @@ class SummitExecutor(Executor):
     # System inquiries
 
     @classmethod
+    def isAvailable(cls):
+        
+        from common import whichDir
+        import configuration
+        
+        available, msg = Executor._checkCmdsAvailable(["jsrun", "bsub", "bjobs"])
+        available = available or configuration.get("batch.debug.force")
+        
+        return available, msg
+
+
+    @classmethod
     def defaultToBackground(cls):
         
         return True
@@ -95,18 +107,6 @@ class SummitExecutor(Executor):
     
     # Scheduling operations
     
-    @classmethod
-    def isAvailable(cls):
-        
-        from common import whichDir
-        import configuration
-        
-        available = whichDir("jsrun") and whichDir("bsub")
-        available = available or configuration.get("batch.debug.force")
-        
-        return available, "jsrun and bsub are missing"
-
-
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately
@@ -138,11 +138,11 @@ class SummitExecutor(Executor):
     def pollForFinishedJobs(self):
         
         import os, re
-        from common import fatalmsg
+        from common import errormsg, fatalmsg
         
         # ask Summit for all our jobs that are still running
         out, err = self._shell("bjobs") # -UF == "don't format output", makes parsing easier
-        if err: fatalmsg("can't invoke 'bjobs' to poll for unfinished jobs")
+
         # 'out' is a sequence of lines that look like this(see tinyurl.com/tttvygn):
         #
         # % bjobs 
@@ -188,7 +188,7 @@ class SummitExecutor(Executor):
         import textwrap, tempfile
         from common import options, verbosemsg
         
-        # jsrun optiona per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
+        # jsrun options per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
         
         # slurm srun command template
         Summit_run_cmd_template = \
@@ -220,7 +220,7 @@ class SummitExecutor(Executor):
         from os.path import join
         import re
         import common
-        from common import options, verbosemsg, errormsg
+        from common import options, verbosemsg, debugmsg, errormsg
         
         # Summit sbatch command file template
         Summit_batch_file_template = textwrap.dedent(
@@ -266,13 +266,18 @@ class SummitExecutor(Executor):
         # handle output from submit command
         # ... apparently looks like this (see tinyurl.com/wuh7rtg):
         # Job <29209> is submitted to default queue <batch>.
-            # extract job id from 'out'
+        
+        # extract job id from 'out'
         if err:
             jobid = None
         else:
+            # debug dump 'out'
+            debugmsg("bsub output:\n------------\n{}\n------------\n".format(out))
+            
+            # extract job id from 'out'
             jobid = None
             for line in out.splitlines():
-                match = re.match(r".*<([0-9]+)>", line)
+                match = re.match(r".*<([0-9]+)>.*", line)
                 if match:
                     jobid = match.group(1)
                     break

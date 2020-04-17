@@ -64,6 +64,18 @@ class SlurmExecutor(Executor):
     # System inquiries
 
     @classmethod
+    def isAvailable(cls):
+        
+        from common import whichDir
+        import configuration
+        
+        available, msg = Executor._checkCmdsAvailable(["srun", "sbatch", "squeue"])
+        available = available or configuration.get("batch.debug.force")
+        
+        return available, msg
+
+
+    @classmethod
     def defaultToBackground(cls):
         
         return True
@@ -117,15 +129,6 @@ class SlurmExecutor(Executor):
     
     # Scheduling operations
     
-    @classmethod
-    def isAvailable(cls):
-        
-        from common import whichDir
-        available = whichDir("srun") and whichDir("sbatch")
-        available = available or configuration.get("batch.debug.force")
-        return available, "srun and sbatch are missing"
-
-
     def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately
@@ -157,10 +160,12 @@ class SlurmExecutor(Executor):
     def pollForFinishedJobs(self):
         
         import os, re
+        from common import errormsg, fatalmsg
         
         # ask Slurm for all our jobs that are still running
         userid = os.environ["USER"]
         out, err = self._shell("squeue --user={} --noheader".format(userid))
+        if err: fatalmsg("can't invoke 'squeue' to poll for unfinished jobs")
         
         # 'out' is a possibly-empty sequence of lines that look like this:
         # '           278061   commons app--lul  skw0897  R       9:53      1 c1'
@@ -193,60 +198,6 @@ class SlurmExecutor(Executor):
             errormsg("attempt to cancel batch job {} failed".format(jobid))
 
 
-#### UNUSED NOW
-####
-#     def _srun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
-#         
-#         # 'env' arg ignored! What if higher levels need to add to environment??
-# 
-#         from os import getcwd
-#         import textwrap, tempfile
-#         import common
-#         from common import options, verbosemsg
-#         
-#         # slurm srun command template
-#         if common.args["_runOne"]:   # now running nested in a batch script
-#             Slurm_run_cmd_template = textwrap.dedent(
-#                 "srun {options} "
-#                 "     --chdir={runPath} "
-#                 "     {cmd}"
-#                 )
-#         else:
-#             Slurm_run_cmd_template = textwrap.dedent(
-#                 "srun {options} "
-#                 "     --account={account} "
-#                 "     --partition={partition} "
-#                 "     --time={time} "
-#                 "     --exclusive "
-#                 "     --chdir={runPath} "
-#                 "     --ntasks={numRanks} "
-#                 "     --cpus-per-task={numThreads} "
-#                 "     --mail-type=NONE "
-#                 "     {cmd}"
-#                 )
-#     
-#         # template params from configuration
-#         account, partition, time = self._paramsFromConfiguration()
-#     
-#         # prepare slurm command
-#         scommand = Slurm_run_cmd_template.format(
-#             options      = "--verbose" if "debug" in options else "",
-#             account      = account,
-#             partition    = partition,
-#             time         = time,
-#             runPath      = runPath,
-#             numRanks     = numRanks,
-#             numThreads   = numThreads,
-#             cmd          = cmd
-#             )
-#         
-#         # run the command immediately with 'srun'
-#         verbosemsg("Executing via srun:\n{}".format(scommand))
-#         out, err = self._shell(scommand)
-#         
-#         return out, (err if err else 0)
-
-
     def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
         # 'env' is ignored
@@ -256,7 +207,7 @@ class SlurmExecutor(Executor):
         from os.path import join
         import os, re
         import common
-        from common import options, verbosemsg, errormsg
+        from common import options, verbosemsg, debugmsg, errormsg
                 
         # slurm sbatch command file template
         Slurm_batch_file_template = textwrap.dedent(
@@ -306,13 +257,20 @@ class SlurmExecutor(Executor):
         verbosemsg("\n")
         
         # handle output from submit command
+        # ... apparently looks like this (see tinyurl.com/wuh7rtg):
+        # Submitted batch job 5278683
+        
+        # handle output from submit command
         if err:
             jobid = None
         else:
+            # debug dump 'out'
+            debugmsg("sbatch output:\n------------\n{}------------\n".format(out))
+            
             # extract job id from 'out'
             jobid = None
             for line in out.splitlines():
-                match = re.match(r"Submitted .* ([0-9]+)$", line)
+                match = re.match(r".*Submitted .* ([0-9]+).*$", line)
                 if match:
                     jobid = match.group(1)
                     break
