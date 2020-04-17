@@ -254,13 +254,11 @@ class SlurmExecutor(Executor):
         out, err = self._shell(scommand)
         
         verbosemsg("    " + out)
-        verbosemsg("\n")
         
         # handle output from submit command
         # ... apparently looks like this (see tinyurl.com/wuh7rtg):
         # Submitted batch job 5278683
-        
-        # handle output from submit command
+        #
         if err:
             jobid = None
         else:
