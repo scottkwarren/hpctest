@@ -287,7 +287,7 @@ class HPCTest(object):
             if test.builtin(): return
             
             # check if repo has an up-to-date package for the test
-            name = test.yamlName()
+            name = test.name()
             packagePath = join(repopath, "packages", name)
             if exists(packagePath):
                 needPackage = test.hasChanged()
@@ -311,7 +311,7 @@ class HPCTest(object):
         import spackle
         from common import debugmsg, repopath
         
-        testName = test.yamlName()
+        testName = test.name()
         testPath = test.path()
         
         debugmsg("adding package for test {}".format(testPath))
