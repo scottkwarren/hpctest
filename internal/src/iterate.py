@@ -78,6 +78,7 @@ class Iterate():
                     submittedJobs = set()
                     numSubmitted = 0
                     for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
+                        verbosemsg("")
                         jobID, out, err = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
                         if not err:
                             submittedJobs.add(jobID)
@@ -86,6 +87,7 @@ class Iterate():
                         else:
                             errormsg("submit failed for test run {}:\n{}".format(test.description(config, hpctoolkit, profile), out))
                     if numSubmitted > 0:
+                        verbosemsg("")
                         infomsg("done")
                     else:
                         infomsg("no runs submitted")
