@@ -91,12 +91,12 @@ class TestDim(StringDim):
             for elem in (spec if isinstance(spec, list) else [spec]):
                 for testPattern in elem.replace(',', ' ').split():
                     for path in glob( join(testsDir, testPattern.strip()) ):
-                        if Test.isTestDir(path):
+                        if Test.isTestDir(path) and not path.startsWith(testsDir + "/pending"):
                             self.valueList.append(path)
                         else:
                             if "verbose" in options:
                                 relativePath = relpath(path, testsDir)
-                                warnmsg("{} is not a test directory, will be ignored".format(relativePath))
+                                infomsg("{} is not a test directory, will be ignored".format(relativePath))
 
 
     def values(self):
