@@ -260,8 +260,7 @@ class SummitExecutor(Executor):
         
         out, err = self._shell(scommand)
         
-        verbosemsg("    " + out)
-        verbosemsg("\n")
+        verbosemsg("    " + out[:-1])   # don't print trailing newline
         
         # handle output from submit command
         # ... apparently looks like this (see tinyurl.com/wuh7rtg):
