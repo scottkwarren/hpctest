@@ -74,7 +74,7 @@ class TestDim(StringDim):
         return value.replace("/", "--") if forName else value
 
     
-    def __init__(self, spec):
+    def __init__(self, spec, selftest=False):
         # 'spec' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
                 
         from os.path import join, relpath                                                                                                                                                                                            
@@ -87,12 +87,14 @@ class TestDim(StringDim):
             Test.forEachDo( lambda test: self.valueList.append(test.path()) )
         else:
             self.valueList = []
-            testsDir = join(homepath, "tests")
+            testsDir = join(homepath, "tests/selftest" if selftest else "tests")
             for elem in (spec if isinstance(spec, list) else [spec]):
                 for testPattern in elem.replace(',', ' ').split():
                     for path in glob( join(testsDir, testPattern.strip()) ):
-                        if Test.isTestDir(path) and not path.startsWith(testsDir + "/pending"):
-                            self.valueList.append(path)
+                        if Test.isTestDir(path)                                 \
+                            and not path.startswith(testsDir + "/pending")      \
+                            and not path.startswith(testsDir + "/selftest"):
+                                self.valueList.append(path)
                         else:
                             if "verbose" in options:
                                 relativePath = relpath(path, testsDir)

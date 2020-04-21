@@ -103,7 +103,7 @@ class HPCTest(object):
         from report     import Report
         global dimNames, dimDefaultMap, dimClassMap
                 
-        # decode the dict of dimension strings into a complete dict of dimensionss, with default dims for missing dimensions
+        # decode the dict of dimension strings into a complete dict of dimensions, with default dims for missing dimensions
         dims = dict()
         for name in dimNames:
             spec = argDimSpecs[name] if name in argDimSpecs else dimDefaultMap[name]
@@ -202,19 +202,24 @@ class HPCTest(object):
         spackle.do(cmdstring)
 
 
-    def selftest(testspec="all", otherargs="", reportspec="", studyPath=None):
+    def selftest(self, testspec="all", otherargs="", reportspec="", studyPath=None):
         
         import common
-        from study      import Study
-        from iterate    import Iterate
-        from report     import Report
+        from dimension import TestDim
+        from study     import Study
+        from iterate   import Iterate
+        from report    import Report
+        from executor  import Executor
                 
-        infomsg("selftest not implemented")
-        
 #       # run tests, reporting results as we go
-#       study = Study(studyPath if studyPath else common.workpath, prefix="selftest")
-#       xxxxxxxxx
-#       print
+        dims  = {"tests": TestDim(testspec, selftest=True)}
+        study = Study(studyPath if studyPath else common.workpath)
+        Iterate.doForAll(dims, 1, study, Executor.defaultToBackground())
+        print
+            
+        # report results
+        reporter = Report()
+        reporter.printReport(study, reportspec, [])
     
 
     #----------------------------#
