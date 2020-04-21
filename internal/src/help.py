@@ -61,8 +61,7 @@ usage_message = \
 """
 Usage:
   hpctest init
-  hpctest ( build | run | debug ) [options] [TESTS]...
-          [--tests TESTSPEC]
+  hpctest (build | run | debug) [options] ( all | [TESTSPEC...] )
           [--build CONFIGSPEC]
           [--hpctoolkit PATHSPEC]
           [--profile PROFILESPEC]
@@ -81,7 +80,7 @@ Usage:
           [--dependencies]
           [--all]
   hpctest spack [options] COMMAND ...
-  hpctest selftest [options] [TESTS] [--tests TESTSPEC] [--study PATH]
+  hpctest selftest [options] ( all | [TESTSPEC...] ) [--study PATH]
   hpctest _miniapps
   hpctest _runOne [options] ENCODED_ARGS
   hpctest (--help | --version)
@@ -129,7 +128,6 @@ Arguments:
   PROFILESPEC                a sequence of profiling arguments to 'hpcrun'.
   REPORTSPEC                 xxx.
   SORTSPEC                   xxx.
-  TESTS                      xxx.
   TESTSPEC                   xxx.
   WHICHSPEC                  xxx.
 

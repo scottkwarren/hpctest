@@ -101,14 +101,10 @@ def execute(args):
     elif args["build"] or args["run"] or args["debug"]:
         
         dims = OrderedDict()
-        if args["TESTS"]:
-            dims["tests"] = args["TESTS"]
-        if args["--tests"]:
-            if "tests" in dims:
-                errormsg("'--tests' cannot be combined with <tests> positional argument (ignored).")
-            else:
-                dims["tests"] = args["--tests"]
-        if "tests" not in dims: dims["tests"] = "all"
+        if args["all"]:
+            dims["tests"] = "all"
+        else:
+            dims["tests"] = args["TESTSPEC"]
         if args["--build"]:
             dims["build"] = args["--build"]
         if args["--hpctoolkit"]:
@@ -158,15 +154,9 @@ def execute(args):
         
     elif args["selftest"]:
         
-        if args["TESTS"]:
-            testspec = args["TESTS"]
-        if args["--tests"]:
-            if args["TESTS"]:
-                errormsg("'--tests' cannot be combined with <tests> positional argument (ignored).")
-            else:
-                testspec = args["--tests"]
-        studyPath = args["--study"]
-        reportspec = args["--report"] if args["--report"] else "all"
+        testspec   = "all" if args["all"] else args["TESTSPEC"]
+        reportspec = args["--report"] if args["--report"] else ["all"]
+        studyPath  = args["--study"]
         HPCTestOb.selftest(testspec, reportspec, studyPath)
     
     elif args["--help"]:
