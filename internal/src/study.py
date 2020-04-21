@@ -64,7 +64,7 @@ class Study():
 
         if isdir(path) and basename(path).startswith(_prefix):
                 self.path = path
-        elif not exists(path):
+        elif isdir(path):
             timestamp = strftime("%Y-%m-%d--%H-%M-%S")
             self.path = join(path, _prefix + timestamp)
             makedirs(self.path)
