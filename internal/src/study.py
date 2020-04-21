@@ -58,13 +58,13 @@ class Study():
     def __init__(self, path):
         
         from os import makedirs
-        from os.path import basename, isfile, isdir, join 
+        from os.path import basename, exists, isfile, isdir, join 
         from time import strftime
         from common import BadStudyPath
 
         if isdir(path) and basename(path).startswith(_prefix):
                 self.path = path
-        elif not isfile(path):
+        elif not exists(path):
             timestamp = strftime("%Y-%m-%d--%H-%M-%S")
             self.path = join(path, _prefix + timestamp)
             makedirs(self.path)
