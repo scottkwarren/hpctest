@@ -65,6 +65,12 @@ class StringDim(Dimension):
         from common import subclassResponsibility
         subclassResponsibility("StringDim", "default")
         return None
+    
+    
+    @classmethod
+    def defaultDim(cls):
+        
+        return cls(cls.default())
 
 
     @classmethod
