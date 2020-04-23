@@ -202,17 +202,21 @@ class HPCTest(object):
         spackle.do(cmdstring)
 
 
-    def selftest(self, testspec="all", otherargs="", reportspec="", studyPath=None):
+    def selftest(self, testspec="all", reportspec="", studyPath=None):
         
         import common
-        from dimension import TestDim
+        from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
         from study     import Study
         from iterate   import Iterate
         from report    import Report
         from executor  import Executor
                 
 #       # run tests, reporting results as we go
-        dims  = {"tests": TestDim(testspec, selftest=True)}
+        dims  = {"tests":      TestDim(testspec, selftest=True),
+                 "build":      ConfigDim.defaultDim(),
+                 "hpctoolkit": HPCTkitDim.defaultDim(),
+                 "profile":    ProfileDim.defaultDim()
+                }
         study = Study(studyPath if studyPath else common.workpath)
         Iterate.doForAll(dims, 1, study, Executor.defaultToBackground())
         print
