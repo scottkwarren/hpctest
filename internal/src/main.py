@@ -154,7 +154,9 @@ def execute(args):
         
     elif args["selftest"]:
         
-        testspec   = "all" if args["all"] else args["TESTSPEC"]
+        testspec   = "all" if args["all"] else         \
+                      args["TESTSPEC"] if len(args["TESTSPEC"]) else \
+                     "all"
         reportspec = args["--report"] if args["--report"] else ["all"]
         studyPath  = args["--study"]
         HPCTestOb.selftest(testspec, reportspec, studyPath)
