@@ -107,7 +107,7 @@ class HPCTest(object):
         dims = dict()
         for name in dimNames:
             spec = argDimSpecs[name] if name in argDimSpecs else dimDefaultMap[name]
-            dims[name] = dimClassMap[name](spec) if spec else None # TODO: can't be None?
+            dims[name] = dimClassMap[name](spec)
             
         # check preconditions and run tests if ok
         if dims["hpctoolkit"]:      # TODO: shouldn't require an HPCToolkit if no test wants profiling
