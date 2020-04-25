@@ -77,25 +77,27 @@ class TestDim(StringDim):
     def __init__(self, spec, selftest=False):
         # 'spec' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
         
-        import os
         from os.path import join, relpath                                                                                                                                                                                            
         from glob import glob
-        from common import options, homepath, warnmsg
+        from common import options, homepath, infomsg
         from test import Test
                   
-        if spec == "all": spec = "*"
         self.valueList = []
-        testsDir = join(homepath, "tests/selftest" if selftest else "tests")
-
-        for dir, _, _ in os.walk(testsDir, topdown=True):
-            if Test.isTestDir(dir)                                              \
-                and (selftest or not dir.startswith(testsDir + "/selftest"))    \
-                and not dir.startswith(testsDir + "/pending"):
-                    self.valueList.append(dir)
-            else:
-                if "verbose" in options:
-                    relativePath = relpath(dir, testsDir)
-                    infomsg("{} is not a test directory, will be ignored".format(relativePath))
+        if spec == "all":
+            Test.forEachDo( lambda test: self.valueList.append(test.path()) )
+        else:
+            testsDir = join(homepath, "tests/selftest" if selftest else "tests")
+            for elem in (spec if isinstance(spec, list) else [spec]):
+                for testPattern in elem.replace(',', ' ').split():
+                    for path in glob( join(testsDir, testPattern.strip()) ):
+                        if Test.isTestDir(path)                                 \
+                            and (selftest or not path.startswith(testsDir + "/selftest"))    \
+                            and not path.startswith(testsDir + "/pending"):
+                                self.valueList.append(path)
+                        else:
+                            if "verbose" in options:
+                                relativePath = relpath(path, testsDir)
+                                infomsg("{} is not a test directory, will be ignored".format(relativePath))
 
 
     def values(self):
