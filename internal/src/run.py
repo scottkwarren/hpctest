@@ -106,7 +106,7 @@ class Run(object):
         from os.path import join, relpath
         import time
         import common
-        from common import homepath, infomsg, sepmsg
+        from common import args, homepath, infomsg, sepmsg
         from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from experiment import Experiment
         from experiment.profileExperiment import ProfileExperiment
@@ -125,7 +125,8 @@ class Run(object):
             startTime = time.time()
             
             sepmsg(True)
-            infomsg( "running test {}".format(self.description()) )
+            gerund = "running" if args["run"] else "building" if args["build"] else "debugging"
+            infomsg( "{} test {}".format(gerund, self.description()) )
             sepmsg(True)
             
             try:
