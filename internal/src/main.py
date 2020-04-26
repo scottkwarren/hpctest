@@ -89,7 +89,7 @@ def execute(args):
     global HPCTestObm
     from collections import OrderedDict
     from os.path import join
-    from common import options, errormsg, fatalmsg, version
+    from common import options, verbosemsg, errormsg, fatalmsg, version
     from help import help_message
 
     HPCTestOb = HPCTest()      # must come early b/c initializes paths in common.*
@@ -102,6 +102,9 @@ def execute(args):
         
         dims = OrderedDict()
         if args["all"]:
+            dims["tests"] = "all"
+        elif len(args["TESTSPEC"]) == 0:
+            verbosemsg("missing testspec list is taken to mean 'all'")
             dims["tests"] = "all"
         else:
             dims["tests"] = args["TESTSPEC"]
