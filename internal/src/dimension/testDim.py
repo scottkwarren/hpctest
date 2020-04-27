@@ -78,14 +78,13 @@ class TestDim(StringDim):
         # 'spec' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
         
         from os.path import join, relpath                                                                                                                                                                                            
-####    from glob import glob
         from util.glob2 import iglob
         from common import options, homepath, infomsg
         from test import Test
         
         testsPath    = join(homepath, "tests/selftest" if selftest else "tests")
-        selftestPath = testsPath + "/selftest"
-        pendingPath  = testsPath + "/pending"
+        selftestPath = join(testsPath, "selftest")
+        pendingPath  = join(testsPath, "pending")
         self.valueList = []
         
         def appendIf(path):
