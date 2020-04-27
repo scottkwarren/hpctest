@@ -125,8 +125,11 @@ class Run(object):
             startTime = time.time()
             
             sepmsg(True)
-            gerund = "running" if args["run"] else "building" if args["build"] else "debugging"
-            infomsg( "{} test {}".format(gerund, self.description()) )
+            gerundive = "running"   if args["run"]   else \
+                        "building"  if args["build"] else \
+                        "debugging" if args["debug"] else \
+                        "running"   # selftest => running
+            infomsg( "{} test {}".format(gerundive, self.description()) )
             sepmsg(True)
             
             try:
