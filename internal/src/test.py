@@ -131,7 +131,7 @@ class Test():
     def installProducts(self):
         
         from common import noneOrMore
-        return noneOrMore( self._yaml("build.install") )
+        return noneOrMore(self._yaml("build.install")) if isinstance(self._yaml("build"), dict) else []
 
 
     def markUnchanged(self):
@@ -141,7 +141,7 @@ class Test():
         checksumPath = join(self.dir, Test._checksumFilename)
         with open(checksumPath, 'w') as cs:
             cs.write(self._computeChecksum())
-
+    
 
     def name(self):
             
