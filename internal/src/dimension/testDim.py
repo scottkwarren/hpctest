@@ -82,9 +82,11 @@ class TestDim(StringDim):
         from common import options, homepath, infomsg
         from test import Test
         
-        testsPath    = join(homepath, "tests/selftest" if selftest else "tests")
+        testsPath    = join(homepath,  "tests")
         selftestPath = join(testsPath, "selftest")
         pendingPath  = join(testsPath, "pending")
+        chosenTestsPath = selftestPath if selftest else testsPath
+        
         self.valueList = []
         
         def appendIf(path):
@@ -97,7 +99,7 @@ class TestDim(StringDim):
         else:
             for elem in (spec if isinstance(spec, list) else [spec]):
                 for testPattern in elem.replace(',', ' ').split():
-                    for path in iglob( join(testsPath, testPattern.strip()) ):
+                    for path in iglob( join(chosenTestsPath, testPattern.strip()) ):
                         if Test.isTestDir(path):
                             appendIf(path)
                         else:
