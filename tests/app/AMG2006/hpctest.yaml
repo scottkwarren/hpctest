@@ -12,30 +12,6 @@ info:
     AMG2006 is a parallel algebraic multigrid solver for linear systems arising
     from problems on unstructured grids. 
     
-config:
-
-  default variants: [ openmp mpi ]
-  
-  variants:
-  
-    - base: serial
-      description: "Build as a serial program"
-      languages: [ c ]
-      flags:
-        CXXFLAGS: "-g -O2"
-        LDFLAGS:  "-lm"
-        env:
-          - "INCLUDE_CFLAGS = $CFLAGS"
-          - "INCLUDE_LFLAGS = $LDFLAGS"
-        
-    - variant: openmp
-      description: "Build with OpenMP support"
-      flags:
-        +CFLAGS: $OPENMP_FLAG
-        +LDFLAGS: $OPENMP_FLAG
-        env:
-          - "-DHYPRE_USING_OPENMP"
-
 build:
   kind: makefile
   separate: []

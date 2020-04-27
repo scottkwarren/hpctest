@@ -24,33 +24,6 @@ info:
     principal computational kernel to reveal the essential elements of
     the algorithmic-architectural coupling that is pertinent to Nek5000. 
     
-config:
-
-  default variants: [ openmp mpi ]
-  
-  variants:
-    
-    - base: serial
-      description: "Build as a serial program"
-      languages: [ c f90 ]
-      flags:
-        CFLAGS:   "-g -O3"
-        LDFLAGS:  "-g -O3"
-        env:
-          - "-DF77=$F90"    # oddity of nekbone makefile, uses F77 even though wants f90 compiler
-        
-    - variant: openmp
-      description: "Build with OpenMP support"
-      flags:
-        +CFLAGS:   $OPENMP_FLAG
-        +LDFLAGS:  $OPENMP_FLAG
-            
-    - variant: mpi
-      description: "Build with MPI support"
-      languages: [ mpicc mpif77 ]
-      flags:
-        env: "USE_MPI=1"
-
 build:
   kind: command
   cmd: makenek ex1

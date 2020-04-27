@@ -18,38 +18,6 @@ info:
     proxy application in DOE co-design efforts for exascale. It has been ported to a number
     of programming models and optimized for a number of advanced platforms. 
     
-config:
-
-  default variants: [ openmp mpi ]
-    
-  variants:
-    
-    - base: serial
-      description: Build as a serial program
-      languages: [ cxx ]
-      flags:
-        CXXFLAGS: -g -O3
-        LDFLAGS:  -g -O3
-        env:
-          - "-DF77=$F90"
-        
-
-        
-    - variant: openmp
-      description: Build with OpenMP support
-      flags:
-        +CXXFLAGS: $OPENMP_FLAG
-        +LDFLAGS:  $OPENMP_FLAG
-            
-    - variant: mpi
-      description: Build with MPI support
-      languages: [ mpicxx ]
-      flags:
-          env:
-            - -DUSE_MPI=1
-            - MPI_INC = $MPI_INC
-            - MPI_LIB = $MPI_LIB
-
 build:
   kind: makefile
   separate: []

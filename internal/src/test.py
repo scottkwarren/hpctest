@@ -92,7 +92,7 @@ class Test():
 
     def builtin(self):
         
-        return self.yamlDict["config"] == "spack-builtin" if "config" in self.yamlDict else False
+        return self.yamlDict["build"] == "builtin" if "build" in self.yamlDict else False
 
 
     def cmd(self):

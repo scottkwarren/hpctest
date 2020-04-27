@@ -23,7 +23,7 @@ info:
     option to uniformly refine the mesh. Each cell contains a number of variables,
     each of which is evaluated indepently.
 
-config: spack-builtin
+build: builtin
 
 run:
 #   on les:   -nx/y/z:  8 => 8052 cpu sec;  4 => 5700 cpu sec;  2 => 2869 cpu sec
