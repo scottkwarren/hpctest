@@ -14,7 +14,6 @@ info:
     
 build:
   kind: makefile
-  separate: []
   install:
     - test/amg2013
     - test/sstruct.in.AMG.FD

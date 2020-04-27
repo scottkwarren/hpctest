@@ -23,7 +23,6 @@ info:
 build:
   kind: makefile
   makefilename: Makefile.hpctest
-  separate: []
   install: AMGMk
 
 run:

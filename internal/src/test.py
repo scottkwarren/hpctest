@@ -85,11 +85,6 @@ class Test():
             fatalmsg("Test.__init__: dir must be a path to a valid test directory but is not ({})").format(dir)
 
 
-    def buildSeparate(self):
-    
-        return self._yaml("build.separate")
-                         
-
     def builtin(self):
         
         return self.yamlDict["build"] == "builtin" if "build" in self.yamlDict else False
@@ -230,8 +225,6 @@ class Test():
                  yaml["info"]["name"] = basename(self.path())
             if not yaml.get("build"):
                  yaml["build"] = {}
-            if not yaml.get("build").get("separate"):
-                 yaml["build"]["separate"] = []
             # TODO...
      
         return yaml, msg

@@ -242,21 +242,13 @@ class Run(object):
             # src directory -- immutable so just use test's dir
             self.srcdir = self.test.path()
             
-            # build directory -- make new or copy test's dir if not separable-build test
+            # build directory -- copy test's dir if not separable-build test
             self.builddir = join(self.jobdir, "build");
-            separate = self.test.buildSeparate()
-            if "build" in separate:
-                makedirs(self.builddir)
-            else:
-                copytree(self.srcdir, self.builddir)
-                symlink( self.builddir, join(self.jobdir, basename(self.srcdir)) )
+            copytree(self.srcdir, self.builddir)
+            symlink( self.builddir, join(self.jobdir, basename(self.srcdir)) )
                 
-            # run directory - make new or use build dir if not separable-run test
-            if "run" in separate:
-                self.rundir = join(self.jobdir, "run");
-                makedirs(self.rundir)
-            else:
-                self.rundir = self.builddir
+            # run directory - use build dir if not separable-run test
+            self.rundir = self.builddir
                 
         except Exception as e:
             self.output.addSummaryStatus("SETUP FAILED", e.message)

@@ -27,7 +27,6 @@ info:
 build:
   kind: command
   cmd: makenek ex1
-  separate: []
   install:
     - test/example1/nekbone
     - test/example1/data.rea
