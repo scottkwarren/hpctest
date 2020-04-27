@@ -1,0 +1,13 @@
+*.pyc
+/LOCAL_TODO
+
+# distutils/setuptools
+/dist/
+*egg-info
+
+# IDEs
+*.wpr
+/.idea/
+
+# Folder config file
+[Dd]esktop.ini

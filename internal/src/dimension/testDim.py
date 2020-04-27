@@ -78,25 +78,32 @@ class TestDim(StringDim):
         # 'spec' is a comma-separated list of Unix pathname patterns relative to $HPCTEST_HOME/tests
         
         from os.path import join, relpath                                                                                                                                                                                            
-        from glob import glob
+####    from glob import glob
+        from util.glob2 import iglob
         from common import options, homepath, infomsg
         from test import Test
-                  
+        
+        testsPath    = join(homepath, "tests/selftest" if selftest else "tests")
+        selftestPath = testsPath + "/selftest"
+        pendingPath  = testsPath + "/pending"
         self.valueList = []
+        
+        def appendIf(path):
+            if path.startswith(selftestPath) == selftest:
+                if not path.startswith(pendingPath):
+                    self.valueList.append(path)
+
         if spec == "all":
-            Test.forEachDo( lambda test: self.valueList.append(test.path()) )
+            Test.forEachDo( lambda test: appendIf(test.path()) )
         else:
-            testsDir = join(homepath, "tests/selftest" if selftest else "tests")
             for elem in (spec if isinstance(spec, list) else [spec]):
                 for testPattern in elem.replace(',', ' ').split():
-                    for path in glob( join(testsDir, testPattern.strip()) ):
-                        if Test.isTestDir(path)                                 \
-                            and (selftest or not path.startswith(testsDir + "/selftest"))    \
-                            and not path.startswith(testsDir + "/pending"):
-                                self.valueList.append(path)
+                    for path in iglob( join(testsPath, testPattern.strip()) ):
+                        if Test.isTestDir(path):
+                            appendIf(path)
                         else:
                             if "verbose" in options:
-                                relativePath = relpath(path, testsDir)
+                                relativePath = relpath(path, testsPath)
                                 infomsg("{} is not a test directory, will be ignored".format(relativePath))
 
 
