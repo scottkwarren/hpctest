@@ -199,8 +199,6 @@ class Run(object):
             self.output.addSummaryStatus("READING YAML FAILED", self.test.yamlErrorMsg())
             raise BadTestDescription(msg)
         else:
-            self.version = self.test.version()  # TODO: let 'info.version' be missing, and use package default in such cases
-            self.builtin = self.test.builtin()
             self.wantProfiling = self.test.wantProfile()
             self.output.add("input", "wantProfiling", str(self.wantProfiling))
 
@@ -210,8 +208,8 @@ class Run(object):
         import spackle
         from common import BadBuildSpec
         
-        namespace = "builtin" if self.builtin else "tests"
-        spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.version, self.config)
+        namespace = "builtin" if self.test.builtin() else "tests"
+        spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.test.version(), self.config)
         try:
             
             self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
@@ -274,8 +272,8 @@ class Run(object):
             status, msg = "OK", "already built"
             buildTime = 0.0
         else:
-            if not self.builtin:
-                spackle.setDIY(self.package, self.builddir)     # TODO: cf separable vs inseparable builds
+            if not self.test.builtin():
+                spackle.setDIY(self.package, self.builddir)
             
             outPath = self.output.makePath("{}-output.txt", "build")
             filter  = (lambda s: s) if "verbose" in options else (lambda s: None)
