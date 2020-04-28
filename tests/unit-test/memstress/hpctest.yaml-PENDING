@@ -1,0 +1,36 @@
+#=========================================#
+# HPCTest description for memstress       #
+#=========================================#
+
+
+info:
+  name:  memstress
+  version: 1.0
+  description: >
+    This tests that hpcrun doesn't deadlock on malloc() and free().
+    
+    (1) hpcrun -e REALTIME@500 memstress 30 4
+    
+    This runs for 30 seconds, 4 threads, 2000 interrupts per second which is reasonable.
+    This much should work. Succeeds if dlstress terminates normally and prints 'done'.
+    Fails if deadlock or crash.
+    
+    (2) hpcrun -e MEMLEAK memstress 30 4
+    
+    This tests the memleak source. This may or may not work. It's *supposed* to work,
+    but memleak is old and subject to bit rot. Succeeds if dlstress terminates normally
+    and prints 'done'. Fails if deadlock or crash.
+    
+build:
+  kind: makefile
+  install: dlstress
+
+run:
+  cmd:
+  - hpcrun -e REALTIME@500 memstress 30 4
+  - hpcrun -e MEMLEAK memstress 30 4
+  repeat: 3
+
+
+
+

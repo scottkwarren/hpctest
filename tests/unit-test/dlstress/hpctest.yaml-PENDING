@@ -1,0 +1,36 @@
+#=========================================#
+# HPCTest description for dlstress        #
+#=========================================#
+
+
+info:
+  name:  dlstress
+  version: 1.0
+  description: >
+    This tests whether hpcrun deadlocks on dlopen(), dlclose() and optionally dlsym(). 
+    
+    (1) hpcrun -e REALTIME@500 dlstress 30 mult nosym
+    
+    This runs for 30 seconds with a fast rate of interrupts and tests that hpcrun doesn't
+    deadlock with dlopen and dlclose. This much will work today. Succeeds if dlstress
+    terminates normally and prints 'done'. Fails if deadlock or crash.
+
+    (2) hpcrun -e REALTIME@500 dlstress 30 mult nosym
+    
+    This tests dlopen, dlclose and also dlsym. Currently this  ought to work but in fact will
+    deadlock non-deterministically. Succeeds if dlstress terminates normally and prints 'done'.
+    Fails if deadlock or crash.
+    
+build:
+  kind: makefile
+  install: dlstress
+
+run:
+  cmd:
+  - hpcrun -e REALTIME@500 dlstress 30 mult nosym
+  - hpcrun -e REALTIME@500 dlstress 30 mult nosym
+  repeat: 3
+
+
+
+
