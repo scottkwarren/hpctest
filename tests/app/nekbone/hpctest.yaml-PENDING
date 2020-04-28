@@ -33,10 +33,10 @@ build:
     - test/example1/SIZE
 
 run:
-    cmd: nekbone ex1 2
-    dir: test/example1
-    ranks: 2
-    threads: 4
+  cmd: nekbone ex1 2
+  dir: test/example1
+  ranks: 2
+  threads: 4
 
     
 
