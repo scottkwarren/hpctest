@@ -20,7 +20,6 @@ info:
     
 build:
   kind: makefile
-  separate: []
   install: lulesh2.0
 
 run:
