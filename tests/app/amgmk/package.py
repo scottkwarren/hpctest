@@ -18,45 +18,30 @@ class Amgmk(MakefilePackage):
         varies depending on the size of the problem and the specific linear system being solved. 
     """
 
-# from info.homepage and info.url
     homepage = "https://asc.llnl.gov/CORAL-benchmarks/"
     url      = "https://asc.llnl.gov/CORAL-benchmarks/Micro/amgmk-v1.0.tar.gz"
 
-# from info.version
     version('1.0', 'app/amgmk')
-
-# from config.variants[@openmp].{variant,description}, and config.'default variants'
     variant('openmp', description='Build with OpenMP support', default=True)
 
-# boilerplate for config.variants[@base].flags...
     @property
     def build_targets(self):
         targets = []
-        
-## from config.variants[@base].languages
-##    languages: [ cxx ]
         languages = 'CC = {}'.format(spack_cc)
-        
-## from config.variants[@base].flags
         cxxflags = '-g -O3' + ' ' + self.compiler.openmp_flag
         ldflags = cxxflags
-        
-## from config.variants[@openmp].flags
+
         if '+openmp' in self.spec:
             cxxflags += ' ' + self.compiler.openmp_flag
             ldflags  += ' ' + self.compiler.openmp_flag
 
-## from config.makefilename
         targets.append('-f')
         targets.append("Makefile.hpctest")
-        
-# boilerplate closing 'build_targets'
         targets.append(languages)
         targets.append('OFLAGS = {0}'.format(cxxflags))
         targets.append('LDFLAGS = {0}'.format(ldflags))
         return targets
 
-# from build.install
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install('AMGMk', prefix.bin)
