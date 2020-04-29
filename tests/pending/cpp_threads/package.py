@@ -15,7 +15,6 @@ class CppThreads(MakefilePackage):
         targets.append('-f')
         targets.append("Makefile.hpctest")
         targets.append('CXXFLAGS = -std=gnu++11')
-        
         return targets
 
     def install(self, spec, prefix):
