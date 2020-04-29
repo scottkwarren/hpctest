@@ -3,8 +3,8 @@
 #=================================================#
 
 
-# from info.name, info.description, and build.kind
 from spack import *
+
 class Amgmk(MakefilePackage):
     """ This microkernel contains three compute-intensive sections of the larger AMG benchmark.
         Optimizing performance for these three sections will improve the figure of merit of AMG.

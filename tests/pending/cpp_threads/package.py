@@ -5,26 +5,19 @@
 
 from spack import *
 
-
-# from build.kind
 class CppThreads(MakefilePackage):
 
-# from info.name, info.version
     version('1.0', 'unit-tests/cpp_threads')
 
     @property
     def build_targets(self):
         targets = []
-        
-# from build.makefilename
         targets.append('-f')
         targets.append("Makefile.hpctest")
+        targets.append('CXXFLAGS = -std=gnu++11')
         
-# from build.flags
-        targets.append('CXXFLAGS = {0}'.format("-std=gnu++11"))
         return targets
 
-# from build.install
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install('fib', prefix.bin)
