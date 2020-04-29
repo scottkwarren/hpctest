@@ -288,8 +288,8 @@ class Run(object):
                             verbose="verbose" in options,
                             keep_stage=True,        # don't remove source dir for DIY.
                             explicit=True,
-                            dirty=True,             # TODO: cf separable vs inseparable builds
-                            force=False)            # don't install if already installed -- TODO: deal with possibility that src may have changed
+                            dirty=True,
+                            force=False)            # don't install if already installed
                         status, msg = "OK", None
                     except Exception as e:
                         status, msg =  "FAILED", e.message
