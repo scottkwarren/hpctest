@@ -244,18 +244,19 @@ class HPCTest(object):
         debugmsg("_runOne done")
 
         
-#    def miniapps(self):
-#         
-#    from os.path import join
-#    import spack
-#    from spack.repo import Repo
-#    from common import own_spack_home
-#         
-#    # iterate over builtin packages
-#    builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
-#    for name in builtin.packages_with_tags("proxy-app"):
-#        p = builtin.get(name)
-#        print "name: " + p.name, "\n", "  homepage: " + p.homepage, "\n", "  url: " + (p.url if p.url else "None"), "\n"
+    def _miniapps(self):
+         
+        from os.path import join
+        import spack
+        from spack.repo import Repo
+        from common import own_spack_home
+             
+        # iterate over builtin packages
+        builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
+        for name in builtin.packages_with_tags("proxy-app"):
+            p = builtin.get(name)
+            url = p.url if hasattr(p, "url") and p.url else "None"
+            print "name: "+p.name, "\n", "  homepage: "+p.homepage, "\n", "  url: "+url, "\n"
     
     
     #---------------#

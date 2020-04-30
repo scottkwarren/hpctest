@@ -176,7 +176,7 @@ def execute(args):
     
     elif args["_miniapps"]:
         
-            HPCTestOb.miniapps()
+            HPCTestOb._miniapps()
     
         
     elif args["_runOne"]:
