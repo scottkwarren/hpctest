@@ -81,9 +81,11 @@ class SummitExecutor(Executor):
     
     # Programming model support
     
-    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, binPath, numRanks, numThreads, spackMPIBin):
         
-        # 'spackMPIBin' is unused
+        # TODO: USE binPath APPROPRIATELY!!!
+        
+        # spackMPIBin is unused
         # jsrun optiona per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
         
         from os import getcwd
@@ -107,23 +109,23 @@ class SummitExecutor(Executor):
     
     # Scheduling operations
     
-    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately
         
         from common import ExecuteFailed, verbosemsg
         
         verbosemsg("Running this command:\n{}".format(cmd))
-        out, err = self._shell(cmd, env, runPath, outPath)
+        out, err = self._shell(cmd, binPath, runPath, outPath)
         
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._bsub(cmd, env, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = self._bsub(cmd, binPath, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -182,11 +184,13 @@ class SummitExecutor(Executor):
             errormsg("attempt to kill batch job {} failed".format(jobid))
 
 
-    def _jsrun(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns (out, err)
+    def _jsrun(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns (out, err)
         
         from os import getcwd
         import textwrap, tempfile
         from common import options, verbosemsg
+        
+        # TODO: USE binPath APPROPRIATELY!!!
         
         # jsrun options per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
         
@@ -196,8 +200,7 @@ class SummitExecutor(Executor):
     
         # prepare summit command
         scommand = Summit_run_cmd_template.format(
-####        options      = "--verbose" if "debug" in options else ""    # jsrun apparently has no verbose option
-            options      = "",
+            options      = "",          # jsrun apparently has no verbose option
             runPath      = runPath,
             numRanks     = numRanks,
             numThreads   = numThreads,
@@ -211,9 +214,9 @@ class SummitExecutor(Executor):
         return out, (err if err else 0)
 
 
-    def _bsub(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+    def _bsub(self, cmds, binPath, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
-        # 'env' is ignored
+        # TODO: USE binPath APPROPRIATELY!!!
         
         import textwrap, tempfile
         from os import getcwd

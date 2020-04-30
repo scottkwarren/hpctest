@@ -142,7 +142,7 @@ class Executor(object):
 
     # Programming model support
     
-    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, binPath, numRanks, numThreads, spackMPIBin):
         
         # numRanks == 0 means don't use MPI
         # numThreads == 0 means don't use OpenMP
@@ -152,13 +152,13 @@ class Executor(object):
 
     # Scheduling operations
     
-    def run(self, cmd, runDirPath, env, numRanks, numThreads, outPath, description):
+    def run(self, cmd, runDirPath, binPath, numRanks, numThreads, outPath, description):
         
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
 
     
-    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
 
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")
@@ -225,7 +225,7 @@ class Executor(object):
         self.jobDescriptions.pop(job)
 
 
-    def _shell(self, cmd, env=None, runPath=None, outPath=None):
+    def _shell(self, cmd, binPath, runPath=None, outPath=None):
                
         import os, sys
         from subprocess import Popen, PIPE
@@ -235,8 +235,11 @@ class Executor(object):
             path = outPath if outPath else "/dev/stdout"
             with open(path, "w") as output:
                 
+                env = os.environ.copy()
+                env["PATH"] = binPath + ":" + env["PATH"]
+                
                 proc = Popen(cmd, shell = True,
-                                  env = env if env else os.environ.copy(),
+                                  env = env,
                                   cwd = runPath if runPath else os.getcwd(),
                                   stdout = PIPE, stderr = PIPE)
                 out, err_out = proc.communicate()

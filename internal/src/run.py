@@ -298,21 +298,19 @@ class Run(object):
                         
                 buildTime = t.secs
                 
-        self.prefix = self.package.prefix      # prefix path is valid even if package failed to install
-        
         # make alias(es) in build directory to the built product(s)
         products = self.test.installProducts()
         for productRelpath in products:
             productPath = join(self.rundir, productRelpath)
             productName = basename(productPath)
-            productPrefix = join(self.prefix.bin, productName)
+            productPrefix = join(self.package.prefix.bin, productName)
             if not isfile(productPath):
                 os.symlink(productPrefix, productPath)
             
         # save results
         cmd = "cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir())
         os.system(escape(cmd))
-        self.output.add("build", "prefix",     str(self.prefix))
+        self.output.add("build", "prefix",     str(self.package.prefix))
         self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
         self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
@@ -385,7 +383,7 @@ class Run(object):
         
         # compute command to be executed
         # ... start with test's run command
-        env       = os.environ.copy()
+        binPath   = self.package.prefix.bin
         runSubdir = self.test.runSubdir()
         runPath   = join(self.rundir, runSubdir) if runSubdir else self.rundir
         outPath   = self.output.makePath("{}-output.txt", label)
@@ -407,7 +405,7 @@ class Run(object):
             mpipath = None
         
         # ... let executor add code immediately surrounding cmd 
-        cmd = Run.executor.wrap(cmd, runPath, env, ranks, threads, spackMPIBin=mpipath)
+        cmd = Run.executor.wrap(cmd, runPath, binPath, ranks, threads, spackMPIBin=mpipath)
         
         # ... always add timing code
         cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
@@ -423,7 +421,7 @@ class Run(object):
         msg = None  # for cpu-time messaging below
         try:
             
-            Run.executor.run(cmd, runPath, env, ranks, threads, outPath, self.description())
+             Run.executor.run(cmd, runPath, binPath, ranks, threads, outPath, self.description())
                 
         except HPCTestError as e:
             failed, msg = True, str(e)
@@ -592,12 +590,12 @@ class Run(object):
         optString = optionsArgString()
         initArgs  = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne {} '{}'; exit 0".format(homepath, optString, initArgs)
-        env = os.environ.copy()
+        binPath   = self.package.prefix.bin
         numRanks = test.numRanks()
         numThreads = test.numThreads()
         name = test.name()
         desc = test.description(config, hpctoolkit, profile, forName=False)
-        jobID, out, err = Run.executor.submitJob(cmd, env, numRanks, numThreads, None, name, desc)
+        jobID, out, err = Run.executor.submitJob(cmd, binPath, numRanks, numThreads, None, name, desc)
         
         return jobID, out, err
     

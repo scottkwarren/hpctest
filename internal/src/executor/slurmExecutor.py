@@ -83,9 +83,9 @@ class SlurmExecutor(Executor):
     
     # Programming model support
     
-    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, binPath, numRanks, numThreads, spackMPIBin):
         
-        # 'spackMPIBin' is unused
+        # binPath and spackMPIBin are unused
         
         from common import args, options
         
@@ -129,23 +129,23 @@ class SlurmExecutor(Executor):
     
     # Scheduling operations
     
-    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description): # returns nothing, raises
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately
         
         from common import ExecuteFailed, verbosemsg
         
         verbosemsg("Running this command:\n{}".format(cmd))
-        out, err = self._shell(cmd, env, runPath, outPath)
+        out, err = self._shell(cmd, binPath, runPath, outPath)
         
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._sbatch(cmd, env, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = self._sbatch(cmd, binPath, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -198,9 +198,9 @@ class SlurmExecutor(Executor):
             errormsg("attempt to cancel batch job {} failed".format(jobid))
 
 
-    def _sbatch(self, cmds, env, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+    def _sbatch(self, cmds, binPath, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
-        # 'env' is ignored
+        # TODO: USE binPath APPROPRIATELY!!!
         
         import textwrap, tempfile
         from os import getcwd

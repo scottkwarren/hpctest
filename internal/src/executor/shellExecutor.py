@@ -69,7 +69,7 @@ class ShellExecutor(Executor):
 
     # Programming model support
     
-    def wrap(self, cmd, runPath, env, numRanks, numThreads, spackMPIBin):
+    def wrap(self, cmd, runPath, binPath, numRanks, numThreads, spackMPIBin):
         
         if numRanks:
             cmd = "{}/mpirun -np {} {}".format(spackMPIBin, numRanks, cmd)
@@ -85,12 +85,14 @@ class ShellExecutor(Executor):
         return available, "bash is missing"
 
     
-    def run(self, cmd, runPath, env, numRanks, numThreads, outPath, description):   # returns nothing, raises
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description):   # returns nothing, raises
         
         import os, sys
         from subprocess import check_call, CalledProcessError
         from common import ExecuteFailed
            
+        env = os.environ.copy()
+        env["PATH"] = binPath + ":" + env["PATH"]
         env["OMP_NUM_THREADS"] = str(numThreads)
         try:
                
@@ -114,18 +116,18 @@ class ShellExecutor(Executor):
                 os.chdir(oldwd)
 
     
-    def submitJob(self, cmd, env, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         import os
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
         
-        currentEnv = os.environ.copy()
-        currentEnv["PATH"] = env["PATH"] + ":" + currentEnv["PATH"]
+        env = os.environ.copy()
+        env["PATH"] = binPath + ":" + env["PATH"]
         err = 0
         try:
             
-            process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=currentEnv)
+            process = Popen(cmd, shell=True, stdin=None, stdout=outPath, env=env)
             out     = ""
             err     = process.returncode
 

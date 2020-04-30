@@ -69,7 +69,7 @@ class Experiment(object):
         self.wantMPI    = wantMPI
         self.wantOMP    = wantOMP
  
-        self.absCmd     = join(self.prefixBin, cmd)
+        self.cmd        = cmd                          ## DEBUG: TRY W/O PREFIX PATH
         self.exeName    = cmd.split()[0]
        
 #         self.config            = config         # Spack spec for desired build configuration
@@ -105,7 +105,7 @@ class Experiment(object):
         from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
 
         # (1) execute test case without profiling
-        normalTime, normalFailMsg = self.runOb.execute(self.absCmd, ["run"], "normal", self.wantMPI, self.wantOMP)
+        normalTime, normalFailMsg = self.runOb.execute(self.cmd, ["run"], "normal", self.wantMPI, self.wantOMP)
         
         # if requested, do complete HPCTkit profiling pipeline
         if self.wantProfiling:
@@ -114,7 +114,7 @@ class Experiment(object):
             runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
 
             runCmd = "{}/hpcrun -o {} -t {} {}" \
-                .format(self.hpctoolkitBinPath, runOutpath, self.hpcrunParams, self.absCmd)
+                .format(self.hpctoolkitBinPath, runOutpath, self.hpcrunParams, self.cmd)
             profiledTime, profiledFailMsg = self.runOb.execute(runCmd, ["run"], "profiled", self.wantMPI, self.wantOMP)
             self._checkHpcrunExecution(runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg)
             
