@@ -322,7 +322,8 @@ parse_args(int argc, char **argv)
     mult_thread = 1;
     do_dlsym = 1;
 
-    for (int k = 1; k < argc; k++) {
+    int k;
+    for (k = 1; k < argc; k++) {
 	if (isdigit(argv[k][0])) {
 	    program_time = atoi(argv[k]);
 	}

@@ -407,12 +407,12 @@ class Run(object):
         # ... let executor add code immediately surrounding cmd 
         cmd = Run.executor.wrap(cmd, runPath, binPath, ranks, threads, spackMPIBin=mpipath)
         
-        # ... always add timing code
-        cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
-        
         # ... always add resource limiting code
         limitstring = self._makeLimitString()
         cmd = "/bin/bash -c \"ulimit {}; {}\" ".format(limitstring, escape(cmd))
+        
+        # ... always add timing code
+        cmd = "/usr/bin/time -f \"%e %S %U\" -o {} {}".format(timePath, cmd)
         
         self.output.add(label, "command", cmd, subroot=subroot)
             

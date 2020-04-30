@@ -170,9 +170,7 @@ def escape(s):
 
     return s.replace('\\', '\\\\')  \
             .replace("'", "\\'")    \
-            .replace('"', '\\"')    \
-            .replace(',', '\\,')    \
-            .replace(';', '\\;')
+            .replace('"', '\\"')
     
 
 # Stack traceback
