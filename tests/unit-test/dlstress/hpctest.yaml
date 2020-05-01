@@ -21,6 +21,9 @@ info:
     deadlock non-deterministically. Succeeds if dlstress terminates normally and prints 'done'.
     Fails if deadlock or crash.
     
+    If this test fails, it will fail non-deterministically. To stress it further,
+    Mark suggests running it multiple times rather than for a longer time.
+    
 build:
   kind: makefile
   install: dlstress
