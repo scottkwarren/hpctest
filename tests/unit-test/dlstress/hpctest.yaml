@@ -15,7 +15,7 @@ info:
     deadlock with dlopen and dlclose. This much will work today. Succeeds if dlstress
     terminates normally and prints 'done'. Fails if deadlock or crash.
 
-    (2) hpcrun -e REALTIME@500 dlstress 30 mult nosym
+    (2) hpcrun -e REALTIME@500 dlstress 30 mult
     
     This tests dlopen, dlclose and also dlsym. Currently this  ought to work but in fact will
     deadlock non-deterministically. Succeeds if dlstress terminates normally and prints 'done'.
@@ -29,7 +29,9 @@ build:
   install: dlstress
 
 run:
-  cmd: for k in {1..3}; do hpcrun -e REALTIME@500 dlstress 30 mult nosym; done
+  cmd: >
+     for k in {1..3}; do hpcrun -e REALTIME@500 dlstress 30 mult nosym; done;
+     for k in {1..3}; do hpcrun -e REALTIME@500 dlstress 30 mult; done
 
 profile: no
 
