@@ -29,7 +29,9 @@ build:
   install: memstress
 
 run:
-  cmd: for k in {1..3}; do hpcrun -e REALTIME@500 memstress 30 4; done
+  cmd: >
+     for k in {1..3}; do hpcrun -e REALTIME@500 memstress 30 4; done;
+     for k in {1..3}; do hpcrun -e MEMLEAK memstress 30 4; done
 
 profile: no
 
