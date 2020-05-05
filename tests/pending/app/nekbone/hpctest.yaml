@@ -1,0 +1,42 @@
+#=========================================#
+# HPCTest description for Nekbone         #
+#=========================================#
+
+
+info:
+  name:  nekbone
+  version: 17.0  # must match ~spack/var/spack/repos/builtin/packages/nekbone/package.py
+  homepage: https://github.com/Nek5000/Nekbone
+  url: https://github.com/Nek5000/Nekbone/archive/v17.0.tar.gz
+  description: >
+    Nekbone is captures the basic structure and user interface of the
+    extensive Nek5000 software. Nek5000 is a high order, incompressible
+    Navier-Stokes solver based on the spectral element method. It has
+    a wide range of applications and intricate customizations available
+    to users. Nekbone, on the other hand, solves a Helmholtz equation
+    in a box, using the spectral element method. It is pared down to
+    include only the necessary features to compile, run, and solve the
+    applications found in the test/ directory. Since almost all practical
+    applications are in the three dimensional space, the solver is
+    set to work with three dimensional geometries as default. Nekbone
+    solves a standard Poisson equation using a conjugate gradient iteration
+    with a simple preconditioner on a block or linear geometry (set
+    within the test directory of the simulation). Nekbone exposes the
+    principal computational kernel to reveal the essential elements of
+    the algorithmic-architectural coupling that is pertinent to Nek5000. 
+
+build:
+  kind: builtin
+#   install:
+#     - test/example1/nekbone
+#     - test/example1/data.rea
+#     - test/example1/SIZE
+
+run:
+  cmd: nekbone ex1 2
+  dir: test/example1
+  ranks: 2
+  threads: 4
+
+
+
