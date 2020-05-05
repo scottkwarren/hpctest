@@ -190,8 +190,6 @@ class SummitExecutor(Executor):
         import textwrap, tempfile
         from common import options, verbosemsg
         
-        # TODO: USE binPath APPROPRIATELY!!!
-        
         # jsrun options per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
         
         # slurm srun command template

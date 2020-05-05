@@ -94,6 +94,7 @@ class ShellExecutor(Executor):
         env = os.environ.copy()
         env["PATH"] = binPath + ":" + env["PATH"]
         env["OMP_NUM_THREADS"] = str(numThreads)
+        
         try:
                
             if runPath:

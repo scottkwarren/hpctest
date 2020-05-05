@@ -131,7 +131,7 @@ class SlurmExecutor(Executor):
     
     def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
         
-        # assumes that 'cmd' has been "wrapped" appropriately
+        # assumes that 'cmd' has been "wrapped" appropriately, handling i.a. 'numRanks' and 'numThreads'
         
         from common import ExecuteFailed, verbosemsg
         
