@@ -87,7 +87,7 @@ class Test():
 
     def builtin(self):
         
-        return self.yamlDict["build"] == "builtin" if "build" in self.yamlDict else False
+         return self._yaml("build") == "builtin" or self._yaml("build.kind") == "builtin"
 
 
     def cmd(self):
