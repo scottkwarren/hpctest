@@ -27,10 +27,10 @@ info:
 
 build:
   kind: builtin
-#   install:
-#     - test/example1/nekbone
-#     - test/example1/data.rea
-#     - test/example1/SIZE
+  install:
+    - test/example1/nekbone
+    - test/example1/data.rea
+    - test/example1/SIZE
 
 run:
   cmd: nekbone ex1 2
