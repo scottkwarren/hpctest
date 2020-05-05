@@ -225,7 +225,7 @@ class Executor(object):
         self.jobDescriptions.pop(job)
 
 
-    def _shell(self, cmd, binPath, runPath=None, outPath=None):
+    def _shell(self, cmd, binPath=None, runPath=None, outPath=None):
                
         import os, sys
         from subprocess import Popen, PIPE
@@ -236,7 +236,8 @@ class Executor(object):
             with open(path, "w") as output:
                 
                 env = os.environ.copy()
-                env["PATH"] = binPath + ":" + env["PATH"]
+                if binPath:
+                    env["PATH"] = binPath + ":" + env["PATH"]
                 
                 proc = Popen(cmd, shell = True,
                                   env = env,
