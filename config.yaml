@@ -40,7 +40,7 @@ profile:
 #   path: ~/hpctoolkit/INSTALL/
 #    
 #   -- profiling params to use when none are specified on hpctest command line
-#   -- if none are given here, ("REALTIME@10000", "", "") will be used in that case
+#   -- if none are given here, ("REALTIME@10000", "", "") will be used
 #   hpcrun params:     "PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO"
 #   hpcstruct params:  ""  
 #   hpcprof params:    "--force-metric"  
