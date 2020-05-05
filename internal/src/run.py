@@ -193,7 +193,8 @@ class Run(object):
 
         from common import BadTestDescription
         
-        if self.test.yamlErrorMsg():
+        msg = self.test.yamlErrorMsg()
+        if msg:
             self.wantProfiling = False  # trouble later if missing
             self.output.add("input", "wantProfiling", "False")
             self.output.addSummaryStatus("READING YAML FAILED", self.test.yamlErrorMsg())
