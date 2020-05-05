@@ -141,11 +141,11 @@ class SlurmExecutor(Executor):
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._sbatch(cmd, binPath, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = self._sbatch(cmd, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -198,9 +198,7 @@ class SlurmExecutor(Executor):
             errormsg("attempt to cancel batch job {} failed".format(jobid))
 
 
-    def _sbatch(self, cmds, binPath, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
-        
-        # TODO: USE binPath APPROPRIATELY!!!
+    def _sbatch(self, cmds, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
         import textwrap, tempfile
         from os import getcwd

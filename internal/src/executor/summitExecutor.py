@@ -121,11 +121,11 @@ class SummitExecutor(Executor):
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._bsub(cmd, binPath, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = self._bsub(cmd, numRanks, numThreads, outPath, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -212,9 +212,7 @@ class SummitExecutor(Executor):
         return out, (err if err else 0)
 
 
-    def _bsub(self, cmds, binPath, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
-        
-        # TODO: USE binPath APPROPRIATELY!!!
+    def _bsub(self, cmds, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
         
         import textwrap, tempfile
         from os import getcwd

@@ -117,14 +117,13 @@ class ShellExecutor(Executor):
                 os.chdir(oldwd)
 
     
-    def submitJob(self, cmd, binPath, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
         
         import os
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
         
         env = os.environ.copy()
-        env["PATH"] = binPath + ":" + env["PATH"]
         err = 0
         try:
             
