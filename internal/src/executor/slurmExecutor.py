@@ -116,7 +116,7 @@ class SlurmExecutor(Executor):
             partition    = partition,
             time         = time,
             numRanks     = numRanks if numRanks > 0 else 1,
-            numThreads   = numThreads,
+            numThreads   = numThreads if numThreads > 0 else 1,
             cmd          = cmd
             )
 

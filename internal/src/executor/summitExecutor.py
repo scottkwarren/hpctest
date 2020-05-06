@@ -100,7 +100,7 @@ class SummitExecutor(Executor):
         jsrunCmd = template.format(
             options      = "",          # or "--verbose" if "debug" in options else "", but jsrun apparently has no verbose option
             numRanks     = numRanks if numRanks > 0 else 1,
-            numThreads   = numThreads,
+            numThreads   = numThreads if numThreads > 0 else 1,
             cmd          = cmd
             )
         
