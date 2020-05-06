@@ -108,40 +108,43 @@ class Experiment(object):
         normalTime, normalFailMsg = self.runOb.execute(self.cmd, ["run"], "normal", self.wantMPI, self.wantOMP)
         
         # if requested, do complete HPCTkit profiling pipeline
-        if self.wantProfiling:
+        if self.wantProfiling and not normalFailMsg:
             
-            # (2) execute test case with profiling
-            runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
-
-            runCmd = "{}/hpcrun -o {} -t {} {}" \
-                .format(self.hpctoolkitBinPath, runOutpath, self.hpcrunParams, self.cmd)
-            profiledTime, profiledFailMsg = self.runOb.execute(runCmd, ["run"], "profiled", self.wantMPI, self.wantOMP)
-            self._checkHpcrunExecution(runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg)
+                # (2) execute test case with profiling
+                runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
+    
+                runCmd = "{}/hpcrun -o {} -t {} {}" \
+                    .format(self.hpctoolkitBinPath, runOutpath, self.hpcrunParams, self.cmd)
+                profiledTime, profiledFailMsg = self.runOb.execute(runCmd, ["run"], "profiled", self.wantMPI, self.wantOMP)
+                self._checkHpcrunExecution(runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg)
+                
+                if "verbose" in options: sepmsg()
+                
+                # (3) run hpcstruct on test executable
+                structOutpath = self.output.makePath("{}.hpcstruct".format(self.exeName))
+                structCmd = "{}/hpcstruct -o {} {} -I {} {}" \
+                    .format(self.hpctoolkitBinPath, structOutpath, self.hpcstructParams, self.testIncs, join(self.prefixBin, self.exeName))
+                structTime, structFailMsg = self.runOb.execute(structCmd, ["run", "profiled"], "hpcstruct", False, False)
+                self._checkHpcstructExecution(structTime, structFailMsg, structOutpath)
             
-            if "verbose" in options: sepmsg()
-            
-            # (3) run hpcstruct on test executable
-            structOutpath = self.output.makePath("{}.hpcstruct".format(self.exeName))
-            structCmd = "{}/hpcstruct -o {} {} -I {} {}" \
-                .format(self.hpctoolkitBinPath, structOutpath, self.hpcstructParams, self.testIncs, join(self.prefixBin, self.exeName))
-            structTime, structFailMsg = self.runOb.execute(structCmd, ["run", "profiled"], "hpcstruct", False, False)
-            self._checkHpcstructExecution(structTime, structFailMsg, structOutpath)
-        
-            # (4) run hpcprof on test measurements
-            if profiledFailMsg or structFailMsg:
-                infomsg("hpcprof not run due to previous failure")
-            else:
-                profOutpath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
-                profCmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
-                    .format(self.hpctoolkitBinPath, profOutpath, structOutpath, self.hpcprofParams, self.testIncs, runOutpath)
-                profTime, profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
-                self._checkHpcprofExecution(profTime, profFailMsg, profOutpath)
-            
-            # (5) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
-            #           -- complicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
+                # (4) run hpcprof on test measurements
+                if profiledFailMsg or structFailMsg:
+                    infomsg("hpcprof not run due to previous failure")
+                else:
+                    profOutpath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
+                    profCmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
+                        .format(self.hpctoolkitBinPath, profOutpath, structOutpath, self.hpcprofParams, self.testIncs, runOutpath)
+                    profTime, profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
+                    self._checkHpcprofExecution(profTime, profFailMsg, profOutpath)
+                
+                # (5) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
+                #           -- complicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
                 
         else:
-            verbosemsg("profiling is disabled by hpctest.yaml")
+            if normalFailMsg:
+                infomsg("profiling not done due to previous failure")
+            else:
+                verbosemsg("profiling is disabled by hpctest.yaml")
             profiledTime, profiledFailMsg = 0.0, None
             structTime,   structFailMsg   = 0.0, None
             profTime, profFailMsg         = 0.0, None
