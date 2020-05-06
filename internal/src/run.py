@@ -379,7 +379,7 @@ class Run(object):
         from subprocess import CalledProcessError
         from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
         from common import HPCTestError, ExecuteFailed
-        from configuration import currentConfig
+        import configuration
         from run import Run
         
         # compute command to be executed
@@ -390,6 +390,8 @@ class Run(object):
         outPath   = self.output.makePath("{}-output.txt", label)
         timePath  = self.output.makePath("{}-time.txt", label)
 
+        # get the test's prelude commands if any
+        prelude = configuration.get("config.batch.prelude", [])
 
         # ... OpenMP parameters if wanted
         if openmp:
@@ -422,7 +424,7 @@ class Run(object):
         msg = None  # for cpu-time messaging below
         try:
             
-             Run.executor.run(cmd, runPath, binPath, ranks, threads, outPath, self.description())
+             Run.executor.run(cmd, prelude, runPath, binPath, ranks, threads, outPath, self.description())
                 
         except HPCTestError as e:
             failed, msg = True, str(e)

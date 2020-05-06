@@ -109,12 +109,18 @@ class SummitExecutor(Executor):
     
     # Scheduling operations
     
-    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
+    def run(self, cmd, prelude, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately
         
         from common import ExecuteFailed
         
+        # run the prelude commands if any
+        if type(prelude) is not list: prelude = [prelude]
+        for pcmd in prelude:
+            _, err = self._shell(pcmd, None, runPath, outPath)
+            if err: raise ExecuteFailed(out, err)
+    
         # run the specified command
         out, err = self._shell(cmd, binPath, runPath, outPath)
         

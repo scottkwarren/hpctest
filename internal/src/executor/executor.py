@@ -152,7 +152,7 @@ class Executor(object):
 
     # Scheduling operations
     
-    def run(self, cmd, runDirPath, binPath, numRanks, numThreads, outPath, description):
+    def run(self, cmd, prelude, runPath, binPath, numRanks, numThreads, outPath, description):
         
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
