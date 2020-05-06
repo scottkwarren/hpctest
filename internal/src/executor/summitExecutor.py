@@ -113,19 +113,19 @@ class SummitExecutor(Executor):
         
         # assumes that 'cmd' has been "wrapped" appropriately
         
-        from common import ExecuteFailed, verbosemsg
+        from common import ExecuteFailed
         
-        verbosemsg("Running this command:\n{}".format(cmd))
+        # run the specified command
         out, err = self._shell(cmd, binPath, runPath, outPath)
         
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, numRanks, numThreads, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._bsub(cmd, numRanks, numThreads, outPath, name, description)
+        jobid, out, err = self._bsub(cmd, numRanks, numThreads, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -212,7 +212,7 @@ class SummitExecutor(Executor):
         return out, (err if err else 0)
 
 
-    def _bsub(self, cmds, numRanks, numThreads, outPath, name, description): # returns (jobid, out, err)
+    def _bsub(self, cmds, numRanks, numThreads, name, description): # returns (jobid, out, err)
         
         import textwrap, tempfile
         from os import getcwd

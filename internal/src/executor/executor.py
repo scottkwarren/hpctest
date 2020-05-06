@@ -158,7 +158,7 @@ class Executor(object):
         subclassResponsibility("Executor", "run")
 
     
-    def submitJob(self, cmd, numRanks, numThreads, outPath, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, numRanks, numThreads, name, description):   # returns jobID, out, err
 
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")

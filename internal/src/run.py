@@ -606,7 +606,7 @@ class Run(object):
         numThreads = test.numThreads()
         name = test.name()
         desc = test.description(config, hpctoolkit, profile, forName=False)
-        jobID, out, err = Run.executor.submitJob(cmd, numRanks, numThreads, None, name, desc)
+        jobID, out, err = Run.executor.submitJob(cmd, numRanks, numThreads, name, desc)
         
         return jobID, out, err
     
