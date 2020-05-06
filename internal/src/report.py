@@ -125,7 +125,10 @@ class Report():
                 
                 # format for display -- line 2
                 info = self.extractRunInfo(result)
-                if info.extractRunInfoMsg:
+                if info.status != "OK":
+                    line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
+                    line2 += " " * (tableWidth - len(line2) - 1) + "|"
+                elif info.extractRunInfoMsg:
                     line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.extractRunInfoMsg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 elif info.wantProfiling and info.status == "OK":    
@@ -140,7 +143,7 @@ class Report():
                 else:
                     line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
-    
+
                 # print run's summary
                 sepmsg(tableWidth)
                 print line1
