@@ -532,6 +532,19 @@ class Run(object):
 
 
     @classmethod
+    def checkDirExists(cls, description, path):
+
+        from os.path import isdir
+
+        if isdir(path):
+            msg = None
+        else:
+            msg = "no {} was produced".format(description)
+        
+        return msg
+
+
+    @classmethod
     def checkFileExists(cls, description, path):
 
         from os.path import isfile
@@ -542,8 +555,6 @@ class Run(object):
             msg = "no {} was produced".format(description)
         
         return msg
-
-
 
 
     @classmethod
@@ -564,7 +575,7 @@ class Run(object):
                 n = len(lines)
                 plural = "s are" if n > 1 else " is"
                 if n < minLen:                                        msg = "{} is too short ({} < {})".format(description, n, minLen)
-                elif lines[-len(goodFirstLines):] != goodFirstLines:  msg = "{}'s first line{} invalid".format(description, plural)
+                elif lines[0:len(goodFirstLines)] != goodFirstLines:  msg = "{}'s first line{} invalid".format(description, plural)
                 elif lines[-len(goodLastLines): ] != goodLastLines:   msg = "{}'s first line{} invalid".format(description, plural)
                 else:                                                 msg = None
                 

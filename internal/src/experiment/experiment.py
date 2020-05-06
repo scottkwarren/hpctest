@@ -249,7 +249,11 @@ class Experiment(object):
         if structFailMsg:
             msg = structFailMsg
         else:
-            msg = self.runOb.checkTextFile("structure file", structOutpath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
+            first = ['<?xml version="1.0"?>\n',
+                     '<!DOCTYPE HPCToolkitStructure [\n']
+            last  = ['</LM>\n',
+                     '</HPCToolkitStructure>\n']
+            msg   = self.runOb.checkTextFile("structure file", structOutpath, 66, first, last)
             
         self.output.add("run", "hpcstruct", "output checks", "FAILED" if msg else "OK")
         self.output.add("run", "hpcstruct", "output msg",    msg)
@@ -257,13 +261,21 @@ class Experiment(object):
 
     def _checkHpcprofExecution(self, profTime, profFailMsg, profOutpath):
         
+        from os.path import join
         from run import Run
         from common import infomsg
 
         if profFailMsg:
             msg = profFailMsg
         else:
-            msg = self.runOb.checkTextFile("performance db", profOutpath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
+            msg = self.runOb.checkDirExists("performance db", profOutpath)
+            if not msg:
+                path  = join(profOutpath, "experiment.xml")
+                first = ['<?xml version="1.0"?>\n',
+                         '<!DOCTYPE HPCToolkitExperiment [\n']
+                last  = ['</SecCallPathProfile>\n',
+                         '</HPCToolkitExperiment>\n']
+                msg   = self.runOb.checkTextFile("experiment file", path, 66, first, last)
             
         self.output.add("run", "hpcprof", "output checks", "FAILED" if msg else "OK")
         self.output.add("run", "hpcprof", "output msg",    msg)
