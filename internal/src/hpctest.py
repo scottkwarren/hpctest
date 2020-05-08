@@ -363,7 +363,9 @@ class HPCTest(object):
 #########################
 
 
-from common import infomsg
+from os.path import isfile
+from shutil import copyfile
+from common import infomsg, errormsg
 
 
 # (1) establish preconditions for initializing the config system...
@@ -407,6 +409,13 @@ if not isdir(common.own_spack_home):
 spackle.initSpack()
 
 # (2) now we can set up configuration system so configs can specify important paths
+configpath = join(common.homepath, "config.yaml")
+if not isfile(configpath):
+    defaultpath = join(_internalpath, "src", "config-data", "config-default.yaml")
+    try:
+        copyfile(defaultpath, configpath)
+    except Exception as e:
+        errormsg("config.yaml is missing and can't be created with defaults: {}".format(str(e)))
 configuration.initConfig()
 
 # (3) finally we can initialize important user-visible paths, possibly from config settings
@@ -418,7 +427,7 @@ common.testspath     = join(common.homepath, "tests")
 common.repopath      = join(_internalpath, "repos", "tests")
 common.workpath      = join(common.homepath, "work")
 if not isdir(common.workpath): makedirs(common.workpath)
-    
+
 # set up private repo
 HPCTest._ensureRepo()
 

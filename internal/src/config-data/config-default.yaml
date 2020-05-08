@@ -1,95 +1,51 @@
 ################################################################################
 #                                                                              #
-#  config-default.yaml                                                         #
-#  built in configuration settings (lowest priority settings)                  #
-#                                                                              #
-#  $HeadURL$                                                                   #
-#  $Id$                                                                        #
-#                                                                              #
-#  --------------------------------------------------------------------------- #
-#  Part of HPCToolkit (hpctoolkit.org)                                         #
-#                                                                              #
-#  Information about sources of support for research and development of        #
-#  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
-#  --------------------------------------------------------------------------- #
-#                                                                              #
-#  Copyright ((c)) 2002-2019, Rice University                                  #
-#  All rights reserved.                                                        #
-#                                                                              #
-#  Redistribution and use in source and binary forms, with or without          #
-#  modification, are permitted provided that the following conditions are      #
-#  met:                                                                        #
-#                                                                              #
-#  * Redistributions of source code must retain the above copyright            #
-#    notice, this list of conditions and the following disclaimer.             #
-#                                                                              #
-#  * Redistributions in binary form must reproduce the above copyright         #
-#    notice, this list of conditions and the following disclaimer in the       #
-#    documentation and/or other materials provided with the distribution.      #
-#                                                                              #
-#  * Neither the name of Rice University (RICE) nor the names of its           #
-#    contributors may be used to endorse or promote products derived from      #
-#    this software without specific prior written permission.                  #
-#                                                                              #
-#  This software is provided by RICE and contributors "as is" and any          #
-#  express or implied warranties, including, but not limited to, the           #
-#  implied warranties of merchantability and fitness for a particular          #
-#  purpose are disclaimed. In no event shall RICE or contributors be           #
-#  liable for any direct, indirect, incidental, special, exemplary, or         #
-#  consequential damages (including, but not limited to, procurement of        #
-#  substitute goods or services; loss of use, data, or profits; or             #
-#  business interruption) however caused and on any theory of liability,       #
-#  whether in contract, strict liability, or tort (including negligence        #
-#  or otherwise) arising in any way out of the use of this software, even      #
-#  if advised of the possibility of such damage.                               #
+# Example local config settings to customize this HPCTest installation.        #
+# These override the builtin settings in                                       #
+#       internal/src/config-data/config-builtin.yaml                           #
+# Edit as needed.                                                              #
 #                                                                              #
 ################################################################################
-
-
-################################################################################
-# These config settings are used when no user-specified setting is given.      #
-# A 'null' value indicates "no setting" in any hpctest config file.            #
-################################################################################
-
+   
 
 config:
-# batch: null
-#   default: false
-#   force: null
-#   manager: null
-#   params:
-#     account: null
-#     partition: null
-#     time: Null
+  batch:
+#-- default is 'manager: null', which runs jobs at the shell command line
+#-- other 'batch' options are manager-dependent
+#
+#-- Slurm batch manager
+#     manager: Slurm
+#     params:
+#       account:   myaccount
+#       partition: mypartition
+#       time:      "5:00"      # 5 min (time given in seconds)
+#
+#-- Summit batch manager (custom version of LSF)
+#     manager: Summit
+#     params:
+#       project:   myproject
+#       time:      "0:05"      # 5 min (time given in minutes)
+#     prelude: module unload darshan-runtime
+#
+#-- debugging options
+#     debug:
+#       force: True   # ignore executor's check for availability
 
-build:
-  compiler: "%gcc"  # Spack spec
-  
 run:
-  ulimit:
-    c:  200K        # core file size          (blocks, -c) 0
-    d:  2M          # data seg size           (kbytes, -d) unlimited
-#   e:  0           # scheduling priority             (-e) 0
-    f:  2M          # file size               (blocks, -f) unlimited
-#   i:  512899      # pending signals                 (-i) 512899
-#   l:  64          # max locked memory       (kbytes, -l) 64
-#   m:  unlimited   # max memory size         (kbytes, -m) unlimited
-#   n:  1024        # open files                      (-n) 1024
-#   p:  8           # pipe size            (512 bytes, -p) 8
-#   q:  819200      # POSIX message queues     (bytes, -q) 819200
-#   r:  0           # real-time priority              (-r) 0
-    s:  100K        # stack size              (kbytes, -s) 8192
-    t:  3000        # cpu time               (seconds, -t) unlimited
-    u:  500         # max user processes              (-u) 4096
-#   v:  unlimited   # virtual memory          (kbytes, -v) unlimited
-#   x:  unlimited   # file locks                      (-x) unlimited
+# ulimit:
+#   t: unlimited  # cpu time (seconds)
 
 profile:
-  hpctoolkit:
-    path:              null
-    hpcrun params:     "REALTIME@10000"
-    hpcstruct params:  ""
-    hpcprof params:    ""
+# hpctoolkit:
+#   -- if no path is given, your PATH setting will be used
+#   path: ~/hpctoolkit/INSTALL/
+#    
+#   -- profiling params to use when none are specified on hpctest command line
+#   -- if none are given here, ("REALTIME@10000", "", "") will be used
+#   hpcrun params:     "PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO"
+#   hpcstruct params:  ""  
+#   hpcprof params:    "--force-metric"  
 
 
 
+ 

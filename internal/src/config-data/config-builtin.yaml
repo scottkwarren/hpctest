@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  configuration.py                                                            #
-#  layered storage for HPCTest config params                                   #
+#  config-builtin.yaml                                                         #
+#  builtin configuration settings (lowest priority settings)                   #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -13,7 +13,7 @@
 #  HPCToolkit is at "hpctoolkit.org" and in "README.Acknowledgments".          #
 #  --------------------------------------------------------------------------- #
 #                                                                              #
-#  Copyright ((c)) 2002-2017, Rice University                                  #
+#  Copyright ((c)) 2002-2019, Rice University                                  #
 #  All rights reserved.                                                        #
 #                                                                              #
 #  Redistribution and use in source and binary forms, with or without          #
@@ -46,74 +46,50 @@
 ################################################################################
 
 
+################################################################################
+# These config settings are used when no user-specified setting is given.      #
+# A 'null' value indicates "no setting" in any hpctest config file.            #
+################################################################################
 
 
-# current configuration as an OrderedDict
-currentConfig = None
+config:
+# batch: null
+#   default: false
+#   force: null
+#   manager: null
+#   params:
+#     account: null
+#     partition: null
+#     time: Null
 
+build:
+  compiler: "%gcc"  # Spack spec
+  
+run:
+  ulimit:
+    c:  200K        # core file size          (blocks, -c) 0
+    d:  2M          # data seg size           (kbytes, -d) unlimited
+#   e:  0           # scheduling priority             (-e) 0
+    f:  2M          # file size               (blocks, -f) unlimited
+#   i:  512899      # pending signals                 (-i) 512899
+#   l:  64          # max locked memory       (kbytes, -l) 64
+#   m:  unlimited   # max memory size         (kbytes, -m) unlimited
+#   n:  1024        # open files                      (-n) 1024
+#   p:  8           # pipe size            (512 bytes, -p) 8
+#   q:  819200      # POSIX message queues     (bytes, -q) 819200
+#   r:  0           # real-time priority              (-r) 0
+    s:  100K        # stack size              (kbytes, -s) 8192
+    t:  3000        # cpu time               (seconds, -t) unlimited
+    u:  500         # max user processes              (-u) 4096
+#   v:  unlimited   # virtual memory          (kbytes, -v) unlimited
+#   x:  unlimited   # file locks                      (-x) unlimited
 
-def initConfig():
-    
-    from os.path import join, isfile
-    import common
-    from common import homepath, errormsg
-    from spackle import readYamlFile, writeYamlFile
-    global currentConfig
-    
-    # compute filesys locations of layered config files from most global to most local
-    builtin = join(homepath, "internal/src/config-data/config-builtin.yaml")
-    user    = join("~",      ".hpctest/config.yaml")
-    install = join(homepath, "config.yaml")
-    configFileLocations = [ builtin, user, install ]
-    
-    # gather config info from layered yaml files w/ most local == highest priority
-    currentConfig = {}
-    for path in configFileLocations:
-        if isfile(path):
-            config, msg = readYamlFile(path)
-            if msg:
-                errormsg("ignoring invalid config file {}".format(path))
-            else:
-                _overrideDictByDict(currentConfig, config)
-
-
-def get(keypath, default=None):
-    
-    global currentConfig
-
-    keys = keypath.split(".")
-    
-    value = currentConfig
-    for k in keys:
-        if value is not None:
-            value = value.get(k, None)
-
-    return default if value is None else value
-
-
-def set(key, value):
-    
-    from common import notimplemented
-    notimplemented("configuration.set")
-
-
-def _overrideDictByDict(dict1, dict2):
-
-    from collections import Mapping, MutableMapping
-
-    for key, value2 in dict2.iteritems():
-        if value2 != None:
-            if key in dict1 and dict1[key]:
-                value1 = dict1[key]
-                if isinstance(value1, MutableMapping) and isinstance(value2, Mapping):  ## TODO: FIX CASE "key in both, V1 is scalar, V2 is dict & vv"
-                    _overrideDictByDict(value1, value2)
-                else:
-                    dict1[key] = value2
-            else:
-                dict1[key] = value2
-
-
-
+profile:
+  hpctoolkit:
+    path:              null
+    hpcrun params:     "REALTIME@10000"
+    hpcstruct params:  ""
+    hpcprof params:    ""
 
 
 

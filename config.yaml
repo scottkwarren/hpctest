@@ -2,7 +2,7 @@
 #                                                                              #
 # Example local config settings to customize this HPCTest installation.        #
 # These override the builtin settings in                                       #
-#       internal/src/config-data/config-default.yaml                           #
+#       internal/src/config-data/config-builtin.yaml                           #
 # Edit as needed.                                                              #
 #                                                                              #
 ################################################################################
