@@ -21,15 +21,15 @@ config:
 #       time:      "5:00"      # 5 min (time given in seconds)
 #
 #-- Summit batch manager (custom version of LSF)
-#     manager: Summit
-#     params:
-#       project:   myproject
-#       time:      "0:05"      # 5 min (time given in minutes)
-#     prelude: module unload darshan-runtime
+    manager: Summit
+    params:
+      project:   myproject
+      time:      "0:05"      # 5 min (time given in minutes)
+    prelude: module unload darshan-runtime
 #
 #-- debugging options
-#     debug:
-#       force: True   # ignore executor's check for availability
+    debug:
+      force: True   # ignore executor's check for availability
 
 run:
 # ulimit:
