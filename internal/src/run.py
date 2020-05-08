@@ -144,6 +144,7 @@ class Run(object):
                 
                     # capture build-dependent useful paths
                     mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
+####                mpiPrefix = self.spec["mpi"].prefix if self.spec.get_dependency("mpi") else None
                     self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
                     
                     # use an experiment instance to perform one run
@@ -487,15 +488,8 @@ class Run(object):
                 else:
                     multiplier = 1
                  
-                # limit on cpu time is a special case
-                if key == "t":
-                    # time must be divided among child processes
-                    divisor = self.test.numRanks()
-                else:
-                    divisor = 1
-                     
                 # compute effective limit accordingly
-                value = str( int(value) * multiplier / divisor )
+                value = str( int(value) * multiplier )
  
             # append a limit option for this resource
             s += "-{} {} ".format(key, value)
