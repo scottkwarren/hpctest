@@ -129,29 +129,21 @@ class SlurmExecutor(Executor):
     
     # Scheduling operations
     
-    def run(self, cmd, prelude, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately, handling i.a. 'numRanks' and 'numThreads'
         
         from common import ExecuteFailed, verbosemsg
         
-        # run the prelude commands if any
-        if type(prelude) is not list: prelude = [prelude]
-        for pcmd in prelude:
-            _, err = self._shell(pcmd, None, runPath, outPath)
-            if err: raise ExecuteFailed(out, err)
-    
-        # run the specified command
         out, err = self._shell(cmd, binPath, runPath, outPath)
-        
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, numRanks, numThreads, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, prelude, numRanks, numThreads, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._sbatch(cmd, numRanks, numThreads, name, description)
+        jobid, out, err = self._sbatch(cmd, prelude, numRanks, numThreads, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -204,7 +196,7 @@ class SlurmExecutor(Executor):
             errormsg("attempt to cancel batch job {} failed".format(jobid))
 
 
-    def _sbatch(self, cmds, numRanks, numThreads, name, description): # returns (jobid, out, err)
+    def _sbatch(self, cmds, prelude, numRanks, numThreads, name, description): # returns (jobid, out, err)
         
         import textwrap, tempfile
         from os import getcwd
@@ -213,6 +205,10 @@ class SlurmExecutor(Executor):
         import common
         from common import options, verbosemsg, debugmsg, errormsg
                 
+        # add the prelude commands if any
+        if type(prelude) is not list: prelude = [prelude]
+        cmds = "\n".join(prelude) + ("\n" if len(prelude) else "") + cmds
+        
         # slurm sbatch command file template
         Slurm_batch_file_template = textwrap.dedent(
             """\

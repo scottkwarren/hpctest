@@ -109,24 +109,21 @@ class SummitExecutor(Executor):
     
     # Scheduling operations
     
-    def run(self, cmd, prelude, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description): # returns nothing, raises
         
         # assumes that 'cmd' has been "wrapped" appropriately
-        # 'prelude' is ignored
         
         from common import ExecuteFailed
-        
-        # run the specified command
         out, err = self._shell(cmd, binPath, runPath, outPath)
         
         if err: raise ExecuteFailed(out, err)
 
     
-    def submitJob(self, cmd, numRanks, numThreads, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, prelude, numRanks, numThreads, name, description):   # returns jobID, out, err
         
         from common import ExecuteFailed
 
-        jobid, out, err = self._bsub(cmd, numRanks, numThreads, name, description)
+        jobid, out, err = self._bsub(cmd, prelude, numRanks, numThreads, name, description)
         if err == 0:
             self._addJob(jobid, description)
         
@@ -213,7 +210,7 @@ class SummitExecutor(Executor):
         return out, (err if err else 0)
 
 
-    def _bsub(self, cmds, numRanks, numThreads, name, description): # returns (jobid, out, err)
+    def _bsub(self, cmds, prelude, numRanks, numThreads, name, description): # returns (jobid, out, err)
         
         import textwrap, tempfile
         from os import getcwd
@@ -221,6 +218,10 @@ class SummitExecutor(Executor):
         import re
         import common
         from common import options, verbosemsg, debugmsg, errormsg
+        
+        # add the prelude commands if any
+        if type(prelude) is not list: prelude = [prelude]
+        cmds = "\n".join(prelude) + ("\n" if len(prelude) else "") + cmds
         
         # Summit sbatch command file template
         Summit_batch_file_template = textwrap.dedent(

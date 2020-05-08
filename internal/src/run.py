@@ -380,7 +380,6 @@ class Run(object):
         from subprocess import CalledProcessError
         from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
         from common import HPCTestError, ExecuteFailed
-        import configuration
         from run import Run
         
         # compute command to be executed
@@ -390,9 +389,6 @@ class Run(object):
         runPath   = join(self.rundir, runSubdir) if runSubdir else self.rundir
         outPath   = self.output.makePath("{}-output.txt", label)
         timePath  = self.output.makePath("{}-time.txt", label)
-
-        # get the test's prelude commands if any
-        prelude = configuration.get("config.batch.prelude", [])
 
         # ... OpenMP parameters if wanted
         if openmp:
@@ -425,7 +421,7 @@ class Run(object):
         msg = None  # for cpu-time messaging below
         try:
             
-             Run.executor.run(cmd, prelude, runPath, binPath, ranks, threads, outPath, self.description())
+             Run.executor.run(cmd, runPath, binPath, ranks, threads, outPath, self.description())
                 
         except HPCTestError as e:
             failed, msg = True, str(e)
@@ -594,15 +590,17 @@ class Run(object):
         import os
         from os.path import join
         from common import optionsArgString, homepath
+        import configuration
         
         optString = optionsArgString()
         initArgs  = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
-        cmd = "{}/hpctest _runOne {} '{}'; exit 0".format(homepath, optString, initArgs)
+        cmd = "{}/hpctest _runOne {} '{}'; exit 0".format(homepath, optString, initArgs)        
+        prelude = configuration.get("config.batch.prelude", [])
         numRanks = test.numRanks()
         numThreads = test.numThreads()
         name = test.name()
         desc = test.description(config, hpctoolkit, profile, forName=False)
-        jobID, out, err = Run.executor.submitJob(cmd, numRanks, numThreads, name, desc)
+        jobID, out, err = Run.executor.submitJob(cmd, prelude, numRanks, numThreads, name, desc)
         
         return jobID, out, err
     

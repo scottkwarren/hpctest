@@ -152,13 +152,13 @@ class Executor(object):
 
     # Scheduling operations
     
-    def run(self, cmd, prelude, runPath, binPath, numRanks, numThreads, outPath, description):
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description):
         
         from common import subclassResponsibility
         subclassResponsibility("Executor", "run")
 
     
-    def submitJob(self, cmd, numRanks, numThreads, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, prelude, numRanks, numThreads, name, description):   # returns jobID, out, err
 
         from common import subclassResponsibility
         subclassResponsibility("Executor", "submitJob")

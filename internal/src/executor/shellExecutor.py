@@ -85,7 +85,7 @@ class ShellExecutor(Executor):
         return available, "bash is missing"
 
     
-    def run(self, cmd, prelude, runPath, binPath, numRanks, numThreads, outPath, description):   # returns nothing, raises
+    def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description):   # returns nothing, raises
         
         import os, sys
         from subprocess import check_call, CalledProcessError
@@ -95,12 +95,6 @@ class ShellExecutor(Executor):
         env["PATH"] = binPath + ":" + env["PATH"]
         env["OMP_NUM_THREADS"] = str(numThreads)
         
-        # run the prelude commands if any
-        if type(prelude) is not list: prelude = [prelude]
-        for pcmd in prelude:
-            _, err = self._shell(pcmd, None, runPath, outPath)
-            if err: raise ExecuteFailed(out, err)
-    
         # run the specified command
         try:
                
@@ -124,11 +118,15 @@ class ShellExecutor(Executor):
                 os.chdir(oldwd)
 
     
-    def submitJob(self, cmd, numRanks, numThreads, name, description):   # returns jobID, out, err
+    def submitJob(self, cmd, prelude, numRanks, numThreads, name, description):   # returns jobID, out, err
         
         import os
         from subprocess import Popen, CalledProcessError
         from common import ExecuteFailed
+
+        # add the prelude commands if any
+        if type(prelude) is not list: prelude = [prelude]
+        cmd = "\n".join(prelude) + ("\n" if len(prelude) else "") + cmd
         
         env = os.environ.copy()
         err = 0
