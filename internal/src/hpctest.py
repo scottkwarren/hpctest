@@ -110,6 +110,7 @@ class HPCTest(object):
             dims[name] = dimClassMap[name](spec)
             
         # check preconditions and run tests if ok
+        # FIXME: 'dims["hpctoolkit"]' does not test whether any paths were specified!!
         if dims["hpctoolkit"]:      # TODO: shouldn't require an HPCToolkit if no test wants profiling
             
             # run all the tests
@@ -127,8 +128,7 @@ class HPCTest(object):
                 print
                 print "building complete."
         else:
-            # error message was printed during self._init_
-            pass
+            errormsg("no --hpctoolkit paths given and no default hpctoolkit is set")
          
         
     def report(self, studypath, reportspec="", sortKeys=[]):
