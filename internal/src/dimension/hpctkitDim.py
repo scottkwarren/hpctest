@@ -54,6 +54,7 @@ from . import StringDim
 class HPCTkitDim(StringDim):
     
     # TODO: implement short names for a configured set of HPCToolkit instances
+    # TODO: validate each path to ensure it is a valid HPCToolkit install directory
     
     
     @classmethod
