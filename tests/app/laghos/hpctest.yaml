@@ -17,8 +17,7 @@ info:
 build: builtin
 
 run:
- # cmd: laghos -p 1 -dim 2 -rs 3 -tf 0.8 -pa
-  cmd: laghos -p 1 -rs 3 -tf 0.8 -pa
+  cmd: laghos -p 1 -rs 3 -tf 0.8 -pa --max-steps 50  # 3 minutes on les
   ranks: 8
 
 
