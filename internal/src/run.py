@@ -143,8 +143,7 @@ class Run(object):
                 if not common.args["build"]:    # not build-only
                 
                     # capture build-dependent useful paths
-                    mpiPrefix = self.spec["mpi"].prefix if "+mpi" in self.spec else None
-####                mpiPrefix = self.spec["mpi"].prefix if self.spec.get_dependency("mpi") else None
+                    mpiPrefix = self.spec["mpi"].prefix if "mpi" in self.spec else None
                     self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
                     
                     # use an experiment instance to perform one run
@@ -152,8 +151,8 @@ class Run(object):
                     runSubdir  = self.test.runSubdir()
                     numRanks   = self.test.numRanks()
                     numThreads = self.test.numThreads()
-                    wantMPI    = "+mpi" in self.spec
-                    wantOMP    = "+openmp" in self.spec
+                    wantMPI    = "mpi" in self.spec
+                    wantOMP    = "openmp" in self.spec
                     self.experiment =  \
                         ProfileExperiment(self, 
                                    cmd, self.package.prefix, self.rundir, runSubdir,
@@ -216,8 +215,8 @@ class Run(object):
             
             self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
             self.output.add("input", "spack spec", str(self.spec))
-            if "+mpi" in self.spec:
-                spackString += " +mpi"
+            if "mpi" in self.spec:
+                spackString += " mpi"
                 self.spec = spackle.parseSpec(spackString)[0]            # TODO: deal better with possibility that returned list length != 1
             if "+openmp" in self.spec:
                 spackString += " +openmp"
