@@ -1,0 +1,27 @@
+#=========================================#
+# HPCTest description for SNAP            #
+#=========================================#
+
+
+info:
+  name:  snap
+  version: master
+  homepage: https://github.com/lanl/SNAP
+  url: https://github.com/lanl/SNAP.git
+  description: >
+    SNAP serves as a proxy application to model the performance of a 
+    modern discrete ordinates neutral particle transport application.
+    SNAP may be considered an update to Sweep3D, intended for hybrid 
+    computing architectures. It is modeled off the Los Alamos National
+    Laboratory code PARTISN.
+    
+    Note that input files must satisfy 'NPEY*NPEZ == MPI NPROC'
+
+build: builtin
+
+run:
+  cmd: gsnap input.inp output.out
+  ranks: 8
+
+
+
