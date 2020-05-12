@@ -5,7 +5,7 @@
 
 info:
   name:  miniamr
-  version: 1.4.0  # must match ~spack/var/spack/repos/builtin/packages/miniamr/package.py
+  version: 1.4.0
   homepage: https://mantevo.org
   url: https://github.com/Mantevo/miniAMR/archive/v1.4.0.tar.gz
   description: >
