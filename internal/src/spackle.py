@@ -60,7 +60,8 @@ def initSpack():
                             # else 'spack.config' fails below
     
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-    spack.config.config.update_config("config", {"verify_ssl": False}, scope="site")  # some builtin packages we want to use have wrong checksums
+    spack.config.config.update_config("config", {"verify_ssl": False}, scope="command_line")  # some builtin packages we want to use have wrong checksums
+    spack.config.set('config:checksum', False, scope='command_line')
 
 
 #------------#
