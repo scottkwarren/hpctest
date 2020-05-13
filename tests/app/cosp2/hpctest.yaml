@@ -1,0 +1,24 @@
+#=========================================#
+# HPCTest description for CoSP2           #
+#=========================================#
+
+
+info:
+  name:  cosp2
+  version: master
+  homepage: https://github.com/exmatex/CoSP2
+  url: https://github.com/exmatex/CoSP2.git
+  description: >
+   Proxy Application. CoSP2 represents a sparse linear algebra parallel 
+   algorithm for calculating the density matrix in electronic structure 
+   theory. The algorithm is based on a recursive second-order Fermi-
+   Operator expansion method (SP2) and is tailored for density functional 
+   based tight-binding calculations of non-metallic systems.
+
+build: builtin
+
+run:
+  cmd: CoSP2-parallel --hmatName data/hmatrix.1024.mtx -n 12288 -m 256
+  ranks: 16
+
+
