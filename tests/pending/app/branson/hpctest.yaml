@@ -1,0 +1,23 @@
+#=========================================#
+# HPCTest description for Branson         #
+#=========================================#
+
+
+info:
+  name:  branson
+  version: 0.82
+  homepage: https://github.com/lanl/branson
+  url: https://github.com/lanl/branson/archive/0.82.tar.gz
+  description: >
+    Branson's purpose is to study different algorithms for parallel Monte
+    Carlo transport. Currently it contains particle passing and mesh passing
+    methods for domain decomposition.
+
+build: builtin
+
+run:
+  cmd: BRANSON inputs/proxy_small-modified.xml
+  ranks: 8
+
+
+
