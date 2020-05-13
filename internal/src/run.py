@@ -151,8 +151,8 @@ class Run(object):
                     runSubdir  = self.test.runSubdir()
                     numRanks   = self.test.numRanks()
                     numThreads = self.test.numThreads()
-                    wantMPI    = "mpi" in self.spec
-                    wantOMP    = "openmp" in self.spec
+                    wantMPI    = numRanks > 0
+                    wantOMP    = numThreads > 0
                     self.experiment =  \
                         ProfileExperiment(self, 
                                    cmd, self.package.prefix, self.rundir, runSubdir,

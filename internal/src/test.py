@@ -150,12 +150,12 @@ class Test():
 
     def numRanks(self):
         
-        return self._yaml("run.ranks", 1)
+        return self._yaml("run.ranks", 0)
 
 
     def numThreads(self):
         
-        return self._yaml("run.threads", 1)
+        return self._yaml("run.threads", 0)
 
 
     def path(self):
