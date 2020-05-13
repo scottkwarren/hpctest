@@ -1,0 +1,32 @@
+#=========================================#
+# HPCTest description for CoHMM           #
+#=========================================#
+
+
+info:
+  name:  cohmm
+  version: develop
+  homepage: https://github.com/exmatex/CoHMM/tree/sad
+  url: https://github.com/exmatex/CoHMM/archive/sad.tar.gz
+  description: >
+    A Co-design proxy application for the Heterogeneous Multiscale Method 
+    (HMM) augmented with adaptive sampling. This source code was used to 
+    generate the data in the paper: B. Rouet-Leduc et al., Spatial adaptive 
+    sampling in multiscale simulation, Comput. Phys. Commun. 
+    185 (2014) 1857-1864 (link). Original authors of the source code 
+    include Bertrand Rouet-Leduc and the students of the 2013 Los Alamos 
+    Co-Design Summer School. CoHMM is now maintained by ExMatEx: Exascale 
+    Co-Design Center for Materials in Extreme Environments (exmatex.org).
+
+build: builtin
+
+run:
+#      cohmm 1  # 'input/input1.txt' -- fast analytical model, 400 grid points
+#      cohmm 2  # 'input/input2.txt' -- fast analytical model, 10,000 grid points
+#      cohmm 3  # 'input/input3.txt' -- slow molecular dynamics, 100 grid points
+#      cohmm 4  # 'input/input4.txt' -- slow molecular dynamics, 400 grid points
+  cmd: cohmm 2
+  threads: 16
+
+
+
