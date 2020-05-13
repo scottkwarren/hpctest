@@ -79,7 +79,7 @@ run:
 #   q:  819200      # POSIX message queues     (bytes, -q) 819200
 #   r:  0           # real-time priority              (-r) 0
     s:  100K        # stack size              (kbytes, -s) 8192
-    t:  3000        # cpu time               (seconds, -t) unlimited
+    t:  3600        # cpu time               (seconds, -t) unlimited
     u:  500         # max user processes              (-u) 4096
 #   v:  unlimited   # virtual memory          (kbytes, -v) unlimited
 #   x:  unlimited   # file locks                      (-x) unlimited
