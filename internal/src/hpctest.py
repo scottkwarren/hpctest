@@ -169,30 +169,28 @@ class HPCTest(object):
             
         # delete studies if desired
         if studies and confirm("study directories"):
-            debugmsg("cleaning work directory {}".format(workpath))
             for name in listdir(workpath):
                 path = join(workpath, name)
                 if Study.isStudyDir(path): Study(path).clean()
+            infomsg("uninstalled all study directories")
         
         # uninstall tests if desired
         # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
         if tests and confirm("built tests"):
-            verbosemsg("uninstalling built tests...")
             for name in sorted( spackle.allPackageNames("tests") ):
                 if spackle.isInstalled(name):
                     spackle.uninstall(name)
                     verbosemsg("  uninstalled {} (all versions)".format(name))
-            verbosemsg("...done")
+            infomsg("uninstalled all built tests")
         
         # uninstall dependencies if desired
         if dependencies and confirm("built dependencies"):
-            verbosemsg("uninstalling built dependencies...")
             for name in sorted( spackle.allPackageNames("builtin") ):
                 if spackle.isInstalled(name) and spackle.hasDependents(name):
                     # ... 'and' in case there's a 'builtin' w/ same name as a test
                     spackle.uninstall(name)
                     verbosemsg("  uninstalled {} (all versions)".format(name))
-            verbosemsg("...done")
+            infomsg("uninstalled all dependencies")
 
     
     
