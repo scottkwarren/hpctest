@@ -64,13 +64,19 @@ class SlurmExecutor(Executor):
     # System inquiries
 
     @classmethod
+    def name(cls):
+        
+        return "Slurm"
+
+
+    @classmethod
     def isAvailable(cls):
         
         from common import whichDir
         import configuration
         
         available, msg = Executor._checkCmdsAvailable(["srun", "sbatch", "squeue"])
-        available = available or configuration.get("batch.debug.force")
+        available = available or configuration.get("batch.debug.force", False)
         
         return available, msg
 
@@ -292,7 +298,7 @@ class SlurmExecutor(Executor):
 
 
 # register this executor class by name
-Executor.register("Slurm", SlurmExecutor)
+Executor.register(SlurmExecutor.name(), SlurmExecutor)
 
 
 

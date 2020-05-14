@@ -62,14 +62,19 @@ class SummitExecutor(Executor):
     # System inquiries
 
     @classmethod
+    def name(cls):
+        
+        return "Summit"
+
+
+    @classmethod
     def isAvailable(cls):
         
         from common import whichDir
         import configuration
         
         available, msg = Executor._checkCmdsAvailable(["jsrun", "bsub", "bjobs"])
-        available = available or configuration.get("batch.debug.force")
-        
+        available = available or configuration.get("batch.debug.force", False)
         return available, msg
 
 
@@ -301,7 +306,7 @@ class SummitExecutor(Executor):
 
 
 # register this executor class by name
-Executor.register("Summit", SummitExecutor)
+Executor.register(SummitExecutor.name(), SummitExecutor)
 
 
 

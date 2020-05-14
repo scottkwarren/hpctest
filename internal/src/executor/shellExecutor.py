@@ -62,6 +62,12 @@ class ShellExecutor(Executor):
     # System inquiries
 
     @classmethod
+    def name(cls):
+        
+        return "Shell"
+    
+
+    @classmethod
     def defaultToBackground(cls):
         
         return False
@@ -81,7 +87,8 @@ class ShellExecutor(Executor):
     def isAvailable(cls):
         
         from common import whichDir
-        available = whichDir("bash") is not None and whichDir("bash") is not None
+        available, msg = Executor._checkCmdsAvailable(["bash"])
+        available = available or configuration.get("batch.debug.force", False)
         return available, "bash is missing"
 
     

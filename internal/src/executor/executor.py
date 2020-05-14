@@ -68,29 +68,62 @@ class Executor(object):
 
     _local_executor_class = None
     _local_executor       = None
-    
-    
+
+
     @classmethod
     def localExecutorClass(cls):
         
-        import configuration
-        from common import fatalmsg
+        import configuration, sys
+        from common import yesno, infomsg, fatalmsg
         
         if not cls._local_executor_class:
             
-            # local configuration may specify the job launcher
-            name  = configuration.get("config.batch.manager", "Shell")
-            force = configuration.get("config.batch.debug.force", False)
-            if name not in cls._subclasses:
-                fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
+            if configuration.get("config.batch.manager"):
+                
+                # local configuration specifies a job launcher
+                name  = configuration.get("config.batch.manager")
+                force = configuration.get("config.batch.debug.force", False)
+                if name not in cls._subclasses:
+                    fatalmsg("configuration specifies unknown config.batch.manager: {}".format(name))
+                
+                # validate the corresponding executor class
+                executorClass = cls._subclasses[name]
+                available, msg = executorClass.isAvailable()
+                if not (available or force):
+                    fatalmsg("config files specify {} as config.batch.manager, "
+                             "but {}".format(name, msg if msg else  name + " is not available"))
+                cls._local_executor_class = executorClass
             
-            # validate the corresponding executor class
-            executorClass = cls._subclasses[name]
-            available, msg = executorClass.isAvailable()
-            if not (available or force):
-                fatalmsg("config files specify {} as config.batch.manager, "
-                         "but {}".format(name, msg if msg else  name + " is not available"))
-            cls._local_executor_class = executorClass
+            else:
+                cls._local_executor_class = cls._subclasses["Shell"]
+                
+#        WORK IN PROGRESS:
+#
+#             else:
+#                 
+#                 def ask():
+#                     ask    = "Do you want to continue without using batch?"
+#                     cancel = "Ok, exiting. Edit config.batch to specify a manager if desired."
+#                     return yesno(ask, cancel)
+#             
+#                 # see if a batch manager seems present even though none specified in config
+#                 avail = {mgrClass for mgrClass in cls._subclasses.values()
+#                                       if mgrClass.name() != "Shell" and mgrClass.isAvailable()[0]}
+#                 if avail:
+#                     availNames = [m.name() for m in avail]
+#                     if len(avail) == 1:
+#                         subject = "A {} batch manager".format(availNames[0])
+#                         plural  = "s"   # sic!
+#                     else:
+#                         subject = "Batch managers " + ",".join(availNames[:-1]) + " and " + availNames[-1]
+#                         plural  = ""   # sic!
+#                         
+#                     msg = "{} seem{} to be present, but no config.batch.manager is specified."  \
+#                           .format(subject, plural)
+#                     infomsg(msg)
+#                     if not ask(): sys.exit()
+#                     
+#                 cls._local_executor_class = cls._subclasses["Shell"]
 
         return cls._local_executor_class
     
@@ -102,6 +135,13 @@ class Executor(object):
             cls._local_executor = cls.localExecutorClass() ()
         
         return cls._local_executor
+    
+    
+    @classmethod
+    def name(cls):
+        
+        from common import subclassResponsibility
+        subclassResponsibility("Executor", "name")
     
 
     @classmethod
