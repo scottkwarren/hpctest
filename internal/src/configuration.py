@@ -77,6 +77,20 @@ def initConfig():
                 _overrideDictByDict(currentConfig, config)
 
 
+def has(keypath):
+    
+    global currentConfig
+
+    keys = keypath.split(".")
+    
+    value = currentConfig
+    for k in keys:
+        if value is not None:
+            value = value.get(k, None)
+
+    return value is not None
+
+
 def get(keypath, default=None):
     
     global currentConfig
