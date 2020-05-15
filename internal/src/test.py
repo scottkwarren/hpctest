@@ -131,7 +131,7 @@ class Test():
     def installProducts(self):
         
         from common import noneOrMore
-        return noneOrMore(self._yaml("build.install")) if isinstance(self._yaml("build"), dict) else []
+        return noneOrMore( self._yaml("build.install", []) )
 
 
     def markUnchanged(self):
@@ -164,7 +164,7 @@ class Test():
 
 
     def profile(self):
-        return self.yamlDict.get("profile", True)
+        return self.yamlDict.get("profile")
 
 
     def relpath(self):
@@ -191,7 +191,7 @@ class Test():
     
     def wantProfile(self):
         
-        return bool(self.profile())
+        return self.profile() is not False
     
 
     def yamlErrorMsg(self):
@@ -230,7 +230,7 @@ class Test():
         return yaml, msg
 
     
-    def _yaml(self, keypath=None, default=None):
+    def _yaml(self, keypath, default=None):
         
         from common import getValueAtKeypath
         return getValueAtKeypath(self.yamlDict, keypath, default)
