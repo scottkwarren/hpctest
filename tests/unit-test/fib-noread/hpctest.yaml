@@ -1,0 +1,22 @@
+#=========================================#
+# HPCTest description for fib-noread      #
+#=========================================#
+
+
+info:
+  name:  fib-noread
+  version: 1.0
+  description: >
+    Create and profile an unreadable executable to test hpctoolkit in
+    circumstances similar to what we see at LLNL with export-controlled apps.
+    
+build:
+  kind: makefile
+  install: fib-noread
+
+run:
+  cmd: make run
+
+profile: no
+
+
