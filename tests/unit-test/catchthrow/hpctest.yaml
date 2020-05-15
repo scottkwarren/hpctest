@@ -1,0 +1,26 @@
+#=========================================#
+# HPCTest description for memstress       #
+#=========================================#
+
+
+info:
+  name:  catchthrow
+  version: 1.0
+  description: >
+    Usage: catchthrow [iter [loop]]
+    
+    Runs "loop" loops of "iter" iteractions of throwing and catching 
+    an exception. Each loop then delays for a while in a spin loop. 
+    Default is loop = 25 and iter = 40000. You must specify iter if 
+    you want to specify loop.
+    
+build:
+  kind: makefile
+  install: catchthrow
+
+run:
+  cmd: make test
+
+profile: no
+
+
