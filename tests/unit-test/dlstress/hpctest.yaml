@@ -29,11 +29,9 @@ build:
   install: dlstress
 
 run:
-  cmd: >
-     for k in {1..3}; do hpcrun -e REALTIME@500 dlstress 30 mult nosym; done;
-     for k in {1..3}; do hpcrun -e REALTIME@500 dlstress 30 mult; done
+  cmd: dlstress 180 mult
 
-profile: no
+# will be profiled automagically
 
 
 
