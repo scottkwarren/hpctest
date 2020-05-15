@@ -195,7 +195,7 @@ def yesno(prompt, cancelmsg):
 
 def noneOrMore(x):
     
-    return x if type(x) is list else [x] if x else []
+    return x if type(x) is list else [x] if x is not None else []
 
 
 # context manager for timing
