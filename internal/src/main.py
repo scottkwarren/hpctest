@@ -66,20 +66,18 @@ def main():
     from util.docopt import docopt, DocoptExit
     
     # parse the command line and execute it if valid
+    argv = filter(lambda s: s != "\n", sys.argv[1:])                    # remove standalone newlines, eg at end of lines
+    argv = map(lambda s: s.replace("\n"," ").replace("\\"," "), argv)   # remove newlines and backslashes within each string, eg in continued string constants
     try:
-        
-        argv = filter(lambda s: s != "\n", sys.argv[1:])                    # remove standalone newlines, eg at end of lines
-        argv = map(lambda s: s.replace("\n"," ").replace("\\"," "), argv)   # remove newlines and backslashes within each string, eg in continued string constants
         args = docopt(doc=doc_message, argv=argv, help=False)
         common.args = args
         common.options = { key[2:] for key in args if key in optionNames and args[key] }
-        if "verbose" in common.options:
-            debugmsg("main's argv = {}".format(sys.argv))
-            debugmsg("parsed args = {}".format(args))
-        return execute(args)
-    
+        debugmsg("main's argv = {}".format(sys.argv))
+        debugmsg("parsed args = {}".format(args))
     except DocoptExit as d:
         print usage_message + "\n" + "For more information use '--help'." + "\n"
+
+    return execute(args)
 
 
 def execute(args):
@@ -112,8 +110,8 @@ def execute(args):
             dims["build"] = args["--build"]
         if args["--hpctoolkit"]:
             dims["hpctoolkit"] = args["--hpctoolkit"]
-        if args["--profile"]:                                             # TODO: finish rework of 'profile' into three args
-            dims["profile"] = args["--profile"].replace("_", "-").replace(".", " ")    # TODO: REMOVE THIS LEGACY PROCESSING
+        if args["--profile"]:                         # TODO: finish rework of 'profile' into three args
+            dims["profile"] = args["--profile"]
         studyPath = args["--study"]
         numrepeats = 1  ## args["--numrepeats"]
         reportspec = args["--report"] if args["--report"] else "all"
