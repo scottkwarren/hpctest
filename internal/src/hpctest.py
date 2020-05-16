@@ -103,7 +103,8 @@ class HPCTest(object):
         from report     import Report
         global dimNames, dimDefaultMap, dimClassMap
                 
-        # decode the dict of dimension strings into a complete dict of dimensions, with default dims for missing dimensions
+        # decode the dict of spec strings into a complete dict of dimension objects
+        # with default dims for missing specs
         dims = dict()
         for name in dimNames:
             spec = argDimSpecs[name] if name in argDimSpecs else dimDefaultMap[name]
