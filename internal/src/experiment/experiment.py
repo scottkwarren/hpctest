@@ -51,37 +51,25 @@
 class Experiment(object):
     
 
-    def __init__(self, run,
-                cmd, packagePrefix, rundir, runSubdir,    # pre-built test case to use
-                numRanks, numThreads, wantMPI, wantOMP,   # runtime details for test case
-                output):                                  # recordkeeping details
+    def __init__(self, test, run, packagePrefix, rundir, output):
         
         from os.path import join
 
-        # save parameters
+        # creation parameters
+        self.test       = test
         self.runOb      = run
-        self.cmd        = cmd
         self.prefixBin  = join(packagePrefix, "bin")
         self.rundir     = rundir
-        self.runSubdir  = runSubdir
-        self.numRanks   = numRanks
-        self.numThreads = numThreads
-        self.wantMPI    = wantMPI
-        self.wantOMP    = wantOMP
- 
-        self.cmd        = cmd                          ## DEBUG: TRY W/O PREFIX PATH
-        self.exeName    = cmd.split()[0]
-       
-#         self.config            = config         # Spack spec for desired build configuration
-#         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
-#         self.hpctoolkitParams  = profile.strip(" ;:").replace(";", ":")
-#         paramList              = self.hpctoolkitParams.split(":")
-#         self.hpcrunParams      = paramList[0]
-#         self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
-#         self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
-#         self.wantProfiling     = wantProfiling
-        
-        self.output            = output
+        self.output     = output
+
+        # derived values
+        self.cmd        = self.test.cmd()
+        self.runSubdir  = self.test.runSubdir()
+        self.numRanks   = self.test.numRanks()
+        self.numThreads = self.test.numThreads()
+        self.wantMPI    = self.numRanks > 0
+        self.wantOMP    = self.numThreads > 0
+        self.exeName    = self.cmd.split()[0]
         
         # other detailss
         self.testIncs          = "./+"

@@ -50,6 +50,9 @@
 
 from . import StringDim
 
+from collections import namedtuple
+ProfileArgs = namedtuple("ProfileArgs", "hpcrun hpcstruct hpcprof")
+
 
 class ProfileDim(StringDim):
     
@@ -72,23 +75,43 @@ class ProfileDim(StringDim):
 
 
     @classmethod
-    def format(cls, value, forName=False):
+    def format(cls, prof, forName=False):
         
-        stripped = value.rstrip(" ;")
-        return stripped.replace(" ", ".").replace(";", ":") if forName else stripped
+        fmt = ""
+        if prof.hpcrun:    fmt +=       prof.hpcrun
+        if prof.hpcstruct: fmt += ":" + prof.hpcstruct
+        if prof.hpcprof:   fmt += ":" + prof.hpcprof
+        if forName:        fmt  = fmt.replace(" ", ".").replace("-", "_")
+        
+        return fmt
 
     
     def __init__(self, spec):
         # 'spec' is a comma-separated list of '+'-separated lists of metric-specs
         # such as 'REALTIME@10000 + IO@100 + MEMLEAK@10, CPUTIME@10000, WALLTIME@1000'
         
-        # TODO: add some way to pass non-metric options to hpcrun, eg '--trace'
-        # TODO: add some way to set HPCToolkit environment variables for hpcrun
+        # remove encoding tricks
+        spec = spec.replace("_", "-").replace(".", " ")         # cmd line parser workaround
+        spec = spec.strip(" ;:").replace(";", ":")              # run/struct/prof grouping
+        spec = spec.replace("+", " ")                           # hpcrun event shortcuts
         
-        self.valueList = \
-            [ "-e " + metrics.replace("+", " -e ")
-                for metrics in spec.split(',')
-            ]
+        # convert each three-part spec to a ProfileArgs tuple with formatted hpcrun string
+        self.valueList = []
+        for options in spec.split(','):
+            runSpec, structSpec, profSpec = (options.split(":") + ["", ""])[:3]  # ensure len(rhs) == 3
+            runString = ""
+            prevWasMinus = False
+            for opt in runSpec.split():
+                if opt.startswith("-"):
+                    runString += opt + " "
+                    prevWasMinus = True
+                else:
+                    if not prevWasMinus: runString += "-e" + " "
+                    runString += opt + " "
+                    prevWasMinus = False
+            runString = runString.strip()
+            prof = ProfileArgs(runString, structSpec, profSpec)
+            self.valueList.append(prof)
 
 
     # everything else is inherited from StringDim

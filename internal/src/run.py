@@ -81,11 +81,7 @@ class Run(object):
         # hpctoolkit params
         self.hpctoolkit        = hpctoolkit
         self.hpctoolkitBinPath = join(hpctoolkit, "bin")
-        self.hpctoolkitParams  = profile.strip(" ;:").replace(";", ":")
-        paramList = self.hpctoolkitParams.split(":")
-        self.hpcrunParams      = paramList[0]
-        self.hpcstructParams   = paramList[1] if len(paramList) >= 2 else ""
-        self.hpcprofParams     = paramList[2] if len(paramList) >= 3 else ""
+        self.profile           = profile
         self.testIncs          = "./+"
 
         # execution params
@@ -95,10 +91,7 @@ class Run(object):
     def description(self, forName=False):
         
         from os.path import basename
-        return self.test.description(self.config,
-                                     self.hpctoolkitBinPath,
-                                     self.hpctoolkitParams,
-                                     forName=forName)
+        return self.test.description(self.config, self.hpctoolkitBinPath, self.profile, forName=forName)
     
     
     def run(self, echoStdout=True):
@@ -147,18 +140,10 @@ class Run(object):
                     self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
                     
                     # use an experiment instance to perform one run
-                    cmd        = self.test.cmd()
-                    runSubdir  = self.test.runSubdir()
-                    numRanks   = self.test.numRanks()
-                    numThreads = self.test.numThreads()
-                    wantMPI    = numRanks > 0
-                    wantOMP    = numThreads > 0
                     self.experiment =  \
-                        ProfileExperiment(self, 
-                                   cmd, self.package.prefix, self.rundir, runSubdir,
-                                   numRanks, numThreads, wantMPI, wantOMP,
-                                   self.config, self.hpctoolkit, self.hpctoolkitParams, self.wantProfiling,
-                                   self.output)
+                        ProfileExperiment(self.test, self, 
+                                   self.package.prefix, self.rundir, self.output,
+                                   self.config, self.hpctoolkit, self.profile)
                     self.experiment.run()
                     
                     self.output.addSummaryStatus("OK", None)
@@ -347,10 +332,9 @@ class Run(object):
         self.output.add("input", "test",              self.test.relpath())
         self.output.add("input", "config spec",       str(self.config))
         self.output.add("input", "hpctoolkit",        str(self.hpctoolkitBinPath))
-        self.output.add("input", "hpctoolkit params", OrderedDict({"hpcrun":self.hpcrunParams, "hpcstruct":self.hpcstructParams, "hpcprof":self.hpcprofParams}))
+        self.output.add("input", "hpctoolkit params", self.profile._asdict())
         self.output.add("input", "num repeats",       self.numrepeats)
         self.output.add("input", "study dir",         self.study.path)
-            
 
 
     def _addMissingOutputs(self):
