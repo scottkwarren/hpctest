@@ -289,7 +289,9 @@ def _findValueAtKeypath(dictionary, keyList, keyAfter, autoExtend, default):
                     break
             ob = ob[key]
         else:
-            fatalmsg("common.findValueForPath: invalid key for current collection")
+            ob = default
+            break
+            
     return ob
     
 
