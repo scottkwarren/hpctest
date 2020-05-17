@@ -76,6 +76,7 @@ def main():
         debugmsg("parsed args = {}".format(args))
     except DocoptExit as d:
         print usage_message + "\n" + "For more information use '--help'." + "\n"
+        sys.exit()
 
     return execute(args)
 
