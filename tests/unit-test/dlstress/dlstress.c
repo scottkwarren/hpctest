@@ -75,7 +75,6 @@ char *base[MAX_LIBS] = {
     "libOpenGL",
     "libabrt",
     "libasm",
-    "libasprintf",
     "libatm",
     "libatomic_ops",
     "libattr",
