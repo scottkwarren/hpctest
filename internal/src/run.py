@@ -377,7 +377,7 @@ class Run(object):
         if openmp:
             threads = self.test.numThreads()
         else:
-            threads = 0     # tells executor.wrap not to use OpenMP
+            threads = 1
         
         # ... MPI launching code if wanted
         if mpi:
