@@ -33,7 +33,8 @@ config:
 
 run:
 # ulimit:
-#   t: unlimited  # cpu time (seconds)
+#     t: unlimited  # cpu time (seconds)
+#   t: 300
 
 profile:
 # hpctoolkit:
@@ -42,9 +43,9 @@ profile:
 #    
 #   -- profiling params to use when none are specified on hpctest command line
 #   -- if none are given here, ("REALTIME@10000", "", "") will be used
-#   hpcrun params:     "PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO"
-#   hpcstruct params:  ""  
-#   hpcprof params:    "--force-metric"  
+#   hpcrun params:    PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO
+#   hpcstruct params: -I mysrc --gpucfg yes
+#   hpcprof params:   --force-metric -M sum -M stats
 
 
 
