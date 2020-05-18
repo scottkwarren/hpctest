@@ -1,0 +1,35 @@
+SPECIFYING PROFILE PARAMS
+=========================
+
+Hpctest lets you specify "profiling" arguments to be passed to hpcrun, hpcstruct, 
+and hpcprof on their command lines when hpctest executes them as part of a test run.
+You can specify profiling arguments when you run tests by putting them on hpctest's
+command line with the '--profile' argument, or you can specify them in your
+config.yaml file, where they become the defaults for all future hpctest commands.
+If you don't specify any profiling arguments, hpctest uses builtin defaults:
+"-e REALTIME@10000" for hpcrun, nothing for hpcstruct and hpcprof.
+
+Here's how you specify profiling arguments:
+
+(1) On the hpctest command line, profiling arguments for all three tools must be
+given at the same time, separated by colons. So hpctest's defaults can be specified
+by '-e REALTIME@10000 : : '. A more complicated profile spec might be
+
+	'-e REALTIME@10000 -e IO : -I mysrc : -M stats --force-metric'
+	
+Unfortunately, writing profile specs on the hpctest command line is complicated by
+most shells' treatment of quotes: they are essentially ignored, and cannot be used
+to quote the contents of a profile spec. So special characters like ' ' and '-' in
+specs are seen by the shell even if quoted, and confuse the shell. Sad! Hpctest
+provides alternate characters for use in profile specs on the command line:
+
+    '_' -> '-' and '.' -> ' '
+    
+With these, the complex spec shown above can be written safely, if unattractively,
+in the shell as follows:
+
+	'_e.REALTIME@10000._e.IO.:._I.mysrc.:._M.stats.__-force_metric'
+	
+Sadly this means the ordinary characters '_' and '.' can't be used in specs! Arghh.
+
+
