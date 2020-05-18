@@ -1,0 +1,20 @@
+#=========================================#
+# HPCTest description for cpp_threads     #
+#=========================================#
+
+
+info:
+  name:  cpp_threads
+  version: 1.0
+  description: TBD
+    
+build:
+  kind: makefile
+  install: fib
+
+run:
+  cmd: make check
+    
+profile: no
+
+
