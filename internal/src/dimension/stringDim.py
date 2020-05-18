@@ -81,12 +81,19 @@ class StringDim(Dimension):
     
     def __init__(self, spec=""):
         
+        self.spec = spec
+        
         # TODO: quotes not yet supported
         if spec is None:
             self.valueList = []
         else:
             self.valueList = [ s.strip() for s in spec.split(",") ]
 
+
+    def spec(self):
+        
+        return self.spec
+    
 
     def isEmpty(self):
         

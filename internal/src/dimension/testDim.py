@@ -82,6 +82,8 @@ class TestDim(StringDim):
         from common import options, homepath, infomsg
         from test import Test
         
+        self.spec = spec
+        
         testsPath    = join(homepath,  "tests")
         selftestPath = join(testsPath, "selftest")
         pendingPath  = join(testsPath, "pending")

@@ -90,6 +90,8 @@ class ProfileDim(StringDim):
         # 'spec' is a comma-separated list of '+'-separated lists of metric-specs
         # such as 'REALTIME@10000 + IO@100 + MEMLEAK@10, CPUTIME@10000, WALLTIME@1000'
         
+        self.spec = spec
+        
         # remove encoding tricks
         spec = spec.replace("_", "-").replace(".", " ")         # cmd line parser workaround
         spec = spec.strip(" ;:").replace(";", ":")              # run/struct/prof grouping
