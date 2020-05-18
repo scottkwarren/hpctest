@@ -621,7 +621,9 @@ class Run(object):
         verb = "build" if common.args["build"] else \
                "run"   if common.args["run"]   else \
                "debug" if common.args["debug"] else None
-        encodedArgs = ",".join([verb, test.path(), config, hpctoolkit, profile, str(numrepeats), study.path])
+        encodedArgs = "!".join([verb, test.path(), config, hpctoolkit,
+                                profile.hpcrun, profile.hpcstruct, profile.hpcprof,
+                                str(numrepeats), study.path])
         encodedArgs = encodedArgs.replace(" ", "#")
         return encodedArgs
     
@@ -630,16 +632,17 @@ class Run(object):
     def decodeInitArgs(cls, encodedArgs):
         
         import common
+        from dimension.profileDim import ProfileArgs
         from study import Study
         from test import Test
         
         encodedArgs = encodedArgs.replace("#", " ")
-        argStrings = encodedArgs.split(",")
+        argStrings = encodedArgs.split("!")
         
-        verb = argStrings[0]
-        testdir, config, hpctoolkit, profile = argStrings[1:5]
-        numrepeats = int(argStrings[5])
-        study = Study(argStrings[6])
+        verb, testdir, config, hpctoolkit = argStrings[0:4]
+        profile = ProfileArgs(*argStrings[4:7])
+        numrepeats = int(argStrings[7])
+        study = Study(argStrings[8])
         
         common.args[verb] = True
         return (Test(testdir), config, hpctoolkit, profile, numrepeats, study)
