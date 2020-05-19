@@ -65,6 +65,15 @@ class ShellExecutor(Executor):
     def name(cls):
         
         return "Shell"
+
+
+    @classmethod
+    def isAvailable(cls):
+        
+        from common import whichDir
+        available, msg = Executor._checkCmdsAvailable(["bash"])
+        available = available or configuration.get("batch.debug.force", False)
+        return available, "bash is missing"
     
 
     @classmethod
@@ -72,7 +81,7 @@ class ShellExecutor(Executor):
         
         return False
 
-
+    
     # Programming model support
     
     def wrap(self, cmd, runPath, binPath, numRanks, numThreads, spackMPIBin):
@@ -83,15 +92,6 @@ class ShellExecutor(Executor):
         return cmd
 
     
-    @classmethod
-    def isAvailable(cls):
-        
-        from common import whichDir
-        available, msg = Executor._checkCmdsAvailable(["bash"])
-        available = available or configuration.get("batch.debug.force", False)
-        return available, "bash is missing"
-
-    
     def run(self, cmd, runPath, binPath, numRanks, numThreads, outPath, description):   # returns nothing, raises
         
         import os, sys
@@ -100,7 +100,7 @@ class ShellExecutor(Executor):
            
         env = os.environ.copy()
         env["PATH"] = binPath + ":" + env["PATH"]
-        env["OMP_NUM_THREADS"] = str(numThreads)
+        env["OMP_NUM_THREADS"] = str(numThreads if numThreads > 0 else 1)
         
         # run the specified command
         try:
