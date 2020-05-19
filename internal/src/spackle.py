@@ -53,6 +53,11 @@ import sys
 #  Initialization  #
 #------------------#
 
+def supported_version():
+    
+    return "0.12.1"
+
+
 def initSpack():
 
     import spack

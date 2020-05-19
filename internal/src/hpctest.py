@@ -365,6 +365,7 @@ class HPCTest(object):
 from os.path import isfile
 from shutil import copyfile
 from common import infomsg, errormsg
+import spackle
 
 
 # (1) establish preconditions for initializing the config system...
@@ -392,7 +393,7 @@ if not isdir(common.own_spack_home):
     
     infomsg("Setting up internal Spack...")
     
-    spack_version   = "0.12.1"
+    spack_version   = spackle.supported_version()
     spack_tarball   = join(_internalpath, "spack-{}.tar.gz".format(spack_version))
     spack_extracted = join(_internalpath, "spack-{}".format(spack_version))
     spack_dest      = join(_internalpath, "spack")
