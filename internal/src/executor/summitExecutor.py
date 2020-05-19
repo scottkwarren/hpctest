@@ -203,8 +203,8 @@ class SummitExecutor(Executor):
         scommand = Summit_run_cmd_template.format(
             options      = "",          # jsrun apparently has no verbose option
             runPath      = runPath,
-            numRanks     = numRanks,
-            numThreads   = numThreads,
+            numRanks     = numRanks if numRanks > 0 else 1,
+            numThreads   = numThreads if numThreads > 0 else 1,
             cmd          = cmd
             )
         
