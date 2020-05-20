@@ -58,10 +58,15 @@ class Study():
     def __init__(self, path):
         
         from os import makedirs
-        from os.path import basename, exists, isfile, isdir, join 
+        from os.path import basename, exists, isabs, isfile, isdir, join 
         from time import strftime
+        import common
         from common import BadStudyPath
 
+        path = path.rstrip("/")  # 'basename'== "" if trailing slash, => 'startswith' returns False
+        if not isabs(path):
+            path = join(common.homepath, path)
+            
         if isdir(path) and basename(path).startswith(_prefix):
                 self.path = path
         elif isdir(path):
@@ -82,7 +87,13 @@ class Study():
     @classmethod
     def isStudyDir(cls, path):
         
-        from os.path import basename, isdir 
+        from os.path import basename, isabs, isdir, join
+        import common
+        
+        path = path.rstrip("/")  # 'basename'== "" if trailing slash, => 'startswith' returns False
+        if not isabs(path):
+            path = join(common.homepath, path)
+        
         return isdir(path) and basename(path).startswith(_prefix)
     
     
