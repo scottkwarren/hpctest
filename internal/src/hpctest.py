@@ -398,6 +398,8 @@ if not isdir(common.own_spack_home):
     spack_extracted = join(_internalpath, "spack-{}".format(spack_version))
     spack_dest      = join(_internalpath, "spack")
     system("cd {}; tar xzf {}".format(_internalpath, spack_tarball))
+    if not isdir(spack_extracted):
+        fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
     rename(spack_extracted, spack_dest)
 
     infomsg("Spack found these compilers automatically:")
