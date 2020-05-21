@@ -9,7 +9,7 @@
    
 
 config:
-  batch:
+# batch:
 #-- default is 'manager: null', which runs jobs at the shell command line
 #-- other 'batch' options are manager-dependent
 #
@@ -27,14 +27,13 @@ config:
 #       time:      "0:05"      # 5 min (time given in minutes)
 #     prelude: module unload darshan-runtime
 #
-#-- debugging options
+#-- batch debugging options
 #     debug:
 #       force: True   # ignore executor's check for availability
 
 run:
-# ulimit:
-#     t: unlimited  # cpu time (seconds)
-#   t: 300
+#  ulimit:
+#    t: unlimited  # cpu time (seconds)
 
 profile:
 # hpctoolkit:
@@ -46,6 +45,10 @@ profile:
 #   hpcrun params:    PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO
 #   hpcstruct params: -I mysrc --gpucfg yes
 #   hpcprof params:   --force-metric -M sum -M stats
+
+debug:
+  force: False   # set True to force global debug mode
+
 
 
 

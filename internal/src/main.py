@@ -70,14 +70,19 @@ def main():
     argv = filter(lambda s: s != "\n", sys.argv[1:])                    # remove standalone newlines, eg at end of lines
     argv = map(lambda s: s.replace("\n"," ").replace("\\"," "), argv)   # remove newlines and backslashes within each string, eg in continued string constants
     try:
+
         args = docopt(doc=doc_message, argv=argv, help=False)
         common.args = args
         common.options = { key[2:] for key in args if key in optionNames and args[key] }
-        if configuration.get("debug"):
+
+        if configuration.get("debug.force") is True:
             common.options.add("debug")
+
         debugmsg("main's argv = {}".format(sys.argv))
         debugmsg("parsed args = {}".format(args))
+
     except DocoptExit as d:
+
         print usage_message + "\n" + "For more information use '--help'." + "\n"
         sys.exit()
 
