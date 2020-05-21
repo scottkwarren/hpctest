@@ -49,6 +49,11 @@
 import sys
 
 
+###############################
+## NONINVASIVE USES OF SPACK ##
+###############################
+
+
 #------------------#
 #  Initialization  #
 #------------------#
@@ -94,6 +99,19 @@ def extDo(cmdstring):
     os.system(common.ext_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
 
 
+def uninstall(name):
+    
+    import spackle
+    
+    cmd = "uninstall --all --force --yes-to-all {}".format(name)
+    spackle.do(cmd, echo=False)
+
+
+###############################
+## INVASIVE USES OF SPACK    ##
+###############################
+
+
 def execute(cmd, cwd=None, env=None, output=None, error=None):
     # raises spack.util.executable.ProcessError if execution fails
        
@@ -128,9 +146,8 @@ def execute(cmd, cwd=None, env=None, output=None, error=None):
 
 def parseSpec(specString):
     
-    import spack
-    import spack.cmd
-    return spack.cmd.parse_specs(specString)
+    from spack.cmd import parse_specs
+    return parse_specs(specString)
 
 
 def isInstalled(spec):
@@ -186,14 +203,6 @@ def setDIY(package, diyPath):
     
     from spack.stage import DIYStage
     package.stage = DIYStage(diyPath)
-
-
-def uninstall(name):
-    
-    import spackle
-    
-    cmd = "uninstall --all --force --yes-to-all {}".format(name)
-    spackle.do(cmd, echo=False)
 
 
 #----------------#
@@ -279,7 +288,8 @@ def readYamlFile(path):
         else:
             object, msg = None, "yaml file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
     
-    debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
+    if "verbose" in options:
+        debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
     
     return object, msg
 
