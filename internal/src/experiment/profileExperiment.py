@@ -160,7 +160,12 @@ class ProfileExperiment(Experiment):
     def _checkHpcrunExecution(self, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
          
         from common import infomsg
+        from experiment import Experiment
  
+        # check outputs from hpcrun
+        status, msg = "OK", None
+        pass
+    
         # compute profiling overhead
         if normalFailMsg or profiledFailMsg or normalTime == 0.0:
             infomsg("hpcrun overhead not computed")
@@ -179,9 +184,9 @@ class ProfileExperiment(Experiment):
             summaryDict = self._summarizeHpcrunLog()
             self.output.add("run", "profiled", "hpcrun summary", summaryDict)
          
-        # no checks yet, so always record success
-        self.output.add("run", "hpcrun", "output checks", "OK")
-        self.output.add("run", "hpcrun", "output msg",    None)
+        # record results
+        self.output.add("run", "hpcrun", "output checks", status)
+        self.output.add("run", "hpcrun", "output msg",    msg)
  
  
     def _summarizeHpcrunLog(self):
@@ -234,28 +239,53 @@ class ProfileExperiment(Experiment):
  
     def _checkHpcstructExecution(self, structTime, structFailMsg, structOutpath):
          
-        from run import Run
- 
+        from experiment import Experiment
+
         if structFailMsg:
-            msg = structFailMsg
+            status, msg = "NA", structFailMsg
         else:
-            msg = self.runOb.checkTextFile("structure file", structOutpath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
-             
-        self.output.add("run", "hpcstruct", "output checks", "FAILED" if msg else "OK")
+            # check outputs from hpcstruct...
+            status, msg = "OK", None
+    
+            # structure file exists
+            len   = 20  # lines
+            first = ['<?xml version="1.0"?>\n',
+                     '<!DOCTYPE HPCToolkitStructure [\n']
+            last  = ['</LM>\n',
+                     '</HPCToolkitStructure>\n']
+            status, msg = Experiment.checkTextFile("structure file", structOutpath, len, first, last)
+        
+        # record results
+        self.output.add("run", "hpcstruct", "output checks", status)
         self.output.add("run", "hpcstruct", "output msg",    msg)
  
  
     def _checkHpcprofExecution(self, profTime, profFailMsg, profOutpath):
-         
+        
+        from os.path import join
         from run import Run
         from common import infomsg
- 
+        from experiment import Experiment
+
         if profFailMsg:
-            msg = profFailMsg
+            status, msg = "FAILED", profFailMsg
         else:
-            msg = self.runOb.checkTextFile("performance db", profOutpath, 66, '<?xml version="1.0"?>\n', "</HPCToolkitStructure>\n")
-             
-        self.output.add("run", "hpcprof", "output checks", "FAILED" if msg else "OK")
+            # check outputs from hpcprof...
+            status, msg = "OK", None
+    
+            # perf db exists and is reasonable
+            status, msg = Experiment.checkDirExists("performance db", profOutpath)
+            if not msg:
+                path  = join(profOutpath, "experiment.xml")
+                len   = 10
+                first = ['<?xml version="1.0"?>\n',
+                         '<!DOCTYPE HPCToolkitExperiment [\n']
+                last  = ['</SecCallPathProfile>\n',
+                         '</HPCToolkitExperiment>\n']
+                status, msg = Experiment.checkTextFile("experiment file", path, len, first, last)
+            
+        # record results
+        self.output.add("run", "hpcprof", "output checks", status)
         self.output.add("run", "hpcprof", "output msg",    msg)
 
 

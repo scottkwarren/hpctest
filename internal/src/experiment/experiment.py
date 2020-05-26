@@ -154,119 +154,63 @@ class Experiment(object):
         pass        # TODO
 #       self.output.addSummaryStatus("CHECK FAILED", xxx)
 
-    
-    def _checkHpcrunExecution(self, runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
-        
-        from common import infomsg
 
-        # compute profiling overhead
-        if normalFailMsg or profiledFailMsg or normalTime == 0.0:
-            infomsg("hpcrun overhead not computed")
-            self.output.add("run", "profiled", "hpcrun overhead %", "NA")
-            overheadPercent = "NA"
+    @classmethod
+    def checkDirExists(cls, description, path):
+
+        from os.path import isdir
+
+        if isdir(path):
+            msg = None
         else:
-            overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-            infomsg("hpcrun overhead = {:<0.2f} %".format(overheadPercent))
-            self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent, format="{:0.2f}")
+            msg = "no {} was produced".format(description)
+        
+        status = "FAILED" if msg else "OK"
+        return status, msg
 
-        # summarize hpcrun log
-        if profiledFailMsg:
-            infomsg("hpcrun log not summarized")
-            self.output.add("run", "profiled", "hpcrun summary",  "NA")
+
+    @classmethod
+    def checkFileExists(cls, description, path):
+
+        from os.path import isfile
+
+        if isfile(path):
+            msg = None
         else:
-            summaryDict = self._summarizeHpcrunLog(runOutpath)
-            self.output.add("run", "profiled", "hpcrun summary", summaryDict)
+            msg = "no {} was produced".format(description)
         
-        # no checks yet, so always record success
-        self.output.add("run", "hpcrun", "output checks", "OK")
-        self.output.add("run", "hpcrun", "output msg",    None)
+        status = "FAILED" if msg else "OK"
+        return status, msg
 
 
-    def _summarizeHpcrunLog(self, runOutpath):
-        
-        from os import listdir
-        from os.path import join, isdir, isfile, basename, splitext
-        import re, string
-        from common import debugmsg, errormsg
-        from spackle import writeYamlFile
+    @classmethod
+    def checkTextFile(cls, description, path, minLen, goodFirstLines, goodLastLines):
 
-        if isdir(runOutpath):
+        from os.path import isfile
+
+        msg = None
+
+        if isfile(path):
             
-            pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
-                        "         frames: D (trolled: D)\n"
-                        "         intervals: D (suspicious: D)\n"
-                      )
-            fieldNames = [ "samples", "recorded", "blocked", "errant", "trolled", "yielded", "frames", "trolled", "intervals", "suspicious" ]
-            pattern = string.replace(pattern, r"(", r"\(")
-            pattern = string.replace(pattern, r")", r"\)")
-            pattern = string.replace(pattern, r"D", r"(\d+)")
-            rex = re.compile(pattern)
-    
-            scrapedResultTupleList = []
-            
-            for item in listdir(runOutpath):
-                itemPath = join(runOutpath, item)
-                if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
-                    with open(itemPath, "r") as f:
-                        
-                        last3lines  = f.readlines()[-3:]
-                        summaryLine = "".join(last3lines)
-                        match = rex.match(summaryLine)
-                        if match:
-                            scrapedResultTuple = map(int, match.groups())   # convert matched strings to ints
-                            scrapedResultTupleList.append(scrapedResultTuple)
-                        else:
-                            errormsg("hpcrun log '{}' has summary with unexpected format:\n{}".format(item, summaryLine))
-                            
-            summedResultTuple = map(sum, zip(*scrapedResultTupleList))
-            summedResultDict  = dict(zip(fieldNames, summedResultTuple))
-            sumPath = self.output.makePath("hpcrun-summary.yaml")
-            writeYamlFile(sumPath, summedResultDict)
-            debugmsg("hpcrun summary = {}".format(summedResultDict))
-        
+            with open(path, "r") as f:
+                
+                lines = f.readlines()
+                if type(goodFirstLines) is not list: goodFirstLines = [ goodFirstLines ]
+                if type(goodLastLines)  is not list: goodLastLines  = [ goodLastLines  ]
+                
+                n = len(lines)
+                plural = "s are" if n > 1 else " is"
+                if n < minLen:                                        msg = "{} is too short ({} < {})".format(description, n, minLen)
+                elif lines[0:len(goodFirstLines)] != goodFirstLines:  msg = "{}'s first line{} invalid".format(description, plural)
+                elif lines[-len(goodLastLines): ] != goodLastLines:   msg = "{}'s first line{} invalid".format(description, plural)
+                else:                                                 msg = None
+                
         else:
-            summedResultDict = "NA"
-            
-        return summedResultDict
-
-
-    def _checkHpcstructExecution(self, structTime, structFailMsg, structOutpath):
+            msg = "no {} was produced".format(description)
         
-        from run import Run
+        status = "FAILED" if msg else "OK"
+        return status, msg
 
-        if structFailMsg:
-            msg = structFailMsg
-        else:
-            first = ['<?xml version="1.0"?>\n',
-                     '<!DOCTYPE HPCToolkitStructure [\n']
-            last  = ['</LM>\n',
-                     '</HPCToolkitStructure>\n']
-            msg   = self.runOb.checkTextFile("structure file", structOutpath, 66, first, last)
-            
-        self.output.add("run", "hpcstruct", "output checks", "FAILED" if msg else "OK")
-        self.output.add("run", "hpcstruct", "output msg",    msg)
-
-
-    def _checkHpcprofExecution(self, profTime, profFailMsg, profOutpath):
-        
-        from os.path import join
-        from run import Run
-        from common import infomsg
-
-        if profFailMsg:
-            msg = profFailMsg
-        else:
-            msg = self.runOb.checkDirExists("performance db", profOutpath)
-            if not msg:
-                path  = join(profOutpath, "experiment.xml")
-                first = ['<?xml version="1.0"?>\n',
-                         '<!DOCTYPE HPCToolkitExperiment [\n']
-                last  = ['</SecCallPathProfile>\n',
-                         '</HPCToolkitExperiment>\n']
-                msg   = self.runOb.checkTextFile("experiment file", path, 66, first, last)
-            
-        self.output.add("run", "hpcprof", "output checks", "FAILED" if msg else "OK")
-        self.output.add("run", "hpcprof", "output msg",    msg)
     
 
 

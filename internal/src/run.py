@@ -502,67 +502,6 @@ class Run(object):
 
 
 ##########################################
-# RESULT CHECKING                        #
-##########################################
-
-
-    @classmethod
-    def checkDirExists(cls, description, path):
-
-        from os.path import isdir
-
-        if isdir(path):
-            msg = None
-        else:
-            msg = "no {} was produced".format(description)
-        
-        return msg
-
-
-    @classmethod
-    def checkFileExists(cls, description, path):
-
-        from os.path import isfile
-
-        if isfile(path):
-            msg = None
-        else:
-            msg = "no {} was produced".format(description)
-        
-        return msg
-
-
-    @classmethod
-    def checkTextFile(cls, description, path, minLen, goodFirstLines, goodLastLines):
-
-        from os.path import isfile
-
-        msg = None
-
-        if isfile(path):
-            
-            with open(path, "r") as f:
-                
-                lines = f.readlines()
-                if type(goodFirstLines) is not list: goodFirstLines = [ goodFirstLines ]
-                if type(goodLastLines)  is not list: goodLastLines  = [ goodLastLines  ]
-                
-                n = len(lines)
-                plural = "s are" if n > 1 else " is"
-                if n < minLen:                                        msg = "{} is too short ({} < {})".format(description, n, minLen)
-                elif lines[0:len(goodFirstLines)] != goodFirstLines:  msg = "{}'s first line{} invalid".format(description, plural)
-                elif lines[-len(goodLastLines): ] != goodLastLines:   msg = "{}'s first line{} invalid".format(description, plural)
-                else:                                                 msg = None
-                
-        else:
-            msg = "no {} was produced".format(description)
-        
-        return msg
-
-
-
-
-##########################################
 # BATCH EXECUTION                        #
 ##########################################
 
