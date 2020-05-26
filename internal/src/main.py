@@ -132,7 +132,7 @@ def execute(args):
         
     elif args["report"]:
         
-        studyPath  = args["--study"]
+        studyPath  = args["STUDYSPEC"]
         whichspec  = args["--which"] if args["--which"] else "all" 
         sortKeys   = [ key.strip() for key in (args["--sort"]).split(",") ] if args["--sort"] else []
         HPCTestOb.report(studyPath, whichspec, sortKeys)
