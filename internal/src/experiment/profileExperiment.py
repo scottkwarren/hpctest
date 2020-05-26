@@ -169,24 +169,24 @@ class ProfileExperiment(Experiment):
         # compute profiling overhead
         if normalFailMsg or profiledFailMsg or normalTime == 0.0:
             infomsg("hpcrun overhead not computed")
-            self.output.add("run", "profiled", "hpcrun overhead %", "NA")
+            self.output.add("run", "profiled", "hpcrun", "overhead %", "NA")
             overheadPercent = "NA"
         else:
             overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
             infomsg("hpcrun overhead = {:<0.2f} %".format(overheadPercent))
-            self.output.add("run", "profiled", "hpcrun overhead %", overheadPercent, format="{:0.2f}")
+            self.output.add("run", "profiled", "hpcrun", "overhead %", overheadPercent, format="{:0.2f}")
  
         # summarize hpcrun log
         if profiledFailMsg:
             infomsg("hpcrun log not summarized")
-            self.output.add("run", "profiled", "hpcrun summary",  "NA")
+            self.output.add("run", "profiled", "hpcrun", "summary",  "NA")
         else:
             summaryDict = self._summarizeHpcrunLog()
-            self.output.add("run", "profiled", "hpcrun summary", summaryDict)
+            self.output.add("run", "profiled", "hpcrun", "summary", summaryDict)
          
         # record results
-        self.output.add("run", "hpcrun", "output checks", status)
-        self.output.add("run", "hpcrun", "output msg",    msg)
+        self.output.add("run", "profiled", "hpcrun", "output check status", status)
+        self.output.add("run", "profiled", "hpcrun", "output check msg",    msg)
  
  
     def _summarizeHpcrunLog(self):
@@ -256,8 +256,8 @@ class ProfileExperiment(Experiment):
             status, msg = Experiment.checkTextFile("structure file", structOutpath, len, first, last)
         
         # record results
-        self.output.add("run", "hpcstruct", "output checks", status)
-        self.output.add("run", "hpcstruct", "output msg",    msg)
+        self.output.add("run", "profiled", "hpcstruct", "output check status", status)
+        self.output.add("run", "profiled", "hpcstruct", "output check msg",    msg)
  
  
     def _checkHpcprofExecution(self, profTime, profFailMsg, profOutpath):
@@ -285,8 +285,8 @@ class ProfileExperiment(Experiment):
                 status, msg = Experiment.checkTextFile("experiment file", path, len, first, last)
             
         # record results
-        self.output.add("run", "hpcprof", "output checks", status)
-        self.output.add("run", "hpcprof", "output msg",    msg)
+        self.output.add("run", "profiled", "hpcprof", "output check status", status)
+        self.output.add("run", "profiled", "hpcprof", "output check msg",    msg)
 
 
 

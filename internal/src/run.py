@@ -346,9 +346,9 @@ class Run(object):
         if "wantProfiling" not in self.output.get("input"):
             self.output.add("input", "wantProfiling", "False")
         if self.wantProfiling and self.output.get("run") != "NA":   ## TODO: 'wantProfiling' WANKS IF THERE WAS NO YAML FILE
-            if "hpcstruct" not in self.output.get("run"):
+            if "hpcstruct" not in self.output.get("run", "profiled"):
                 self.output.add("run", "hpcstruct", "NA")
-            if "hpcprof" not in self.output.get("run"):
+            if "hpcprof" not in self.output.get("run", "profiled"):
                 self.output.add("run", "hpcprof", "NA")
 
 

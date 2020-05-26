@@ -189,8 +189,8 @@ class Report():
             run                 = result["run"]
                                             
             if info.wantProfiling and (run != "NA"):
-                hpcrun          = run["profiled"]["hpcrun summary"]
-                info.overhead   = run["profiled"]["hpcrun overhead %"]
+                hpcrun          = run["profiled"]["hpcrun"]["summary"]
+                info.overhead   = run["profiled"]["hpcrun"]["overhead %"]
             else:
                 hpcrun          = "NA"
                 info.overhead   = "NA"
