@@ -88,11 +88,11 @@ class Study():
     def isStudyDir(cls, path):
         
         from os.path import basename, isabs, isdir, join
-        import common
+        from common import workpath
         
         path = path.rstrip("/")  # 'basename'== "" if trailing slash, => 'startswith' returns False
         if not isabs(path):
-            path = join(common.homepath, path)
+            path = join(workpath, path)
         
         return isdir(path) and basename(path).startswith(_prefix)
     

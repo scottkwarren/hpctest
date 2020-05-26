@@ -135,7 +135,7 @@ class HPCTest(object):
     def report(self, studypath, reportspec="", sortKeys=[]):
         
         from os         import listdir
-        from os.path    import join
+        from os.path    import join, isabs
         from common     import workpath, errormsg
         from report     import Report
         from study      import Study
@@ -144,6 +144,8 @@ class HPCTest(object):
             studies   = sorted(listdir(workpath), reverse=True)
             studypath = join(workpath, studies[0]) if len(studies) else None
         if studypath:
+            if not isabs(studypath):
+                studypath = join(workpath, studypath)
             if Study.isStudyDir(studypath):
                 reporter  = Report()
                 reporter.printReport(Study(studypath), reportspec, sortKeys)
