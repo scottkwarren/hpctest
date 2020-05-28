@@ -71,14 +71,14 @@ class Report():
         tableWidth = 110    # width of table row manually determined    # TODO: better
         
         debugmsg("reporting on study at {} with options {}".format(studypath, options))
-            
+           
         # collect the results from all runs meeting 'whichspec'
         reportAll    = whichspec == "all"
         reportPassed = whichspec == "pass"     # if 'reportAll', don't care
-        studyDirs = listdir(studypath)
-        results = list()
+        runDirs = listdir(studypath)
+        passes  = list()
         fails   = list()
-        for runname in studyDirs:
+        for runname in runDirs:
             runPath = join(studypath, runname)
             outPath = join(runPath, "OUT", "OUT.yaml")
             if isfile(outPath):
@@ -86,21 +86,21 @@ class Report():
                 if error: fatalmsg("result file OUT.yaml cannot be read for test run {}".format(runPath))
                 ok = resultdict["summary"]["status"] == "OK"
                 if reportAll or (reportPassed == ok):
-                    results.append(resultdict)
+                    passes.append(resultdict)
                 if not ok:
                     fails.append(resultdict)
             else:
                 errormsg("Test results file OUT.yaml not found for run {}, ignored".format(runPath))
 
         # counts for final summary line
-        numTests  = len(studyDirs)
+        numTests  = len(runDirs)
         numFails  = len(fails)
         numPasses = numTests - numFails
         
         # print a summary record for each result, sorted by config spec and then test name
-        if results:
+        if passes:
 
-            # sort results by input dimspec sequence
+            # sort passes and fails by input dimspec sequence
             dimkey_map = {"tests":       ["test"],
                           "build":       ["config spec"],
                           "hpctoolkit":  ["hpctoolkit"],
@@ -113,10 +113,12 @@ class Report():
                 else:
                     errormsg("unknown sort key for report ignored: '{}'".format(key))
             if len(dimkeys):
-                results.sort(key=sortKeyFunc)      # key func returns list of result fields corresponding to dimkey_list
+                # key func returns list of result fields corresponding to dimkey_list
+                passes.sort(key=sortKeyFunc)
+                fails.sort(key=sortKeyFunc)
 
             print
-            for result in results:
+            for result in passes:
                                 
                 # format for display -- line 1
                 testLabel = self.labelForTest(result)
