@@ -76,7 +76,7 @@ class SlurmExecutor(Executor):
         import configuration
         
         available, msg = Executor._checkCmdsAvailable(["srun", "sbatch", "squeue"])
-        available = available or configuration.get("batch.debug.force", False)
+        available = available or configuration.get("config.batch.debug.force", False)
         
         return available, msg
 
