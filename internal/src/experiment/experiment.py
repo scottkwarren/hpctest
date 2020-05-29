@@ -51,15 +51,15 @@
 class Experiment(object):
     
 
-    def __init__(self, test, run, packagePrefix, rundir, output):
+    def __init__(self, test, run, output):
         
         from os.path import join
 
         # creation parameters
         self.test       = test
         self.runOb      = run
-        self.prefixBin  = join(packagePrefix, "bin")
-        self.rundir     = rundir
+        self.prefixBin  = join(run.package.prefix, "bin")
+        self.rundir     = run.rundir
         self.output     = output
 
         # derived values
@@ -77,82 +77,14 @@ class Experiment(object):
     
     def description(self, forName=False):
         
-        return "some experiment run"
+        from common import subclassResponsibility
+        subclassResponsibility("Experiment", "description")
     
     
     def run(self):
         
-        self._runBuiltTest()
-        self._checkTestResults()
-
-
-    def _runBuiltTest(self):
-
-        from os.path import join
-        from run import Run
-        from common import options, infomsg, verbosemsg, sepmsg, ExecuteFailed
-
-        # (1) execute test case without profiling
-        normalTime, normalFailMsg = self.runOb.execute(self.cmd, ["run"], "normal", self.wantMPI, self.wantOMP)
-        
-        # if requested, do complete HPCTkit profiling pipeline
-        if self.wantProfiling and not normalFailMsg:
-            
-                # (2) execute test case with profiling
-                runOutpath = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
-    
-                runCmd = "{}/hpcrun -o {} -t {} {}" \
-                    .format(self.hpctoolkitBinPath, runOutpath, self.hpcrunParams, self.cmd)
-                profiledTime, profiledFailMsg = self.runOb.execute(runCmd, ["run"], "profiled", self.wantMPI, self.wantOMP)
-                self._checkHpcrunExecution(runOutpath, normalTime, normalFailMsg, profiledTime, profiledFailMsg)
-                
-                if "verbose" in options: sepmsg()
-                
-                # (3) run hpcstruct on test executable
-                structOutpath = self.output.makePath("{}.hpcstruct".format(self.exeName))
-                structCmd = "{}/hpcstruct -o {} {} -I {} {}" \
-                    .format(self.hpctoolkitBinPath, structOutpath, self.hpcstructParams, self.testIncs, join(self.prefixBin, self.exeName))
-                structTime, structFailMsg = self.runOb.execute(structCmd, ["run", "profiled"], "hpcstruct", False, False)
-                self._checkHpcstructExecution(structTime, structFailMsg, structOutpath)
-            
-                # (4) run hpcprof on test measurements
-                if profiledFailMsg or structFailMsg:
-                    infomsg("hpcprof not run due to previous failure")
-                else:
-                    profOutpath = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
-                    profCmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
-                        .format(self.hpctoolkitBinPath, profOutpath, structOutpath, self.hpcprofParams, self.testIncs, runOutpath)
-                    profTime, profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
-                    self._checkHpcprofExecution(profTime, profFailMsg, profOutpath)
-                
-                # (5) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
-                #           -- complicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
-                
-        else:
-            if normalFailMsg:
-                infomsg("profiling not done due to previous failure")
-            else:
-                verbosemsg("profiling is disabled by hpctest.yaml")
-            profiledTime, profiledFailMsg = 0.0, None
-            structTime,   structFailMsg   = 0.0, None
-            profTime, profFailMsg         = 0.0, None
-    
-        # let caller know if test case failed
-        if   normalFailMsg:     failure, msg  = "NORMAL RUN FAILED", normalFailMsg
-        elif profiledFailMsg:   failure, msg  = "HPCRUN FAILED",     profiledFailMsg
-        elif structFailMsg:     failure, msg  = "HPCSTRUCT FAILED",  structFailMsg
-        elif profFailMsg:       failure, msg  = "HPCPROF FAILED",    profFailMsg
-        else:                   failure, msg  = None,                None
-        
-        if failure:
-            self.output.addSummaryStatus(failure, msg)
-            raise ExecuteFailed(msg)
-    
-    
-    def _checkTestResults(self):
-
-        pass        # TODO
-#       self.output.addSummaryStatus("CHECK FAILED", xxx)
+        from common import subclassResponsibility
+        subclassResponsibility("Experiment", "run")
 
 
     @classmethod
