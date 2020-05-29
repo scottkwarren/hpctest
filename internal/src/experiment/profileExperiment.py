@@ -53,18 +53,11 @@ from experiment import Experiment
 class ProfileExperiment(Experiment):
     
 
-    def __init__(self, test, run,
-                packagePrefix, rundir, output,
-                config, hpctoolkit, profile):
+    def __init__(self, test, run, output, config, hpctoolkit, profile):
 
         from os.path import join
 
-        super(ProfileExperiment, self).__init__(test, run, packagePrefix, rundir, output)
-
-        # core creation parameters saved by superclass
-#         self.test     = test
-#         self.runOb    = run
-#         self.output   = output
+        super(ProfileExperiment, self).__init__(test, run, output)
 
         # dimension parameters
         self.config = config
