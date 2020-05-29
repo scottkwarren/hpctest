@@ -1,6 +1,6 @@
 ################################################################################
 #                                                                              #
-#  configDim.py                                                                #
+#  buildDim.py                                                                 #
 #  set of Spack specs, constructed from "spec" exprs                           #
 #                                                                              #
 #  $HeadURL$                                                                   #
@@ -51,7 +51,7 @@
 from . import StringDim
 
 
-class ConfigDim(StringDim):
+class BuildDim(StringDim):
     
     @classmethod
     def name(cls):

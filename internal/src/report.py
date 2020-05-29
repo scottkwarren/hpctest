@@ -97,12 +97,12 @@ class Report():
         numFails  = len(fails)
         numPasses = numTests - numFails
         
-        # print a summary record for each result, sorted by config spec and then test name
+        # print a summary record for each result, sorted by the dim names in 'sortKeys'
         if passes:
 
             # sort passes and fails by input dimspec sequence
             dimkey_map = {"tests":       ["test"],
-                          "build":       ["config spec"],
+                          "build":       ["build spec"],
                           "hpctoolkit":  ["hpctoolkit"],
                           "profile":     ["hpctoolkit params", "hpcrun"]
                          }
@@ -182,7 +182,7 @@ class Report():
         try:
             
             info.test           = result["input"]["test"].upper().replace("/", " / ")
-            info.config         = result["input"]["config spec"].upper()
+            info.build          = result["input"]["build spec"].upper()
             info.hpctoolkit     = result["input"]["hpctoolkit"]
             info.params         = result["input"]["hpctoolkit params"]["hpcrun"]
             info.wantProfiling  = literal_eval(result["input"]["wantProfiling"])
@@ -225,7 +225,7 @@ class Report():
     def labelForTest(self, testdict):
 
         info  = self.extractRunInfo(testdict)
-        label = "{} with {}".format(info.test, info.config)
+        label = "{} with {}".format(info.test, info.build)
         if info.wantProfiling:
             label += " and {}".format(info.params)  # TODO: display hpctoolkit path but make sure line's not too long
         return label

@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
 #  iterate.py                                                                  #
-#  robustly iterates over build configs and test cases using a testdir         #
+#  robustly iterates over test configurations using a testdir                  #
 #      to store iteration state across failed partial iterations               #
 #                                                                              #
 #  $HeadURL$                                                                   #
@@ -77,15 +77,15 @@ class Iterate():
                     infomsg("submitting all test runs for batch execution...")
                     submittedJobs = set()
                     numSubmitted = 0
-                    for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
+                    for test, build, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
                         verbosemsg("")
-                        jobID, out, err = Run.submitJob(test, config, hpctoolkit, profile, numrepeats, study)
+                        jobID, out, err = Run.submitJob(test, build, hpctoolkit, profile, numrepeats, study)
                         if not err:
                             submittedJobs.add(jobID)
                             numSubmitted += 1
                             verbosemsg("submitted {} as job # {}".format(Run.descriptionForJob(jobID), jobID))
                         else:
-                            errormsg("submit failed for test run {}:\n{}".format(test.description(config, hpctoolkit, profile), out))
+                            errormsg("submit failed for test run {}:\n{}".format(test.description(build, hpctoolkit, profile), out))
                     verbosemsg("")
                     if numSubmitted > 0:
                         infomsg("done")
@@ -108,8 +108,8 @@ class Iterate():
             else:
                 
                 # run all tests sequentially via shell commands
-                for test, config, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
-                    run = Run(test, config, hpctoolkit, profile, numrepeats, study, False)
+                for test, build, hpctoolkit, profile in product(dims["tests"], dims["build"], dims["hpctoolkit"], dims["profile"]):
+                    run = Run(test, build, hpctoolkit, profile, numrepeats, study, False)
                     status = run.run()
             
             

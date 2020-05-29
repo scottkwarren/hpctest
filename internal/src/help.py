@@ -62,7 +62,7 @@ usage_message = \
 Usage:
   hpctest init
   hpctest (build | run | debug) [options] ( all | [TESTSPEC...] )
-          [--build CONFIGSPEC]
+          [--build BUILDSPEC]
           [--hpctoolkit PATHSPEC]
           [--profile PROFILESPEC]
           [--study PATH]
@@ -121,7 +121,7 @@ Options:
   
 Arguments:
   COMMAND                    xxx. (Caution about [options] in Spack command: quote the command.)
-  CONFIGSPEC                 a Spack spec minus the package name and caret (eg gcc@4.7).
+  BUILDSPEC                  a Spack spec minus the package name and caret (eg gcc@4.7).
   PATH                       xxx.
   PATHSPEC                   xxx.
   PROFILESPEC                a sequence of profiling arguments to 'hpcrun'.
@@ -146,8 +146,8 @@ _hidden_options = \
 """
   -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
                              Each test's executable will be executed as the test case for some runs of the study.
-  -b, --build CONFIGSPEC     Add a matrix dimension with the specified set of build configurations as alternatives;
-                             each configuration is used to build the test executable for some runs of the study.
+  -b, --build BUILDSPEC      Add a matrix dimension with the specified set of build settings as alternatives;
+                             each group of settings is used to build the test executable for some runs of the study.
   -k, --hpctoolkit PATHSPEC  Add a matrix dimension with the specified set of paths as alternatives; each path
                              points to an HPCToolkit installation's 'install/bin' directory and is used to profile
                              the test executable for some runs of the study.

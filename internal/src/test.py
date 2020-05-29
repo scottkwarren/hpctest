@@ -95,15 +95,15 @@ class Test():
         return self._yaml("run.cmd")
         
 
-    def description(self, config, hpctoolkit, profile, forName=False):
+    def description(self, build, hpctoolkit, profile, forName=False):
         
         ## TODO: use 'hpctoolkit', eg if not the default one, but need short names for the paths
         
-        from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
+        from dimension import TestDim, BuildDim, HPCTkitDim, ProfileDim
         
         f = "{}:{}:{}" if forName else "{} : {} : {}"
         t = TestDim.format(self.relpath(), forName)
-        c = ConfigDim.format(config,       forName)
+        c = BuildDim.format(build,         forName)
         p = ProfileDim.format(profile,     forName)
         
         return f.format(t, c, p)

@@ -68,7 +68,7 @@ class HPCTest(object):
         global dimNames, dimDefaultMap, dimClassMap
 
         from common import infomsg, warnmsg, errormsg
-        from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
+        from dimension import TestDim, BuildDim, HPCTkitDim, ProfileDim
                 
         if (not common.hpctk_default):
             warnmsg("no default HPCToolkit specified for profiling.\n"
@@ -81,7 +81,7 @@ class HPCTest(object):
                     )
         
         # dimension info (requires paths and config to be set up)
-        dimClasses    = [ TestDim, ConfigDim, HPCTkitDim, ProfileDim ]
+        dimClasses    = [ TestDim, BuildDim, HPCTkitDim, ProfileDim ]
         dimNames      = [ dim.name()                  for dim in dimClasses ]
         dimClassMap   = { dim.name() : dim            for dim in dimClasses }
         dimDefaultMap = { dim.name() : dim.default()  for dim in dimClasses }
@@ -206,7 +206,7 @@ class HPCTest(object):
     def selftest(self, testspec="all", reportspec="", studyPath=None):
         
         import common
-        from dimension import TestDim, ConfigDim, HPCTkitDim, ProfileDim
+        from dimension import TestDim, BuildDim, HPCTkitDim, ProfileDim
         from study     import Study
         from iterate   import Iterate
         from report    import Report
@@ -214,7 +214,7 @@ class HPCTest(object):
                 
 #       # run tests, reporting results as we go
         dims  = {"tests":      TestDim(testspec, selftest=True),
-                 "build":      ConfigDim.defaultDim(),
+                 "build":      BuildDim.defaultDim(),
                  "hpctoolkit": HPCTkitDim.defaultDim(),
                  "profile":    ProfileDim.defaultDim()
                 }

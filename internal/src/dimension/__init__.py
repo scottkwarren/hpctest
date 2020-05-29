@@ -9,7 +9,7 @@
 
 from dimension   import Dimension
 from stringDim   import StringDim
-from configDim   import ConfigDim
+from buildDim    import BuildDim
 from testDim     import TestDim
 from hpctkitDim  import HPCTkitDim
 from profileDim  import ProfileDim

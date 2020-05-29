@@ -69,13 +69,13 @@ class Run(object):
     
     # METHODS
     
-    def __init__(self, test, config, hpctoolkit, profile, numrepeats, study, wantBatch):
+    def __init__(self, test, build, hpctoolkit, profile, numrepeats, study, wantBatch):
         
         from os.path import basename, join
 
         # general params
         self.test        = test
-        self.config      = config                         # Spack spec for desired build configuration
+        self.build       = build                          # Spack spec for desired build configuration
         self.study       = study                          # storage for collection of test run dirs
 
         # hpctoolkit params
@@ -91,7 +91,7 @@ class Run(object):
     def description(self, forName=False):
         
         from os.path import basename
-        return self.test.description(self.config, self.hpctoolkitBinPath, self.profile, forName=forName)
+        return self.test.description(self.build, self.hpctoolkitBinPath, self.profile, forName=forName)
     
     
     def run(self, echoStdout=True):
@@ -133,7 +133,7 @@ class Run(object):
                 
                 if not common.args["build"]:    # ie not build-only
                     self.experiment = ProfileExperiment(self.test, self, self.output,
-                                                        self.config, self.hpctoolkit, self.profile)
+                                                        self.build, self.hpctoolkit, self.profile)
                     self.experiment.run()
                     self.output.addSummaryStatus("OK", None)
                 
@@ -184,7 +184,7 @@ class Run(object):
         from common import BadBuildSpec
         
         namespace = "builtin" if self.test.builtin() else "tests"
-        spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.test.version(), self.config)
+        spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.test.version(), self.build)
         try:
             
             self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
@@ -199,7 +199,7 @@ class Run(object):
             self.output.add("build", "concretized spack spec", str(self.spec))
             
         except Exception as e:
-            self.output.addSummaryStatus("CONFIG INVALID", e.message)
+            self.output.addSummaryStatus("BUILD CONFIG INVALID", e.message)
             raise BadBuildSpec(e.message)
 
 
@@ -322,7 +322,7 @@ class Run(object):
         now = datetime.datetime.now()
         self.output.add("input", "date",              now.strftime("%Y-%m-%d %H:%M"))
         self.output.add("input", "test",              self.test.relpath())
-        self.output.add("input", "config spec",       str(self.config))
+        self.output.add("input", "build spec",        str(self.build))
         self.output.add("input", "hpctoolkit",        str(self.hpctoolkitBinPath))
         self.output.add("input", "hpctoolkit params", self.profile._asdict())
         self.output.add("input", "num repeats",       self.numrepeats)
@@ -499,7 +499,7 @@ class Run(object):
 
 
     @classmethod
-    def submitJob(cls, test, config, hpctoolkit, profile, numrepeats, study):   # returns jobID, out, err
+    def submitJob(cls, test, build, hpctoolkit, profile, numrepeats, study):   # returns jobID, out, err
         
         import os
         from os.path import join
@@ -507,13 +507,13 @@ class Run(object):
         import configuration
         
         optString = optionsArgString()
-        initArgs  = Run._encodeInitArgs(test, config, hpctoolkit, profile, numrepeats, study)
+        initArgs  = Run._encodeInitArgs(test, build, hpctoolkit, profile, numrepeats, study)
         cmd = "{}/hpctest _runOne {} '{}'; exit 0".format(homepath, optString, initArgs)        
         prelude = configuration.get("config.batch.prelude", [])
         numRanks = test.numRanks()
         numThreads = test.numThreads()
         name = test.name()
-        desc = test.description(config, hpctoolkit, profile, forName=False)
+        desc = test.description(build, hpctoolkit, profile, forName=False)
         jobID, out, err = Run.executor.submitJob(cmd, prelude, numRanks, numThreads, name, desc)
         
         return jobID, out, err
@@ -544,7 +544,7 @@ class Run(object):
     
     
     @classmethod
-    def _encodeInitArgs(cls, test, config, hpctoolkit, profile, numrepeats, study):
+    def _encodeInitArgs(cls, test, build, hpctoolkit, profile, numrepeats, study):
         
         from os.path import basename
         import common
@@ -552,7 +552,7 @@ class Run(object):
         verb = "build" if common.args["build"] else \
                "run"   if common.args["run"]   else \
                "debug" if common.args["debug"] else None
-        encodedArgs = "!".join([verb, test.path(), config, hpctoolkit,
+        encodedArgs = "!".join([verb, test.path(), build, hpctoolkit,
                                 profile.hpcrun, profile.hpcstruct, profile.hpcprof,
                                 str(numrepeats), study.path])
         encodedArgs = encodedArgs.replace(" ", "#")
@@ -570,13 +570,13 @@ class Run(object):
         encodedArgs = encodedArgs.replace("#", " ")
         argStrings = encodedArgs.split("!")
         
-        verb, testdir, config, hpctoolkit = argStrings[0:4]
+        verb, testdir, build, hpctoolkit = argStrings[0:4]
         profile = ProfileArgs(*argStrings[4:7])
         numrepeats = int(argStrings[7])
         study = Study(argStrings[8])
         
         common.args[verb] = True
-        return (Test(testdir), config, hpctoolkit, profile, numrepeats, study)
+        return (Test(testdir), build, hpctoolkit, profile, numrepeats, study)
 
 
 
