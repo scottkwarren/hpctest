@@ -125,27 +125,16 @@ class Run(object):
             infomsg( "{} test {}".format(gerundive, self.description()) )
             sepmsg(True)
             
+            # run the test
             try:
                 
-                # build the test case
                 self._examineYaml()
-                self._makeBuildSpec()
-                self._prepareJobDirs()
                 self._buildTest()
                 
-                if not common.args["build"]:    # not build-only
-                
-                    # capture build-dependent useful paths
-                    mpiPrefix = self.spec["mpi"].prefix if "mpi" in self.spec else None
-                    self.mpiPrefixBin = join(mpiPrefix, "bin") if mpiPrefix else None
-                    
-                    # use an experiment instance to perform one run
-                    self.experiment =  \
-                        ProfileExperiment(self.test, self, 
-                                   self.package.prefix, self.rundir, self.output,
-                                   self.config, self.hpctoolkit, self.profile)
+                if not common.args["build"]:    # ie not build-only
+                    self.experiment = ProfileExperiment(self.test, self, self.output,
+                                                        self.config, self.hpctoolkit, self.profile)
                     self.experiment.run()
-                    
                     self.output.addSummaryStatus("OK", None)
                 
             except BadTestDescription as e:
@@ -250,6 +239,9 @@ class Run(object):
         import spackle
 
         from common import options, infomsg, errormsg, fatalmsg, BuildFailed, ElapsedTimer
+
+        self._makeBuildSpec()
+        self._prepareJobDirs()
 
         # build the package if necessary
         self.package = spackle.packageFromSpec(self.spec)
@@ -382,7 +374,7 @@ class Run(object):
         # ... MPI launching code if wanted
         if mpi:
             ranks   = self.test.numRanks()
-            mpipath = self.mpiPrefixBin
+            mpipath = join(self.spec["mpi"].prefix, "bin")
         else:
             ranks = 0       # tells executor.wrap not to use MPI
             mpipath = None
