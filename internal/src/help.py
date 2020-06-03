@@ -56,12 +56,17 @@
 #       (ie no leading spaces before 'Usage:' et al)
 
 
-usage_message = \
-                \
+#==============#
+# USAGE STRING #
+#==============#
+
+_usage = \
+         \
 """
 Usage:
   hpctest init
-  hpctest (build | run | debug) [options] ( all | [TESTSPEC...] )
+  hpctest (build | run | debug) [options] (all | [TESTSPEC...])
+          [--test TESTSPEC]
           [--build BUILDSPEC]
           [--hpctoolkit PATHSPEC]
           [--profile PROFILESPEC]
@@ -69,16 +74,15 @@ Usage:
           [--report REPORTSPEC]
           [--sort SORTSPEC]
           [--background] [--foreground] [--batch] [--immediate]
-  hpctest report [options] [STUDYSPEC]
+  hpctest report [options] [PATH]
           [--which WHICHSPEC]
-          [--report REPORTSPEC]
           [--sort SORTSPEC]
   hpctest clean [options]
           [--studies]
           [--built]
           [--dependencies]
           [--all]
-  hpctest spack [options] COMMAND ...
+  hpctest spack [options] SPACKCMD ...
   hpctest selftest [options] ( all | [TESTSPEC...] ) [--study PATH]
   hpctest _miniapps
   hpctest _runOne [options] ENCODED_ARGS
@@ -86,7 +90,9 @@ Usage:
 """
 
 
-# The '{}' below must appear at the end of line to avoid extra newline in 'help_message'
+#===============#
+# HELP TEMPLATE #
+#===============#
 
 # Example description:
 #     HPCToolkit is an integrated suite of tools for measurement and analysis
@@ -97,77 +103,130 @@ Usage:
 #     consumption, and inefficiency and attributes them to the full calling
 #     context in which they occur.
 
-_template = \
-            \
+_help = \
+        \
 """
-HPCTest:
+HPCTest is a tool for flexible automatic configuration testing of the HPCToolkit
+suite of tools. Using a collection of builtin test cases and concise
+specifications given on its command line, HPCTest conducts a study by performing
+test runs over a "testing matrix" of configurations, gathering and organizing
+test measurements, and printing a report summarizing the results.
+All test artifacts are saved in a "study directory" for later inspection.
 
-Conduct a study using a "testing matrix" of alternative test conditions. A test run is carried out
-for each matrix element using that element's parameters, and the results for all test runs are
-saved to a "study directory" for subsequent inspection. Each matrix dimension specifies a set of
-alternative values for one testing parameter, such as the test case to run or Spack configuration
-to build it with; thus each matrix element is a tuple of parameters for a single test run.
-  
-"""                \
-+ usage_message +  \
-"""
-Options:
-  -v, --verbose              xxx.
-  -D, --debug                xxx.
-  -x, --force                xxx.
-  -x, --nochecksum           xxx.
-  -x, --quiet                xxx.
-  -x, --traceback            xxx.{}
-  
+A testing matrix is specified on the command line by a sequence of "dimension
+spec" options. Each dimension spec defines a set of alternative values for one
+test condition (a dimension), such as which test cases to run or which Spack
+configurations to build with. The testing matrix is the cross product of those
+dimensions. Each matrix element is then a tuple of test condition values
+(a "configuration") applicable to any individual test run. A dimension spec 
+an expression in dimension-dependent notation specifying a set of values either
+implicitly or explicitly.
+
+For instance, '--test app/amg*' implicitly specifies a set of values for the
+'test' condition (paths to tests) using shell "glob" path patterns, while
+'--build %gcc@4.4.7,%gcc@4.8.5' explicitly specifies a set of values for the
+'build' condition (build settings) using Spack configuration syntax. The other
+dimension spec options are '--hpctoolkit' and '--profile' specifying hpctoolkit
+installations and hpcrun profile settings respectively. Dimensions not specified
+are given single dimension-dependent default values.
+
+HPCTest accepts a number of subcommands on its command line. The 'run' subcommand
+conducts a study using given dimension specs, while 'build' just builds the tests
+and 'debug' runs each test in the debugger. The 'report' subcommand prints a
+report from an existing study directory, and the 'clean' command removes unwanted
+study directories, and several minor commands carry out utility operations.
+
+Options: Informational
+  -q, --quiet             Print as little as reasonable.
+  -v, --verbose           Print additional informational messages.
+  -V, --version           Print this hpctest's version number.
+  -D, --debug             Print debugging messages.
+  -T, --traceback         Print a stack trace when an error occurs.
+  -X, --nochecksum        Do not detect changes to tests on startup.
+
+Options: Testing
+
+  -t, --tests TESTSPEC
+            Add a dimension with the set TESTSPEC of tests as alternatives.
+            Each element is a path to a test directory relative to hpctest/tests.
+            
+  -b, --build BUILDSPEC
+            Add a dimension with the set BUILDSPEC of build settings as alternatives.
+            Each element is a Spack spec minus package name, like %gcc@4.8.5.
+            
+  -k, --hpctoolkit PATHSPEC
+            Add a dimension with the set PATHSPEC of paths as alternatives.
+            Each element is a path to an HPCToolkit install/bin directory.
+
+  -p, --profile PROFILESPEC
+            Add a dimension with the set PROFILESPEC of profile options as
+            alternatives. Each element is a colon-separated triple of options
+            for hpcrun, hpcstruct, and hpcprof.
+ 
+  -o, --study STUDYPATH
+            If given, create the study directory at the specified path. Otherwise
+            the default is to create it inside the hpctest/work directory.
+
+Options: Reporting
+
+  -w, --which WHICHSPEC
+            Print only the specified subset of test results.
+
+  -S, --sort SORTSPEC
+            Print the test results sorted by each specified field in turn.
+
+Options: Cleaning
+
+  -s, --studies
+            Remove all study directories from hpctest/work.
+
+  -B, --built
+            Remove all built test executables, not including their dependencies.
+
+  -d, --dependencies
+            Remove all built dependencies of all tests.
+
+  -f, --force
+            Don't ask for confirmation, just remove the specified objects.
+
 Arguments:
-  COMMAND                    xxx. (Caution about [options] in Spack command: quote the command.)
-  BUILDSPEC                  a Spack spec minus the package name and caret (eg gcc@4.7).
-  PATH                       xxx.
-  PATHSPEC                   xxx.
-  PROFILESPEC                a sequence of profiling arguments to 'hpcrun'.
-  REPORTSPEC                 xxx.
-  SORTSPEC                   xxx.
-  TESTSPEC                   xxx.
-  WHICHSPEC                  xxx.
+
+  SPACKCMD                   subcommand for Spack, eg 'info openmpi'
+  BUILDSPEC                  list of Spack specs minus package names, eg '%gcc@4.4.7'
+  STUDYPATH                  path with wildcards, absolute or relative to hpctest/work
+  PATHSPEC                   path with wildcards
+  PROFILESPEC                list of colon-separated arguments to hpcrun:hpcstruct:hpcprof
+  SORTSPEC                   list of dimensions ('tests'/'build'/'profile'/'hpctoolkit')
+  TESTSPEC                   list of paths with wildcards relative to hpctest/tests
+  WHICHSPEC                  one of 'all', 'pass', or 'fail'
 
 Examples:
+
   hpctest run all
-  hpctest run app/amgmk
-  hpctest run app/amgmk --build %gcc@4.4.7,%gcc@4.8.5
-  hpctest run app/AMG2006 --build  %gcc^mpich@3.1.4
-  hpctest run "unit-test/cpp_threads,app/amgmk" --build "%gcc,%clang"
-  hpctest run "unit-test/cpp_threads,app/amgmk" --build "%gcc@4.4.7,%gcc@4.8.5" --profile "REALTIME@10000,REALTIME@100"
+  hpctest run app/amgmk app/lulesh app/laghos
+  hpctest run app/amg* unit-test/*
+
+  hpctest run all --build %gcc@4.4.7
+  hpctest run all --build %clang^mpich@3.1.4
+  hpctest run all --build "%gcc@4.4.7 %gcc@4.8.5 clang"
+
+  hpctest run unit-test/* app/amg*  \\
+          --build "%gcc@4.4.7 %gcc@4.8.5"  \\
+          --profile "REALTIME@10000 REALTIME@1000 REALTIME@100"  \\
+          --study ~/mystudies/june/trial_12
+  
+  hpctest report --study study-2020-06-01--18-29-59 --which fail --sort build
+  
+  hpctest clean --all -f
   
 """
 
 
-_hidden_options = \
-                  \
-"""
-  -t, --tests TESTSPEC       Add a matrix dimension with the specified set of tests as alternatives.
-                             Each test's executable will be executed as the test case for some runs of the study.
-  -b, --build BUILDSPEC      Add a matrix dimension with the specified set of build settings as alternatives;
-                             each group of settings is used to build the test executable for some runs of the study.
-  -k, --hpctoolkit PATHSPEC  Add a matrix dimension with the specified set of paths as alternatives; each path
-                             points to an HPCToolkit installation's 'install/bin' directory and is used to profile
-                             the test executable for some runs of the study.
-  -p, --profile PROFILESPEC  Add a matrix dimension with the specified set of profile strings as alternatives;
-                             each string is used to profile the test executable for some runs of the study.
-  -o, --study PATH           xxx.
-  -w, --which WHICHSPEC      xxx.
-  -r, --report REPORTSPEC    xxx [Default: all].
-  -S, --sort SORTSPEC        xxx.
-  -s, --studies              xxx.
-  -B, --built                xxx.
-  -d, --dependencies         xxx.
-"""
+#=============#
+# OPTION LIST #
+#=============#
 
-
-help_message = _template.format("")
-doc_message  = _template.format(_hidden_options)
-
-
-optionNames = \
+_optlist = \
     [
     '--background',
     '--batch',
@@ -181,6 +240,15 @@ optionNames = \
     "--traceback",
     '--verbose',
     ]
+
+
+#======================#
+# PUBLIC DEFINITIONSES #
+#======================#
+
+usage_message = _usage
+help_message  = _usage + _help
+option_list   = _optlist
 
 
 
