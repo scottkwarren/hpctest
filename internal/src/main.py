@@ -63,7 +63,7 @@ def main():
     import common
     from common import debugmsg, errormsg
     import configuration
-    from help import usage_message, doc_message, optionNames
+    from help import usage_message, help_message, option_list
     from util.docopt import docopt, DocoptExit
     
     # parse the command line and execute it if valid
@@ -71,9 +71,9 @@ def main():
     argv = map(lambda s: s.replace("\n"," ").replace("\\"," "), argv)   # remove newlines and backslashes within each string, eg in continued string constants
     try:
 
-        args = docopt(doc=doc_message, argv=argv, help=False)
+        args = docopt(doc=help_message, argv=argv, help=False)
         common.args = args
-        common.options = { key[2:] for key in args if key in optionNames and args[key] }
+        common.options = { key[2:] for key in args if key in option_list and args[key] }
 
         if configuration.get("debug.force") is True:
             common.options.add("debug")
@@ -107,27 +107,31 @@ def execute(args):
         
     elif args["build"] or args["run"] or args["debug"]:
         
+        # check arguments
+        if args["all"] and args["--test"]:
+            errormsg("'--test' option cannot be combined with 'all'")
+        if args["TESTSPEC"] and args["--test"]:
+            errormsg("'--test' option cannot be combined with one or more explicit tests")
+        
+        # extract dimensions from options
         dims = OrderedDict()
-        if args["all"]:
-            dims["tests"] = "all"
-        elif len(args["TESTSPEC"]) == 0:
-            verbosemsg("missing testspec list is taken to mean 'all'")
-            dims["tests"] = "all"
-        else:
-            dims["tests"] = args["TESTSPEC"]
-        if args["--build"]:
-            dims["build"] = args["--build"]
-        if args["--hpctoolkit"]:
-            dims["hpctoolkit"] = args["--hpctoolkit"]
-        if args["--profile"]:                         # TODO: finish rework of 'profile' into three args
-            dims["profile"] = args["--profile"]
+        if args["all"]:          dims["tests"]      = "all"
+        if args["TESTSPEC"]:     dims["tests"]      = args["TESTSPEC"]
+        if args["--test"]:       dims["tests"]      = args["--test"]
+        if args["--build"]:      dims["build"]      = args["--build"]
+        if args["--hpctoolkit"]: dims["hpctoolkit"] = args["--hpctoolkit"]
+        if args["--profile"]:    dims["profile"]    = args["--profile"]
+        
+        # extract other settings from options                                                                                                                                                                                                                                                                                                                                                                               
         studyPath = args["--study"]
-        numrepeats = 1  ## args["--numrepeats"]
+        numrepeats = 1                  ## args["--numrepeats"]
         reportspec = args["--report"] if args["--report"] else "all"
         sortKeys   = [ key.strip() for key in (args["--sort"]).split(",") ] if args["--sort"] else []
         wantBatch  = True  if args["--batch"]    or args["--background"]  else \
                      False if args["--immediate"] or args["--foreground"] else \
                      None
+        
+        # perform the command
         HPCTestOb.run(dims, numrepeats, reportspec, sortKeys, studyPath, wantBatch)
         
     elif args["report"]:
