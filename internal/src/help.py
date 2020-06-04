@@ -68,7 +68,7 @@ Usage:
   hpctest (build | run | debug) [options] (all | [TESTSPEC...])
           [--test TESTSPEC]
           [--build BUILDSPEC]
-          [--hpctoolkit PATHSPEC]
+          [--hpctoolkit HPCTKSPEC]
           [--profile PROFILESPEC]
           [--study PATH]
           [--report REPORTSPEC]
@@ -87,6 +87,7 @@ Usage:
   hpctest _miniapps
   hpctest _runOne [options] ENCODED_ARGS
   hpctest (--help | --version)
+  
 """
 
 
@@ -145,60 +146,49 @@ Options: Informational
   -X, --nochecksum        Do not detect changes to tests on startup.
 
 Options: Testing
-
-  -t, --tests TESTSPEC
+  -t, --test TESTSPEC
             Add a dimension with the set TESTSPEC of tests as alternatives.
             Each element is a path to a test directory relative to hpctest/tests.
-            
   -b, --build BUILDSPEC
             Add a dimension with the set BUILDSPEC of build settings as alternatives.
             Each element is a Spack spec minus package name, like %gcc@4.8.5.
-            
-  -k, --hpctoolkit PATHSPEC
-            Add a dimension with the set PATHSPEC of paths as alternatives.
+  -k, --hpctoolkit HPCTKSPEC
+            Add a dimension with the set HPCTKSPEC of paths as alternatives.
             Each element is a path to an HPCToolkit install/bin directory.
-
   -p, --profile PROFILESPEC
             Add a dimension with the set PROFILESPEC of profile options as
             alternatives. Each element is a colon-separated triple of options
             for hpcrun, hpcstruct, and hpcprof.
- 
   -o, --study STUDYPATH
             If given, create the study directory at the specified path. Otherwise
             the default is to create it inside the hpctest/work directory.
 
 Options: Reporting
-
   -w, --which WHICHSPEC
             Print only the specified subset of test results.
-
   -S, --sort SORTSPEC
             Print the test results sorted by each specified field in turn.
 
 Options: Cleaning
-
   -s, --studies
             Remove all study directories from hpctest/work.
-
   -B, --built
             Remove all built test executables, not including their dependencies.
-
   -d, --dependencies
             Remove all built dependencies of all tests.
-
   -f, --force
             Don't ask for confirmation, just remove the specified objects.
 
 Arguments:
 
-  SPACKCMD                   subcommand for Spack, eg 'info openmpi'
-  BUILDSPEC                  list of Spack specs minus package names, eg '%gcc@4.4.7'
-  STUDYPATH                  path with wildcards, absolute or relative to hpctest/work
-  PATHSPEC                   path with wildcards
-  PROFILESPEC                list of colon-separated arguments to hpcrun:hpcstruct:hpcprof
-  SORTSPEC                   list of dimensions ('tests'/'build'/'profile'/'hpctoolkit')
-  TESTSPEC                   list of paths with wildcards relative to hpctest/tests
-  WHICHSPEC                  one of 'all', 'pass', or 'fail'
+  BUILDSPEC       list of Spack specs minus package names, eg '%gcc@4.4.7'
+  HPCTKSPEC       list of paths with wildcards pointing to hpctoolkit/install dirs
+  PROFILESPEC     list of colon-separated arguments to hpcrun:hpcstruct:hpcprof
+  SORTSPEC        list of dimensions ('tests'/'build'/'profile'/'hpctoolkit')
+  SPACKCMD        subcommand for Spack, eg 'info openmpi'
+  STUDYPATH       path with wildcards, absolute or relative to hpctest/work
+  TESTSPEC        list of paths with wildcards relative to hpctest/tests
+  WHICHSPEC       one of 'all', 'pass', or 'fail'
 
 Examples:
 
