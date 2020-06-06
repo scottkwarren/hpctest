@@ -47,7 +47,7 @@
 
 
 # manually maintained version id for hpctest
-version = "1.0b3"
+version = "1.0b4"
 
 
 # shared variables, set in HPCTest at startup
