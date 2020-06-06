@@ -187,6 +187,7 @@ class Run(object):
         spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.test.version(), self.build)
         try:
             
+            self.spec = spackString  ## NOTE: so after bad-spec exception 'self.spec' can be used in error msg
             self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
             self.output.add("input", "spack spec", str(self.spec))
             if "mpi" in self.spec:
