@@ -171,12 +171,20 @@ class ShellExecutor(Executor):
     
     def _shellError(self, retcode):
         
-        if retcode is 126:
+        # see http://www.tldp.org/LDP/abs/html/exitcodes.html
+        
+        if retcode is 2:
+            msg = "command faailed with incorrect usage"
+        elif retcode < 126:
+            msg = "command failed".format(retcode)
+        elif retcode is 126:
             msg = "Command file is not executable"
         elif retcode is 127:
             msg = "Command file not found"
+        elif retcode is 130:
+            msg = "Command terminated by control-c"
         else:
-            msg = "Command terminated by signal {}".format(retcode-128)
+            msg = "Command failed with fatal error signal {}".format(retcode-128)
         
         return msg
     
