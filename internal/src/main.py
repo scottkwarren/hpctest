@@ -185,7 +185,10 @@ def execute(args):
     
     elif args["--version"]:
         
-            print version
+            print "HPCTest version {}.\n" \
+                  "Copyright ((c)) 2002-2020, Rice University.\n" \
+                  "All rights reserved." \
+                  .format(version)
             
     
     elif args["_miniapps"]:
