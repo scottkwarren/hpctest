@@ -87,7 +87,7 @@ class StringDim(Dimension):
         if spec is None:
             self.valueList = []
         else:
-            spec = spec.replace(",", " ")
+####        spec = spec.replace(",", " ")
             self.valueList = [ s.strip() for s in spec.split(" ") ]
 
 
