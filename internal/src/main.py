@@ -136,7 +136,7 @@ def execute(args):
         
     elif args["report"]:
         
-        studyPath  = args["STUDYSPEC"]
+        studyPath  = args["PATH"]
         whichspec  = args["--which"] if args["--which"] else "all" 
         sortKeys   = [ key.strip() for key in (args["--sort"]).split(",") ] if args["--sort"] else []
         HPCTestOb.report(studyPath, whichspec, sortKeys)
@@ -168,6 +168,9 @@ def execute(args):
         
     elif args["selftest"]:
         
+        print  "The selftest command is not implemented."
+        return
+        
         testspec   = "all" if args["all"] else         \
                       args["TESTSPEC"] if len(args["TESTSPEC"]) else \
                      "all"
@@ -187,7 +190,10 @@ def execute(args):
     
     elif args["_miniapps"]:
         
-            HPCTestOb._miniapps()
+        print  "The _miniapps command is not implemented."
+        return
+        
+        HPCTestOb._miniapps()
     
         
     elif args["_runOne"]:
