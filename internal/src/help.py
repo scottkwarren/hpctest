@@ -179,13 +179,12 @@ Options: Cleaning
   -f, --force
             Don't ask for confirmation, just remove the specified objects.
 
-Arguments:
-
+Arguments:        All lists are comma separated.
   BUILDSPEC       list of Spack specs minus package names, eg '%gcc@4.4.7'
   HPCTKSPEC       list of paths with wildcards pointing to hpctoolkit/install dirs
   PROFILESPEC     list of colon-separated arguments to hpcrun:hpcstruct:hpcprof
   SORTSPEC        list of dimensions ('tests'/'build'/'profile'/'hpctoolkit')
-  SPACKCMD        subcommand for Spack, eg 'info openmpi'
+  SPACKCMD        subcommand for Spack, eg 'install openmpi'
   STUDYPATH       path with wildcards, absolute or relative to hpctest/work
   TESTSPEC        list of paths with wildcards relative to hpctest/tests
   WHICHSPEC       one of 'all', 'pass', or 'fail'
