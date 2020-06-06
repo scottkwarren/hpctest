@@ -163,7 +163,7 @@ def execute(args):
         
     elif args["spack"]:
         
-        HPCTestOb.spack(" ".join(args["COMMAND"]))
+        HPCTestOb.spack(" ".join(args["SPACKCMD"]))
     
         
     elif args["selftest"]:
