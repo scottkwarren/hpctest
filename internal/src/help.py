@@ -140,10 +140,8 @@ study directories, and several minor commands carry out utility operations.
 Options: Informational
   -q, --quiet             Print as little as reasonable.
   -v, --verbose           Print additional informational messages.
-  -V, --version           Print this hpctest's version number.
   -D, --debug             Print debugging messages.
   -T, --traceback         Print a stack trace when an error occurs.
-  -X, --nochecksum        Do not detect changes to tests on startup.
 
 Options: Testing
   -t, --test TESTSPEC
@@ -162,6 +160,8 @@ Options: Testing
   -o, --study STUDYPATH
             If given, create the study directory at the specified path. Otherwise
             the default is to create it inside the hpctest/work directory.
+  -V, --version
+            Print this hpctest's version number.
 
 Options: Reporting
   -w, --which WHICHSPEC
