@@ -192,16 +192,16 @@ Arguments:        All lists are comma separated.
 Examples:
 
   hpctest run all
-  hpctest run app/amgmk app/lulesh app/laghos
-  hpctest run app/amg* unit-test/*
+  hpctest run app/amgmk,app/lulesh, app/laghos
+  hpctest run app/amg*, unit-test/*
 
   hpctest run all --build %gcc@4.4.7
   hpctest run all --build %clang^mpich@3.1.4
-  hpctest run all --build "%gcc@4.4.7 %gcc@4.8.5 clang"
+  hpctest run all --build "%gcc@4.4.7, %gcc@4.8.5, clang"
 
-  hpctest run unit-test/* app/amg*  \\
-          --build "%gcc@4.4.7 %gcc@4.8.5"  \\
-          --profile "REALTIME@10000 REALTIME@1000 REALTIME@100"  \\
+  hpctest run unit-test/*, app/amg*  \\
+          --build "%gcc@4.4.7, %gcc@4.8.5"  \\
+          --profile "REALTIME@10000, REALTIME@1000, REALTIME@100"  \\
           --study ~/mystudies/june/trial_12
   
   hpctest report --study study-2020-06-01--18-29-59 --which fail --sort build
