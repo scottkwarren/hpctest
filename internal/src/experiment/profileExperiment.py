@@ -88,7 +88,7 @@ class ProfileExperiment(Experiment):
         # (1) execute test case without profiling
         normalTime, normalFailMsg = self.runOb.execute(self.cmd, ["run"], "normal", self.wantMPI, self.wantOMP)
          
-        # if requested, do complete HPCTkit profiling pipeline
+        # if requested, do full HPCToolkit profiling pipeline
         if self.test.wantProfile():
             
             # hpctoolkit tool parameters
@@ -232,6 +232,7 @@ class ProfileExperiment(Experiment):
  
     def _checkHpcstructExecution(self, structTime, structFailMsg, structOutpath):
          
+        import xml.etree.ElementTree as ET
         from experiment import Experiment
 
         if structFailMsg:
@@ -248,6 +249,12 @@ class ProfileExperiment(Experiment):
                      '</HPCToolkitStructure>\n']
             status, msg = Experiment.checkTextFile("structure file", structOutpath, len, first, last)
         
+        # parse the (xml) structure file as a coarse validation
+        try:
+            tree = ET.parse(structOutpath)
+        except:
+            status, msg = FAILED, "structure file is invalid xml"
+            
         # record results
         self.output.add("run", "profiled", "hpcstruct", "output check status", status)
         self.output.add("run", "profiled", "hpcstruct", "output check msg",    msg)
