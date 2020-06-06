@@ -557,27 +557,38 @@ class Run(object):
                                 profile.hpcrun, profile.hpcstruct, profile.hpcprof,
                                 str(numrepeats), study.path])
         encodedArgs = encodedArgs.replace(" ", "#")
-        return encodedArgs
+        
+        return common.magic_cookie + encodedArgs
     
     
     @classmethod
     def decodeInitArgs(cls, encodedArgs):
         
         import common
+        from common import magic_cookie
+        from sys import exit
         from dimension.profileDim import ProfileArgs
         from study import Study
         from test import Test
         
-        encodedArgs = encodedArgs.replace("#", " ")
-        argStrings = encodedArgs.split("!")
+        if encodedArgs.startswith(magic_cookie):
+            
+            encodedArgs = encodedArgs.replace(magic_cookie, "")
+            
+            encodedArgs = encodedArgs.replace("#", " ")
+            argStrings = encodedArgs.split("!")
+            
+            verb, testdir, build, hpctoolkit = argStrings[0:4]
+            profile = ProfileArgs(*argStrings[4:7])
+            numrepeats = int(argStrings[7])
+            study = Study(argStrings[8])
+            
+            common.args[verb] = True
+            return (Test(testdir), build, hpctoolkit, profile, numrepeats, study)
         
-        verb, testdir, build, hpctoolkit = argStrings[0:4]
-        profile = ProfileArgs(*argStrings[4:7])
-        numrepeats = int(argStrings[7])
-        study = Study(argStrings[8])
-        
-        common.args[verb] = True
-        return (Test(testdir), build, hpctoolkit, profile, numrepeats, study)
+        else:
+            print "The _runOne command is for internal use only."
+            exit()
 
 
 
