@@ -253,7 +253,7 @@ class ProfileExperiment(Experiment):
         try:
             tree = ET.parse(structOutpath)
         except:
-            status, msg = FAILED, "structure file is invalid xml"
+            status, msg = "FAILED", "structure file is invalid xml"
             
         # record results
         self.output.add("run", "profiled", "hpcstruct", "output check status", status)
