@@ -174,7 +174,7 @@ class ShellExecutor(Executor):
         # see http://www.tldp.org/LDP/abs/html/exitcodes.html
         
         if retcode is 2:
-            msg = "command faailed with incorrect usage"
+            msg = "command failed with incorrect usage"
         elif retcode < 126:
             msg = "command failed".format(retcode)
         elif retcode is 126:
