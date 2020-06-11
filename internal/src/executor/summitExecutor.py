@@ -164,14 +164,14 @@ class SummitExecutor(Executor):
         # start with all previously-running jobs and remove the ones still running per 'squeue'
         finished = self.runningJobs.copy()
         for line in out.splitlines()[1:]:    # skip header line
-            # match the job id, the first digit) sequence on the line
+            # match the job id, the first digit sequence on the line
             match = re.match(r"([0-9]+) ", line)
             if match:
                 jobid = match.group(1)
                 if jobid in finished:
                     finished.remove(jobid)
             else:
-                errormsg("unexpected output from bjobs:\n {}".format(out))
+                errormsg("unexpected output from bjobs:\n{}".format(out))
         
         # clean up finished jobs
         for p in finished:
