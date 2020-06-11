@@ -148,17 +148,22 @@ class SummitExecutor(Executor):
         # ask Summit for all our jobs that are still running
         out, err = self._shell("bjobs") # -UF == "don't format output", makes parsing easier
 
-        # 'out' is a sequence of lines that look like this(see tinyurl.com/tttvygn):
+        # 'out' is a sequence of lines that look like this:
         #
-        # % bjobs 
-        # JOBID USER     STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
-        # 3926  user1    RUN   priority   hostF        hostC      verilog    Oct 22 13:51
-        # 605   user1    SSUSP idle       hostQ        hostC      Test4      Oct 17 18:07
-        # 1480  user1    PEND  priority   hostD                   generator  Oct 19 18:13
-        # 7678  user1    PEND  priority   hostD                   verilog    Oct 28 13:08
-        # 7679  user1    PEND  priority   hostA                   coreHunter Oct 28 13:12
-        # 7680  user1    PEND  priority   hostB                   myjob      Oct 28 13:17
-
+        # JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
+        # 225578  msitzko RUN   normal     vortex60    1*vortex59  AMG2006    Jun 10 16:15
+        #                                              40*vortex2
+        # 225579  msitzko RUN   normal     vortex60    1*vortex59  AMG2013    Jun 10 16:15
+        #                                              40*vortex7
+        # 225580  msitzko RUN   normal     vortex60    1*vortex59  amgmk      Jun 10 16:15
+        #                                              40*vortex9
+        # 225581  msitzko RUN   normal     vortex60    1*vortex59  cohmm      Jun 10 16:15
+        #                                              40*vortex34
+        # 225582  msitzko RUN   normal     vortex60    1*vortex59  comd       Jun 10 16:15
+        #                                              40*vortex35
+        # 225592  msitzko PEND  normal     vortex60                dlstress   Jun 10 16:15
+        # 225593  msitzko PEND  normal     vortex60                fib-noread Jun 10 16:15
+        # 225594  msitzko PEND  normal     vortex60                memstress  Jun 10 16:15
 
         # compute the set of jobs finished since last poll:
         # start with all previously-running jobs and remove the ones still running per 'squeue'
@@ -171,7 +176,7 @@ class SummitExecutor(Executor):
                 if jobid in finished:
                     finished.remove(jobid)
             else:
-                errormsg("unexpected output from bjobs:\n{}".format(out))
+                pass    # skip this line
         
         # clean up finished jobs
         for p in finished:
