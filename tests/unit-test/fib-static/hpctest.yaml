@@ -1,0 +1,21 @@
+#=========================================#
+# HPCTest description for fib-static      #
+#=========================================#
+
+
+info:
+  name:  fib-static
+  version: 1.0
+  description: >
+    TBD
+    
+build:
+  kind: makefile
+  install: fib
+
+run:
+  cmd: make run
+
+profile: no
+
+
