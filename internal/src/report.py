@@ -83,14 +83,16 @@ class Report():
             outPath = join(runPath, "OUT", "OUT.yaml")
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)
-                if error: fatalmsg("result file OUT.yaml cannot be read for test run {}".format(runPath))
-                ok = resultdict["summary"]["status"] == "OK"
-                if reportAll or (reportPassed == ok):
-                    passes.append(resultdict)
-                if not ok:
-                    fails.append(resultdict)
+                if not error:
+                    ok = resultdict["summary"]["status"] == "OK"
+                    if reportAll or (reportPassed == ok):
+                        passes.append(resultdict)
+                    if not ok:
+                        fails.append(resultdict)
+                else:
+                    errormsg("results file OUT.yaml can't be read for run {}, ignored".format(runPath))
             else:
-                errormsg("Test results file OUT.yaml not found for run {}, ignored".format(runPath))
+                errormsg("results file OUT.yaml not found for run {}, ignored".format(runPath))
 
         # counts for final summary line
         numTests  = len(runDirs)
