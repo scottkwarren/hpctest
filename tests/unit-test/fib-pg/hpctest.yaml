@@ -1,0 +1,31 @@
+#=========================================#
+# HPCTest description for fib-pg          #
+#=========================================#
+
+
+info:
+  name:  fib-pg
+  version: 1.0
+  description: >
+    TBD
+    
+build:
+  kind: makefile
+  install:
+   - fib-bar
+   - fib-pg-bar
+   - fib-pg-bar-pg
+   - fib-bar-pg
+
+run:
+  cmd: >
+    {
+      hpcrun  ./fib-bar;
+      hpcrun  ./fib-pg-bar;
+      hpcrun  ./fib-pg-bar-pg;
+      hpcrun  ./fib-bar-pg;
+    }
+
+profile: no
+
+

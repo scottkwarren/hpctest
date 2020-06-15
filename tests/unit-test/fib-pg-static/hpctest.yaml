@@ -1,0 +1,27 @@
+#=========================================#
+# HPCTest description for fib-pg-static   #
+#=========================================#
+
+
+info:
+  name:  fib-pg-static
+  version: 1.0
+  description: >
+    TBD
+    
+build:
+  kind: makefile
+  install:
+   - fib-static
+   - fib-pg-static
+
+run:
+  cmd: >
+    {
+      hpcrun  fib-static;
+      hpcrun  fib-pg-static;
+    }
+
+profile: no
+
+
