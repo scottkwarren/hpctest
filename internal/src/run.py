@@ -225,7 +225,7 @@ class Run(object):
             self.rundir = self.builddir
                 
         except Exception as e:
-            self.output.addSummaryStatus("SETUP FAILED", e.message)
+            self.output.addSummaryStatus("PREPARE FAILED", e.message)
             raise PrepareFailed(e.message)
         
 
