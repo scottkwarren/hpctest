@@ -15,7 +15,9 @@ build:
   install: fib-noread
 
 run:
-  cmd: make run
+  cmd: >
+    hpcrun -e REALTIME ./fib-noread;
+    hpcprof hpctoolkit-fib-noread-measurements
 
 profile: no
 

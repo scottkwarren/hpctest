@@ -1,7 +1,8 @@
-COMPILE=gcc -g 
+COMPILE=$(CC) -g 
 
 TARGETS=fib-noread libfib.so
 
+all: fib-noread
 
 # create an unreadable executable to test hpctoolkit
 # with circumstances we see at LLNL with 
@@ -15,19 +16,5 @@ fib-noread: fib.c libfib.so
 #       unreadable shared libraries 
 libfib.so: libfib.c
 	$(COMPILE) -shared -fPIC -o libfib.so libfib.c
-	
-
-fib-static:
-	hpclink gcc -g -static -fopenmp -o fib-noread fib.c -lomp
-
-clean:
-	/bin/rm -rf $(TARGETS) hpctoolkit-* *.hpcstruct
-
-dbclean:
-	/bin/rm -rf hpctoolkit-*
 
 
-run: fib-noread 
-	hpcrun -e REALTIME ./fib-noread
-	hpcprof hpctoolkit-fib-noread-measurements
-#   hpcviewer hpctoolkit-fib-noread-database
