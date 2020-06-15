@@ -13,7 +13,13 @@ build:
   install: fib
 
 run:
-  cmd: make check
+  cmd: >
+    {
+      time fib 8 3;
+      time hpcrun -dd LINUX_PERF -e cycles -t fib 8 3;
+      time hpcstruct fib;
+      time hpcprof -S fib.hpcstruct hpctoolkit-fib-measurements/;
+    }
     
 profile: no
 

@@ -20,8 +20,10 @@ build:
 
 run:
   cmd: >
-    export HPCRUN_ABORT_TIMEOUT=300; 
-    hpcrun -t -e REALTIME@250 catchthrow 400000 100
+    {
+      export HPCRUN_ABORT_TIMEOUT=300; 
+      hpcrun -t -e REALTIME@250 catchthrow 400000 100;
+    }
     
 profile: no
 
