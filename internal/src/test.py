@@ -212,7 +212,7 @@ class Test():
     def _readYaml(self):
      
         from os.path import join, basename
-        from spackle import readYamlFile
+        from util.yaml import readYamlFile
              
         # read yaml file
         yaml, msg = readYamlFile(join(self.dir, Test._yamlFilename))

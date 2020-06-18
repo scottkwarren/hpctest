@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
-#  configuration.py                                                            #
-#  layered storage for HPCTest config params                                   #
+#  yaml.py                                                                     #
+#  yaml io with ordered output, based on 'ruamel' yaml from Spack              #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -46,87 +46,72 @@
 ################################################################################
 
 
+# 'import ruamel' comes from Spack distro
 
 
-# current configuration as an OrderedDict
-currentConfig = None
-
-
-def initConfig():
+def readYamlFile(path):
     
-    from os.path import join, isfile
-    import common
-    from common import homepath, errormsg
-    from util.yaml import readYamlFile, writeYamlFile
-    global currentConfig
+    import ruamel.yaml as yaml
+    from common import options, debugmsg
+
+    if "verbose" in options:
+        debugmsg("reading yaml file at {}".format(path))
+        
+    try:
+        with open(path, 'r') as f:
+            try:
+                object, msg = yaml.load(f), None
+            except:
+                object, msg = None, "file has syntax errors and cannot be used"
+    except Exception as e:
+        if isinstance(e, OSError) and e.errno == errno.EEXIST:
+            object, msg = None, "yaml file to be read is missing"
+        else:
+            object, msg = None, "yaml file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
     
-    # compute filesys locations of layered config files from most global to most local
-    builtin = join(homepath, "internal/src/config-data/config-builtin.yaml")
-    user    = join("~",      ".hpctest/config.yaml")
-    install = join(homepath, "config.yaml")
-    configFileLocations = [ builtin, user, install ]
+    if "verbose" in options:
+        debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
     
-    # gather config info from layered yaml files w/ most local == highest priority
-    currentConfig = {}
-    for path in configFileLocations:
-        if isfile(path):
-            config, msg = readYamlFile(path)
-            if msg:
-                errormsg("ignoring invalid config file {}".format(path))
-            else:
-                _overrideDictByDict(currentConfig, config)
+    return object, msg
 
 
-def has(keypath):
+def writeYamlFile(path, object):
     
-    global currentConfig
+    from collections import OrderedDict     # to make output text file will have fields in order of insertion
+    import sys
+    import ruamel.yaml as yaml
+    from common import options, debugmsg, fatalmsg
 
-    keys = keypath.split(".")
+    def ordered_dump(data, stream=None, Dumper=yaml.Dumper, **kwds):    # adaptor to let PyYAML use OrderedDict
+        class OrderedDumper(Dumper):
+            pass
+        def _dict_representer(dumper, data):
+            return dumper.represent_mapping(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, data.items())
+        OrderedDumper.add_representer(OrderedDict, _dict_representer)
+        return yaml.dump(data, stream, OrderedDumper, **kwds)
+        
+
+    if "verbose" in options: debugmsg("writing yaml file at {}".format(path))
+    msg = None
+    try:
+        
+        if path:
+            with open(path, 'w') as f:
+                try:
+                    ordered_dump(object, stream=f, Dumper=yaml.SafeDumper, default_flow_style=False)
+                except Exception as e:
+                    fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
+        else:
+            try:
+                ordered_dump(object, stream=sys.stdout, Dumper=yaml.SafeDumper, default_flow_style=False)
+            except Exception as e:
+                fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
+            
+    except Exception as e:
+        msg = "file cannot be opened for writing: (error {})".format(e)
     
-    value = currentConfig
-    for k in keys:
-        if value is not None:
-            value = value.get(k, None)
-
-    return value is not None
-
-
-def get(keypath, default=None):
-    
-    global currentConfig
-
-    keys = keypath.split(".")
-    
-    value = currentConfig
-    for k in keys:
-        if value is not None:
-            value = value.get(k, None)
-
-    return default if value is None else value
-
-
-def set(key, value):
-    
-    from common import notimplemented
-    notimplemented("configuration.set")
-
-
-def _overrideDictByDict(dict1, dict2):
-
-    from collections import Mapping, MutableMapping
-
-    for key, value2 in dict2.iteritems():
-        if value2 != None:
-            if key in dict1 and dict1[key]:
-                value1 = dict1[key]
-                if isinstance(value1, MutableMapping) and isinstance(value2, Mapping):  ## TODO: FIX CASE "key in both, V1 is scalar, V2 is dict & vv"
-                    _overrideDictByDict(value1, value2)
-                else:
-                    dict1[key] = value2
-            else:
-                dict1[key] = value2
-
-
+    if "verbose" in options:
+        debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
 
 
 

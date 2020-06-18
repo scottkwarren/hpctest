@@ -188,7 +188,7 @@ class ProfileExperiment(Experiment):
         from os.path import join, isdir, isfile, basename, splitext
         import re, string
         from common import debugmsg, errormsg
-        from spackle import writeYamlFile
+        from util.yaml import writeYamlFile
  
         if isdir(self.runOutpath):
              

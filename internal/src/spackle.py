@@ -93,51 +93,12 @@ def do(cmdstring, echo=True):
     os.system(common.own_spack_home + "/bin/spack " + cmdstring + " > {} 2> {}".format(out, err))
 
 
-def extDo(cmdstring):
-    
-    import os, common
-    os.system(common.ext_spack_home + "/bin/spack " + cmdstring)    # cmdstring contents must be shell-escaped by caller
-
-
 def uninstall(name):
     
     import spackle
     
     cmd = "uninstall --all --force --yes-to-all {}".format(name)
     spackle.do(cmd, echo=False)
-
-
-###############################
-## INVASIVE USES OF SPACK    ##
-###############################
-
-
-def execute(cmd, cwd=None, env=None, output=None, error=None):
-    # raises spack.util.executable.ProcessError if execution fails
-       
-    import os, subprocess
-    from spack.util.executable import ProcessError
-       
-    try:
-           
-        if cwd:
-            oldwd  = os.getcwd()
-            os.chdir(cwd)
-   
-        process = subprocess.Popen(cmd, shell=True, stdin=None, stdout=output, stderr=error, env=env)
-        out, err = process.communicate()
-   
-        if process.returncode != 0:
-            raise ProcessError('Exit status %d:' % process.returncode)
-   
-    except subprocess.CalledProcessError as e:
-        raise ProcessError(str(e), process.returncode)
-    except OSError as e:
-        raise ProcessError("%s: %s".format(self.exe[0], e.strerror))
-    except Exception as e:
-        raise ProcessError("unexpected error: " + str(e))
-    finally:
-        if cwd: os.chdir(oldwd)
 
 
 #---------#
@@ -263,74 +224,6 @@ def addRepo(repoPath):
     spack.repo.path.put_first(repo)
 
 
-#--------------#
-#  YAML files  #
-#--------------#
-
-def readYamlFile(path):
-    
-    import spack
-    import ruamel.yaml as yaml
-    from common import options, debugmsg
-
-    if "verbose" in options:
-        debugmsg("reading yaml file at {}".format(path))
-        
-    try:
-        with open(path, 'r') as f:
-            try:
-                object, msg = yaml.load(f), None
-            except:
-                object, msg = None, "file has syntax errors and cannot be used"
-    except Exception as e:
-        if isinstance(e, OSError) and e.errno == errno.EEXIST:
-            object, msg = None, "yaml file to be read is missing"
-        else:
-            object, msg = None, "yaml file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
-    
-    if "verbose" in options:
-        debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
-    
-    return object, msg
-
-
-def writeYamlFile(path, object):
-    
-    from collections import OrderedDict     # to make output text file will have fields in order of insertion
-    import sys
-    import spack
-    import ruamel.yaml as yaml
-    from common import options, debugmsg, fatalmsg
-
-    def ordered_dump(data, stream=None, Dumper=yaml.Dumper, **kwds):    # adaptor to let PyYAML use OrderedDict
-        class OrderedDumper(Dumper):
-            pass
-        def _dict_representer(dumper, data):
-            return dumper.represent_mapping(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, data.items())
-        OrderedDumper.add_representer(OrderedDict, _dict_representer)
-        return yaml.dump(data, stream, OrderedDumper, **kwds)
-        
-
-    if "verbose" in options: debugmsg("writing yaml file at {}".format(path))
-    msg = None
-    try:
-        
-        if path:
-            with open(path, 'w') as f:
-                try:
-                    ordered_dump(object, stream=f, Dumper=yaml.SafeDumper, default_flow_style=False)
-                except Exception as e:
-                    fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
-        else:
-            try:
-                ordered_dump(object, stream=sys.stdout, Dumper=yaml.SafeDumper, default_flow_style=False)
-            except Exception as e:
-                fatalmsg("can't write given object as YAML (error {})\nobject: {}".format(e.message, object))
-            
-    except Exception as e:
-        msg = "file cannot be opened for writing: (error {})".format(e)
-    
-    debugmsg("...finished writing yaml file with msg {}".format(repr(msg)))
 
 
 

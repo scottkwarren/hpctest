@@ -109,7 +109,7 @@ class ResultDir():
     def write(self):
 
         from os.path import join
-        from spackle import writeYamlFile
+        from util.yaml import writeYamlFile
 
         writeYamlFile(join(self.dir, "{}.yaml".format(self.name)), self.outdict)
 

@@ -56,7 +56,7 @@ class Report():
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
         from common import homepath, options, infomsg, debugmsg, errormsg, fatalmsg, sepmsg, truncate
-        from spackle import readYamlFile, writeYamlFile
+        from util.yaml import readYamlFile, writeYamlFile
 
         def sortKeyFunc(result):
             def get_nested(my_dict, keys):
