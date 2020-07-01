@@ -3,15 +3,10 @@ HPCTEST TO DO
 
 Bugs
 
-- found a study directory created inside a previous study directory!
-- build time is always reported as 0
-
-
-
+- when test fails, automatically print output from the failed phase
+- don't print build output unless --verbose
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
-
 - check each dimension for emptiness; requires each Dimension class to evaluate its spec
-
 - hpctest clean -d does not delete all built dependencies. Survivors are:
   - libtool
   - m4
@@ -21,26 +16,17 @@ Bugs
 
 
 
-SLURM
+NEW FEATURES
+- 'build --force' means rebuild even if already installed
+- 'clean <tests>' means only remove tests or test dependencies for given tests
+- '-o <file>' means just send the report to <file>
+- save report in OUT
 
-squeue output:
-------------------------------------------------------------------------------------
-Sat Jul 13 15:48:57 2019
-             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
-            278061   commons app--lul  skw0897  R       9:53      1 c1
-            278061   commons app--lul  skw0897  R      11:33      1 c1
-			...
-------------------------------------------------------------------------------------
-
-squeue options:
---noheader
---user=
 
 
 
 NEXT
 - Refactor for experiment classes
-- hide generated slurm command files
 - delete generated slurm command files in 'hpctest clean'
 - preserve generated slurm command files in OUT directory
 - Config defaults per platform and site
