@@ -269,29 +269,30 @@ class HPCTest(object):
     
         import common
         import spackle
-        
-        # create new private repo for building test cases
+                
+        # make or update a private repo for building test cases
         noRepo = spackle.getRepo("tests") is None
         if noRepo: spackle.createRepo("tests")
-        HPCTest._ensureTests()
+        changedPackages = HPCTest._ensureTests()
         if noRepo:
             spackle.addRepo(common.repopath)
         else:
             spackle.updateRepoPath(common.repopath)
     
-        # extend external repo if one was specified
-        pass
+        return changedPackages
     
     
     @classmethod
-    def _ensureTests(cls):
+    def _ensureTests(cls):   # returns a list of names of packages that have changed
     
         from os.path import join, exists
         from common import options, repopath
         from test import Test
-                
+        
+        changedPackages = []   # "declare" for nested function below
+        
         def ensureOneTest(test):
-                        
+            
             # guards
             if "nochecksum" in options: return
             if not test.valid(): return
@@ -307,10 +308,12 @@ class HPCTest(object):
                 
             # if not, update package
             if needPackage:
+                changedPackages.append(name)    # can't say '+='! (scope trouble)
                 HPCTest._addPackageForTest(test)
                 test.markUnchanged()
                 
         Test.forEachDo(ensureOneTest)
+        return changedPackages
     
     
     @classmethod
@@ -377,8 +380,8 @@ common.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
 environ["HPCTEST_HOME"] = common.homepath
 
 # paths needed to initialize Spack's location
-_internalpath   = join(common.homepath, "internal")
-common.own_spack_home = join(_internalpath, "spack")
+common.internalpath   = join(common.homepath, "internal")
+common.own_spack_home = join(common.internalpath, "spack")
 common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
 
 # sys.path adjustment is needed to load Spack modules
@@ -388,34 +391,20 @@ sys.path[1:0] = [ common.own_spack_module_dir,
                   join(common.own_spack_module_dir, "llnl"),
                 ]
 
-# set up our private Spack installation if not already present
+# now set up Spack
 if not isdir(common.own_spack_home):
-    
-    # inits to set up our own Spack, done only the first time HPCTest runs
-    
-    infomsg("Setting up internal Spack...")
-    
-    spack_version   = spackle.supported_version()
-    spack_tarball   = join(_internalpath, "spack-{}.tar.gz".format(spack_version))
-    spack_extracted = join(_internalpath, "spack-{}".format(spack_version))
-    spack_dest      = join(_internalpath, "spack")
-    system("cd {}; tar xzf {}".format(_internalpath, spack_tarball))
-    if not isdir(spack_extracted):
-        fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
-    rename(spack_extracted, spack_dest)
-
-    infomsg("Spack found these compilers automatically:")
-    spackle.do("compilers")
-    infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
-    infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
-
-# Spack is needed to read yaml files in initConfig
-spackle.initSpack()
+    # extract and set up our own Spack
+    spackle.initSpack()
+else:
+    # remove built but out of date package binaries
+    changedPackages = HPCTest._ensureTests()
+    for name in changedPackages:
+        spackle.uninstall(name)
 
 # (2) now we can set up configuration system so configs can specify important paths
 configpath = join(common.homepath, "config.yaml")
 if not isfile(configpath):
-    defaultpath = join(_internalpath, "src", "config-data", "config-default.yaml")
+    defaultpath = join(common.internalpath, "src", "config-data", "config-default.yaml")
     try:
         copyfile(defaultpath, configpath)
     except Exception as e:
@@ -428,14 +417,11 @@ _hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirna
 common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
 common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
 common.testspath     = join(common.homepath, "tests")
-common.repopath      = join(_internalpath, "repos", "tests")
+common.repopath      = join(common.internalpath, "repos", "tests")
 common.workpath      = join(common.homepath, "work")
 if not isdir(common.workpath): makedirs(common.workpath)
 
-# set up private repo
-HPCTest._ensureRepo()
-
-# make our general-purpose hidden directory
+# and make our general-purpose hidden directory
 hiddenDir = join(common.homepath, ".hpctest")
 if not isdir(hiddenDir): makedirs(hiddenDir)
 

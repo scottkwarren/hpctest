@@ -58,20 +58,51 @@ import sys
 #  Initialization  #
 #------------------#
 
+
 def supported_version():
     
-    return "0.12.1"
+    return "0.12.1"    
 
 
+
+
+# DIRTY # PENDING SPACK 0.14.1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def initSpack():
 
-    import spack
-    import spack.config     # necessay to force loading the 'config' module,
-                            # else 'spack.config' fails below
+    from os import system
+    from os import rename
+    from os.path import isdir, join
+    from common import internalpath, own_spack_home, infomsg, fatalmsg
+    import spackle
     
+    infomsg("Setting up internal Spack...")
+    
+    # extract our Spack from tar file
+    spack_version   = spackle.supported_version()
+    spack_tarball   = join(internalpath, "spack-{}.tar.gz".format(spack_version))
+    spack_extracted = join(internalpath, "spack-{}".format(spack_version))
+    spack_dest      = join(internalpath, "spack")
+    system("cd {}; tar xzf {}".format(internalpath, spack_tarball))
+    if not isdir(spack_extracted):
+        fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
+    rename(spack_extracted, spack_dest)
+        
+    # add our tests repo
+    own_repo = join(internalpath, "repos", "tests")
+    spackle.do("repo add --scope site {}".format(own_repo))
+
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-    spack.config.config.update_config("config", {"verify_ssl": False}, scope="command_line")  # some builtin packages we want to use have wrong checksums
-    spack.config.set('config:checksum', False, scope='command_line')
+#     spackle.do("config --scope site add config:verify_ssl:False")
+#     spackle.do("config --scope site add config:checksum:False")
+    from spack.config import set as xset        # PENDING SPACK 0.14.1
+    xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
+    xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
+    
+    # display available compilers
+    infomsg("Spack found these compilers automatically:")
+    spackle.do("compilers")
+    infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
+    infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
 
 
 #------------#
@@ -105,12 +136,15 @@ def uninstall(name):
 #  Specs  #
 #---------#
 
+
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def parseSpec(specString):
     
     from spack.cmd import parse_specs
     return parse_specs(specString)
 
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def isInstalled(spec):
     
     # a list of *installed* packages matching 'spec'
@@ -119,6 +153,7 @@ def isInstalled(spec):
     return spack.store.db.query(spec, installed=True)
 
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def getDependents(spec):
     
     # return list of *installed* packages which depend on the given spec's package(s).
@@ -128,6 +163,7 @@ def getDependents(spec):
     return spack.store.db.installed_relatives(spec, 'parents', True)
 
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def hasDependents(spec):
     
     # return wheether there are any *installed* packages which depend on the given spec's package(s).
@@ -136,6 +172,7 @@ def hasDependents(spec):
     return len( spackle.getDependents(spec) ) > 0
     
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def concretizeSpec(spec):
     
     spec.concretize()       # TODO: check that this succeeds
@@ -145,6 +182,7 @@ def concretizeSpec(spec):
 #  Packages  #
 #------------#
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def allPackageNames(namespace):
     
     # for HPCTest, namespace must be "builtin" or "tests"
@@ -154,74 +192,18 @@ def allPackageNames(namespace):
     return spack.repo.path.get_repo(namespace).all_package_names()
 
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def packageFromSpec(spec):
     
     import spack
     return spack.repo.path.get(spec)
 
 
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def setDIY(package, diyPath):
     
     from spack.stage import DIYStage
     package.stage = DIYStage(diyPath)
-
-
-#----------------#
-#  Repositories  #
-#----------------#
-
-def getRepo(name):
-    
-    import spack
-    return spack.repo.path.get_repo(name, default=None)
-    
-    
-def createRepo(dirname):
-
-    from os.path import join, isdir
-    from shutil import rmtree
-    import spack
-    from spack.repo import create_repo
-    from common import homepath
-
-    # this just makes a repo directory -- it must be added to Spack once populated
-    repoPath = join(homepath, "internal", "repos", dirname)
-    if isdir(repoPath): rmtree(repoPath, ignore_errors=True)
-    namespace = dirname
-    _ = create_repo(repoPath, namespace)
-
-
-def updateRepoPath(repoPath):
-
-    import spack
-    from spack.repo import Repo
-    from common import assertmsg
-
-    # update Spack's current RepoPath
-    assertmsg(len(spack.repo.path.repos) == 2, "unexpected RepoPath length while updating Spack for changed internal repo")
-    spack.repo.path.repos[0] = Repo(repoPath)
-
-
-def addRepo(repoPath):
-
-    import spack
-    from spack.repo import Repo
-
-    # We need to add a repo *while Spack is running*, which existing Spack code never does.
-    # Adding while preserving RepoPath representation invariant is messy
-    # ...no single operation for this is available in current Spack code
-    
-    # update Spack's config
-    repos = spack.config.config.get_config('repos', "site")
-    if isinstance(repos, list):
-        repos.insert(0, repoPath)
-    else:
-        repos = [ repoPath ]
-    spack.config.config.update_config('repos', repos, "site")
-    
-    # add to Spack's RepoPath
-    repo = Repo(repoPath)
-    spack.repo.path.put_first(repo)
 
 
 
