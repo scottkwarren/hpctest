@@ -255,8 +255,8 @@ class SummitExecutor(Executor):
         f.write(Summit_batch_file_template.format(
             jobName      = name,
             project      = project,
-            numRanks     = numRanks,
-            numThreads   = numThreads,
+            numRanks     = numRanks if numRanks > 0 else 1,
+            numThreads   = numThreads if numThreads > 0 else 1,
             time         = time,
             cmds         = cmds,
             ))
