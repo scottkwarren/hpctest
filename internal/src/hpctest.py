@@ -243,21 +243,6 @@ class HPCTest(object):
         runOb   = Run(*runArgs)
         runOb.run(echoStdout=False)
         debugmsg("_runOne done")
-
-        
-    def _miniapps(self):
-         
-        from os.path import join
-        import spack
-        from spack.repo import Repo
-        from common import own_spack_home
-             
-        # iterate over builtin packages
-        builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
-        for name in builtin.packages_with_tags("proxy-app"):
-            p = builtin.get(name)
-            url = p.url if hasattr(p, "url") and p.url else "None"
-            print "name: "+p.name, "\n", "  homepage: "+p.homepage, "\n", "  url: "+url, "\n"
     
     
     #---------------#
@@ -384,22 +369,13 @@ common.internalpath   = join(common.homepath, "internal")
 common.own_spack_home = join(common.internalpath, "spack")
 common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
 
-# sys.path adjustment is needed to load Spack modules
+# sys.path adjustment is needed to load Spack (& other) modules
 sys.path[1:0] = [ common.own_spack_module_dir,
                   join(common.own_spack_module_dir, "external"),
                   join(common.own_spack_module_dir, "external", "yaml", "lib"),
                   join(common.own_spack_module_dir, "llnl"),
+#                join(common.internalpath, "src", "util")
                 ]
-
-# now set up Spack
-if not isdir(common.own_spack_home):
-    # extract and set up our own Spack
-    spackle.initSpack()
-else:
-    # remove built but out of date package binaries
-    changedPackages = HPCTest._ensureTests()
-    for name in changedPackages:
-        spackle.uninstall(name)
 
 # (2) now we can set up configuration system so configs can specify important paths
 configpath = join(common.homepath, "config.yaml")
@@ -420,6 +396,16 @@ common.testspath     = join(common.homepath, "tests")
 common.repopath      = join(common.internalpath, "repos", "tests")
 common.workpath      = join(common.homepath, "work")
 if not isdir(common.workpath): makedirs(common.workpath)
+
+# now set up Spack
+if not isdir(common.own_spack_home):
+    # extract and set up our own Spack
+    spackle.initSpack()
+else:
+    # remove built but out of date package binaries
+    changedPackages = HPCTest._ensureTests()
+    for name in changedPackages:
+        spackle.uninstall(name)
 
 # and make our general-purpose hidden directory
 hiddenDir = join(common.homepath, ".hpctest")

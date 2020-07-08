@@ -177,6 +177,7 @@ def execute(args):
         reportspec = args["--report"] if args["--report"] else ["all"]
         studyPath  = args["--study"]
         HPCTestOb.selftest(testspec, reportspec, studyPath)
+
     
     elif args["--help"]:
         
@@ -191,14 +192,6 @@ def execute(args):
                   .format(version)
             
     
-    elif args["_miniapps"]:
-        
-        print  "The _miniapps command is not implemented."
-        return
-        
-        HPCTestOb._miniapps()
-    
-        
     elif args["_runOne"]:
         
         HPCTestOb._runOne(args["ENCODED_ARGS"])

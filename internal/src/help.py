@@ -84,7 +84,6 @@ Usage:
           [--all]
   hpctest spack [options] SPACKCMD ...
   hpctest selftest [options] ( all | [TESTSPEC...] ) [--study PATH]
-  hpctest _miniapps
   hpctest _runOne [options] ENCODED_ARGS
   hpctest (--help | --version)
   

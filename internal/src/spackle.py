@@ -61,12 +61,9 @@ import sys
 
 def supported_version():
     
-    return "0.12.1"    
+    return "0.12.1"
 
 
-
-
-# DIRTY # PENDING SPACK 0.14.1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 def initSpack():
 
     from os import system
@@ -94,9 +91,13 @@ def initSpack():
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
 #     spackle.do("config --scope site add config:verify_ssl:False")
 #     spackle.do("config --scope site add config:checksum:False")
-    from spack.config import set as xset        # PENDING SPACK 0.14.1
-    xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
-    xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
+#     from spack.config import set as xset        # PENDING SPACK 0.14.1
+#     xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
+#     xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
+    import spack
+    from spack import config                        # PENDING SPACK 0.14.1
+    config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
+    config.set("config:checksum",   False, "site")  # PENDING SPACK 0.14.1
     
     # display available compilers
     infomsg("Spack found these compilers automatically:")
@@ -204,6 +205,22 @@ def setDIY(package, diyPath):
     
     from spack.stage import DIYStage
     package.stage = DIYStage(diyPath)
+
+        
+# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+def miniapps():
+     
+    from os.path import join
+    import spack
+    from spack.repo import Repo
+    from common import own_spack_home
+         
+    # iterate over builtin packages
+    builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
+    for name in builtin.packages_with_tags("proxy-app"):
+        p = builtin.get(name)
+        url = p.url if hasattr(p, "url") and p.url else "None"
+        print "name: "+p.name, "\n", "  homepage: "+p.homepage, "\n", "  url: "+url, "\n"
 
 
 
