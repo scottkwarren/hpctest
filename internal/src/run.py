@@ -206,7 +206,7 @@ class Run(object):
 
     def _prepareJobDirs(self):
 
-        from os import makedirs, symlink
+        from os import symlink
         from os.path import basename, join
         from shutil import copytree
         from common import PrepareFailed
