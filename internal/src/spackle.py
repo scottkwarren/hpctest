@@ -69,7 +69,7 @@ def initSpack():
     from os import system
     from os import rename
     from os.path import isdir, join
-    from common import internalpath, own_spack_home, infomsg, fatalmsg
+    from common import internalpath, own_spack_home, repopath, infomsg, fatalmsg
     import spackle
     
     infomsg("Setting up internal Spack...")
@@ -78,15 +78,13 @@ def initSpack():
     spack_version   = spackle.supported_version()
     spack_tarball   = join(internalpath, "spack-{}.tar.gz".format(spack_version))
     spack_extracted = join(internalpath, "spack-{}".format(spack_version))
-    spack_dest      = join(internalpath, "spack")
     system("cd {}; tar xzf {}".format(internalpath, spack_tarball))
     if not isdir(spack_extracted):
         fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
-    rename(spack_extracted, spack_dest)
+    rename(spack_extracted, own_spack_home)
         
     # add our tests repo
-    own_repo = join(internalpath, "repos", "tests")
-    spackle.do("repo add --scope site {}".format(own_repo))
+    spackle.do("repo add --scope site {}".format(repopath))
 
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
 #     spackle.do("config --scope site add config:verify_ssl:False")

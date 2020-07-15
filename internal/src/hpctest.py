@@ -250,22 +250,26 @@ class HPCTest(object):
     #---------------#
     
     @classmethod
-    def _ensureRepo(cls):
-    
-        import common
-        import spackle
-                
-        # make or update a private repo for building test cases
-        noRepo = spackle.getRepo("tests") is None
-        if noRepo: spackle.createRepo("tests")
+    def _ensureRepo(cls):   # returns a list of names of packages that have changed
+        
+        from os import makedirs, mkdir
+        from os.path import isdir, join
+        from common import repopath
+        
+        # ensure repo directory structure exists
+        if not isdir(repopath):
+            makedirs(repopath)
+            mkdir(join(repopath, "packages"))
+            with open(join(repopath, "repo.yaml"), "w") as out:
+                out.write(  "repo:\n"
+                            "  namespace: tests\n"
+                         )
+            
+        # ensure it contains up to date packages for every test
         changedPackages = HPCTest._ensureTests()
-        if noRepo:
-            spackle.addRepo(common.repopath)
-        else:
-            spackle.updateRepoPath(common.repopath)
-    
+        
         return changedPackages
-    
+        
     
     @classmethod
     def _ensureTests(cls):   # returns a list of names of packages that have changed
@@ -398,12 +402,12 @@ common.workpath      = join(common.homepath, "work")
 if not isdir(common.workpath): makedirs(common.workpath)
 
 # now set up Spack
+changedPackages = HPCTest._ensureRepo()
 if not isdir(common.own_spack_home):
     # extract and set up our own Spack
     spackle.initSpack()
 else:
-    # remove built but out of date package binaries
-    changedPackages = HPCTest._ensureTests()
+    # remove out of date built package binaries
     for name in changedPackages:
         spackle.uninstall(name)
 
