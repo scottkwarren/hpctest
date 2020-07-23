@@ -1,8 +1,8 @@
 ################################################################################
 #                                                                              #
-#  slurmExecutor.py                                                            #
+#  lsfExecutor.py                                                              #
 #                                                                              #
-#  Run jobs immediately or in batch using the SLURM scheduler.                 #
+#  Run jobs immediately or in batch using the LSF scheduler.                   #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -51,20 +51,20 @@ from executor import Executor
 from common import options
 
 
-class SummitExecutor(Executor):
+class LSFExecutor(Executor):
     
  
     def __init__(self):
         
-        super(SummitExecutor, self).__init__()
-        # nothing for SummitExecutor
+        super(LSFExecutor, self).__init__()
+        # nothing for LSFExecutor
     
     # System inquiries
 
     @classmethod
     def name(cls):
         
-        return "Summit"
+        return "LSF"
 
 
     @classmethod
@@ -91,7 +91,7 @@ class SummitExecutor(Executor):
         # TODO: USE binPath APPROPRIATELY!!!
         
         # spackMPIBin is unused
-        # jsrun optiona per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
+        # jsrun optiona per IBM documentation (tinyurl.com/re938v2)
         
         from os import getcwd
         import textwrap, tempfile
@@ -145,7 +145,7 @@ class SummitExecutor(Executor):
         import os, re
         from common import errormsg, fatalmsg
         
-        # ask Summit for all our jobs that are still running
+        # ask LSF for all our jobs that are still running
         out, err = self._shell("bjobs") # -UF == "don't format output", makes parsing easier
 
         # 'out' is a sequence of lines that look like this:
@@ -198,14 +198,14 @@ class SummitExecutor(Executor):
         import textwrap, tempfile
         from common import options, verbosemsg
         
-        # jsrun options per Summit User Guide (tinyurl.com/upx9fpm) and IBM documentation (tinyurl.com/re938v2)
+        # jsrun options per IBM documentation (tinyurl.com/re938v2)
         
         # slurm srun command template
-        Summit_run_cmd_template = \
+        LSF_run_cmd_template = \
             "jsrun {options} -n 1 -a {numRanks} -c {numThreads} -h {runPath} {cmd}"
     
-        # prepare summit command
-        scommand = Summit_run_cmd_template.format(
+        # prepare LSF command
+        scommand = LSF_run_cmd_template.format(
             options      = "",          # jsrun apparently has no verbose option
             runPath      = runPath,
             numRanks     = numRanks if numRanks > 0 else 1,
@@ -233,8 +233,8 @@ class SummitExecutor(Executor):
         if type(prelude) is not list: prelude = [prelude]
         cmds = "\n".join(prelude) + ("\n" if len(prelude) else "") + cmds
         
-        # Summit sbatch command file template
-        Summit_batch_file_template = textwrap.dedent(
+        # LSF sbatch command file template
+        LSF_batch_file_template = textwrap.dedent(
             """\
             #!/bin/bash
             #BSUB -J {jobName}
@@ -248,11 +248,11 @@ class SummitExecutor(Executor):
         # template params from configuration
         project, time = self._paramsFromConfiguration()
         
-        # prepare Summit command file
-        summitfilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
+        # prepare LSF command file
+        lsfFilesDir = getcwd() if "debug" in options else join(common.homepath, ".hpctest")
         f = tempfile.NamedTemporaryFile(mode='w+t', bufsize=-1, delete=False,
-                                        dir=summitfilesDir, prefix='summit-', suffix=".bsub")
-        f.write(Summit_batch_file_template.format(
+                                        dir=lsfFilesDir, prefix='lsf-', suffix=".bsub")
+        f.write(LSF_batch_file_template.format(
             jobName      = name,
             project      = project,
             numRanks     = numRanks if numRanks > 0 else 1,
@@ -311,8 +311,7 @@ class SummitExecutor(Executor):
 
 
 # register this executor class by name
-Executor.register(SummitExecutor.name(), SummitExecutor)
-
+Executor.register(LSFExecutor.name(), LSFExecutor)
 
 
 
