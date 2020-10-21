@@ -49,6 +49,25 @@
 # 'import ruamel' comes from Spack distro
 
 
+def readYamlString(s):
+    
+    import ruamel.yaml as yaml
+    from common import options, debugmsg
+
+    if "verbose" in options:
+        debugmsg("reading yaml string at {}".format(s[:20]+"..."))
+        
+    try:
+        object, msg = yaml.load(s), None
+    except:
+        object, msg = None, "yaml string has syntax errors and cannot be used"
+    
+    if "verbose" in options:
+        debugmsg("...finished reading yaml string with msg {}".format(repr(msg)))
+    
+    return object, msg
+
+
 def readYamlFile(path):
     
     import ruamel.yaml as yaml
@@ -62,7 +81,7 @@ def readYamlFile(path):
             try:
                 object, msg = yaml.load(f), None
             except:
-                object, msg = None, "file has syntax errors and cannot be used"
+                object, msg = None, "yaml file has syntax errors and cannot be used"
     except Exception as e:
         if isinstance(e, OSError) and e.errno == errno.EEXIST:
             object, msg = None, "yaml file to be read is missing"
@@ -70,7 +89,7 @@ def readYamlFile(path):
             object, msg = None, "yaml file cannot be opened: (error {0}, {1})".format(e.errno, e.strerror)
     
     if "verbose" in options:
-        debugmsg("...finished reading yaml file with result object {} and msg {}".format(object, repr(msg)))
+        debugmsg("...finished reading yaml file with msg {}".format(repr(msg)))
     
     return object, msg
 
