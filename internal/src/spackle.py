@@ -59,43 +59,34 @@ import sys
 #------------------#
 
 
-def supported_version():
+def supportedVersion():
     
     return "0.12.1"
 
 
 def initSpack():
 
-    from os import system
-    from os import rename
+    from os import system, rename
     from os.path import isdir, join
     from common import internalpath, own_spack_home, repopath, infomsg, fatalmsg
     import spackle
-    
-    infomsg("Setting up internal Spack...")
-    
-    # extract our Spack from tar file
-    spack_version   = spackle.supported_version()
-    spack_tarball   = join(internalpath, "spack-{}.tar.gz".format(spack_version))
-    spack_extracted = join(internalpath, "spack-{}".format(spack_version))
-    system("cd {}; tar xzf {}".format(internalpath, spack_tarball))
-    if not isdir(spack_extracted):
-        fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
-    rename(spack_extracted, own_spack_home)
-        
+
     # add our tests repo
     spackle.do("repo add --scope site {}".format(repopath))
 
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
+# ?
 #     spackle.do("config --scope site add config:verify_ssl:False")
 #     spackle.do("config --scope site add config:checksum:False")
+# ?
 #     from spack.config import set as xset        # PENDING SPACK 0.14.1
 #     xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
 #     xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
-    import spack
-    from spack import config                        # PENDING SPACK 0.14.1
-    config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
-    config.set("config:checksum",   False, "site")  # PENDING SPACK 0.14.1
+# ?
+#     import spack
+#     from spack import config                        # PENDING SPACK 0.14.1
+#     config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
+#     config.set("config:checksum",   False, "site")  # PENDING SPACK 0.14.1
     
     # display available compilers
     infomsg("Spack found these compilers automatically:")
@@ -108,19 +99,29 @@ def initSpack():
 #  Commands  #
 #------------#
 
-def do(cmdstring, echo=True):
+def do(cmdstring, echo=True, stdout="/dev/stdout", stderr="/dev/stderr"):
 
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
-    import os, common
+    import subprocess, common
+    from tempfile import mktemp
     
+    out = stdout if echo else mktemp()
+    err = stderr if echo else mktemp()
+
+    with open(out, "a") as outf, open(err, "a") as errf:
+        shellcmd = common.own_spack_home + "/bin/spack " + cmdstring
+        status = subprocess.call(shellcmd, shell=True, stdout=outf, stderr=errf)
+
     if echo:
-        out = "/dev/stdout"
-        err = "/dev/stderr"
+        outstr = ""
+        errstr = ""
     else:
-        out = "/dev/null"
-        err = "/dev/null"
-    os.system(common.own_spack_home + "/bin/spack " + cmdstring + " > {} 2> {}".format(out, err))
+        with open(out, "r") as outf, open(err, "r") as errf:
+            outstr = outf.read()
+            errstr = errf.read()
+
+    return outstr, errstr
 
 
 def uninstall(name):
@@ -135,96 +136,116 @@ def uninstall(name):
 #  Specs  #
 #---------#
 
+def isSpecInstalled(spec):
 
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def parseSpec(specString):
+    import spackle
+
+    spackCmd = "find {0}".format(spec)
+    out, _ = spackle.do(spackCmd, echo=False)
+    return "No package matches the query" not in out
+
+
+def installSpec(spec, srcDir = None):
+
+    import spackle
+
+    if srcDir:
+####    spackCmd = "dev-build {0} -d {1}".format(spec, srcDir)           ## PENDING SPACK 0.15
+        spackCmd = "diy -d {1} {0}".format(spec, srcDir)
+    else:
+        spackCmd = "install --keep-stage --dirty {0}".format(spec)
+    out, err = spackle.do(spackCmd, echo=False)
     
-    from spack.cmd import parse_specs
-    return parse_specs(specString)
+    # determine success or failure and if failed, retrieve error messages
+    if "==> Successfully installed" not in out:
+        raise Exception(err.replace("==> Error: ", ""))
 
 
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def isInstalled(spec):
-    
-    # a list of *installed* packages matching 'spec'
-    
-    import spack
-    return spack.store.db.query(spec, installed=True)
-
-
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def getDependents(spec):
-    
-    # return list of *installed* packages which depend on the given spec's package(s).
-    # in HPCTest, if the returned list is empty then the spec denotes a built test (not a dependency)
-    
-    import spack
-    return spack.store.db.installed_relatives(spec, 'parents', True)
-
-
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def hasDependents(spec):
-    
-    # return wheether there are any *installed* packages which depend on the given spec's package(s).
+def specPrefix(spec):
     
     import spackle
-    return len( spackle.getDependents(spec) ) > 0
-    
 
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def concretizeSpec(spec):
+    spackCmd = "location --install-dir {0}".format(spec)
+    out, _ = spackle.do(spackCmd, echo=False)
     
-    spec.concretize()       # TODO: check that this succeeds
+    ok = "==> Error:" not in out
+    return out[:-1] if ok else None
+
+
+def mpiPrefix(spec):
+    
+    import spackle
+    from util.yaml import readYamlString
+    
+    # get installed packages & their details
+    spackCmd = "spec -y {0}".format(spec)
+    out, _   = spackle.do(spackCmd, echo=False)
+    outDict, _ = readYamlString(out)
+    packageDicts = outDict["spec"]      # list of dicts each with a single key, a package name    
+                                        # key's value is a dict of details
+
+    # find mpi provider and its details
+    providers = spackle.mpiProviders()
+    mpiDicts  = [d for d in packageDicts if d.keys()[0] in providers]
+    mpiDict   = mpiDicts[0]
+    
+    # get mpi provider's install prefix
+    mpiName = mpiDict.keys()[0]
+    mpiSpec = mpiName + "@" + mpiDict[mpiName]["version"]
+    prefix = spackle.specPrefix(mpiSpec)
+    
+    return prefix
+
+
+global providers
+providers = None
+def mpiProviders():
+    
+    import spackle
+    global providers
+    
+    if not providers:
+        out, _    = spackle.do("providers mpi", echo=False)
+        words     = set( {s.strip() for s in out.split()} )
+        providers = { w.split("@")[0] for w in words }
+        
+    return providers
 
 
 #------------#
 #  Packages  #
 #------------#
 
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def allPackageNames(namespace):
+def installedPackageNames(namespace, explicit=False, implicit=False):
     
     # for HPCTest, namespace must be "builtin" or "tests"
     # result is a set of strings for all packages in given namespace, installed or not
+
+    import spackle
+    from common import fatalmsg
     
-    import spack
-    return spack.repo.path.get_repo(namespace).all_package_names()
-
-
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def packageFromSpec(spec):
+    flag = "  " if explicit and implicit     else \
+           "-x" if explicit and not implicit else \
+           "-X" if implicit and not explicit else \
+           fatalmsg("spackle.installedPackageNames called incorrectly w/ explicit, implicit both false")
     
-    import spack
-    return spack.repo.path.get(spec)
+    # cmd says to print names of all installed packages, with namespace prefixes
+#   spackCmd = "find {0} -N --no-groups".format(flag)   # and no boilerplate -- PENDING SPACK 0.15
+    spackCmd = "find {0} -N".format(flag)
+    out, _ = spackle.do(spackCmd, echo=False)
 
-
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def setDIY(package, diyPath):
+    names  = out.split("\n")[2:]
+    names  = " ".join( names ).split()
     
-    from spack.stage import DIYStage
-    package.stage = DIYStage(diyPath)
+#   names  = filter( lambda n: n.startswith(namespace + ":"), names )    ## PENDING SPACK 0.15
+    names  = filter( lambda n: n.startswith(namespace), names )
+
+#   names  = [ n.replace(namespace + ":", "", 1) for n in names]         ## PENDING SPACK 0.15
+    names  = [ n.replace(namespace, "", 1) for n in names]
+
+    return names
 
         
-# DIRTY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-def miniapps():
-     
-    from os.path import join
-    import spack
-    from spack.repo import Repo
-    from common import own_spack_home
-         
-    # iterate over builtin packages
-    builtin = Repo(join(own_spack_home, "var", "spack", "repos", "builtin"))
-    for name in builtin.packages_with_tags("proxy-app"):
-        p = builtin.get(name)
-        url = p.url if hasattr(p, "url") and p.url else "None"
-        print "name: "+p.name, "\n", "  homepage: "+p.homepage, "\n", "  url: "+url, "\n"
 
 
-
-
-
-
-
-    
-    
+  

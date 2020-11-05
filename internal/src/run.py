@@ -185,23 +185,8 @@ class Run(object):
         
         namespace = "builtin" if self.test.builtin() else "tests"
         spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.test.version(), self.build)
-        try:
-            
-            self.spec = spackString  ## NOTE: so after bad-spec exception 'self.spec' can be used in error msg
-            self.spec = spackle.parseSpec(spackString)[0]                # TODO: deal better with possibility that returned list length != 1
-            self.output.add("input", "spack spec", str(self.spec))
-            if "mpi" in self.spec:
-                spackString += " mpi"
-                self.spec = spackle.parseSpec(spackString)[0]            # TODO: deal better with possibility that returned list length != 1
-            if "+openmp" in self.spec:
-                spackString += " +openmp"
-                self.spec = spackle.parseSpec(spackString)[0]            # TODO: deal better with possibility that returned list length != 1
-            spackle.concretizeSpec(self.spec)
-            self.output.add("build", "concretized spack spec", str(self.spec))
-            
-        except Exception as e:
-            self.output.addSummaryStatus("BUILD CONFIG INVALID", e.message)
-            raise BadBuildSpec(e.message)
+        self.spec = spackString  ## NOTE: so after bad-spec exception 'self.spec' can be used in error msg
+        self.output.add("input", "spack spec", str(self.spec))
 
 
     def _prepareJobDirs(self):
@@ -245,14 +230,13 @@ class Run(object):
         self._prepareJobDirs()
 
         # build the package if necessary
-        self.package = spackle.packageFromSpec(self.spec)
-        if self.package.installed:
+        self.packagePrefix = spackle.specPrefix(self.spec)
+        self.prefixBin     = join(self.packagePrefix, "bin")
+        if spackle.isSpecInstalled(self.spec):
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
             buildTime = 0.0
         else:
-            if not self.test.builtin():
-                spackle.setDIY(self.package, self.builddir)
             
             outPath = self.output.makePath("{}-output.txt", "build")
             filter  = (lambda s: s) if "verbose" in options else (lambda s: None)
@@ -260,15 +244,8 @@ class Run(object):
                 with ElapsedTimer() as t:
                     
                     try:
-                        self.package.do_install(
-                            restage=True,
-                            keep_prefix=False,
-                            install_deps=True,
-                            verbose="verbose" in options,
-                            keep_stage=True,        # don't remove source dir for DIY.
-                            explicit=True,
-                            dirty=True,
-                            force=False)            # don't install if already installed
+                        srcDir = self.builddir if not self.test.builtin() else None
+                        spackle.installSpec(self.spec, srcDir)
                         status, msg = "OK", None
                     except Exception as e:
                         status, msg =  "FAILED", e.message
@@ -280,16 +257,16 @@ class Run(object):
         # make alias(es) in build directory to the built product(s)
         products = self.test.installProducts()
         for productRelpath in products:
-            productPath = join(self.rundir, productRelpath)
-            productName = basename(productPath)
-            productPrefix = join(self.package.prefix.bin, productName)
+            productPath   = join(self.rundir, productRelpath)
+            productName   = basename(productPath)
+            productPrefix = join(self.packagePrefix, productName)
             if not isfile(productPath):
                 os.symlink(productPrefix, productPath)
             
         # save results
         cmd = "cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir())
         os.system(escape(cmd))
-        self.output.add("build", "prefix",     str(self.package.prefix))
+        self.output.add("build", "prefix",     self.packagePrefix)
         self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
         self.output.add("build", "status",     status)
         self.output.add("build", "status msg", msg)
@@ -356,11 +333,12 @@ class Run(object):
         from subprocess import CalledProcessError
         from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
         from common import HPCTestError, ExecuteFailed
+        from spackle import mpiPrefix
         from run import Run
         
         # compute command to be executed
         # ... start with test's run command
-        binPath   = self.package.prefix.bin
+        binPath   = self.prefixBin
         runSubdir = self.test.runSubdir()
         runPath   = join(self.rundir, runSubdir) if runSubdir else self.rundir
         outPath   = self.output.makePath("{}-output.txt", label)
@@ -371,11 +349,11 @@ class Run(object):
             threads = self.test.numThreads()
         else:
             threads = 0
-        
+
         # ... MPI launching code if wanted
         if mpi:
             ranks   = self.test.numRanks()
-            mpipath = join(self.spec["mpi"].prefix, "bin")
+            mpipath = join(mpiPrefix(self.spec), "bin")
         else:
             ranks = 0       # tells executor.wrap not to use MPI
             mpipath = None

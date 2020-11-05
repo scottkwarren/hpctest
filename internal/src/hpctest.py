@@ -180,22 +180,18 @@ class HPCTest(object):
         # uninstall tests if desired
         # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
         if tests and confirm("built tests"):
-            for name in sorted( spackle.allPackageNames("tests") ):
-                if spackle.isInstalled(name):
-                    spackle.uninstall(name)
-                    verbosemsg("  uninstalled {} (all versions)".format(name))
+            for name in sorted( spackle.installedPackageNames("tests", explicit=True) ):
+                spackle.uninstall(name)
+                verbosemsg("  uninstalled {} (all versions)".format(name))
             infomsg("uninstalled all built tests")
         
         # uninstall dependencies if desired
         if dependencies and confirm("built dependencies"):
-            for name in sorted( spackle.allPackageNames("builtin") ):
-                if spackle.isInstalled(name) and spackle.hasDependents(name):
-                    # ... 'and' in case there's a 'builtin' w/ same name as a test
-                    spackle.uninstall(name)
-                    verbosemsg("  uninstalled {} (all versions)".format(name))
+            for name in sorted( spackle.installedPackageNames("builtin", implicit=True) ):
+                spackle.uninstall(name)
+                verbosemsg("  uninstalled {} (all versions)".format(name))
             infomsg("uninstalled all built dependencies")
 
-    
     
     def spack(self, cmdstring):
         
@@ -358,7 +354,7 @@ class HPCTest(object):
 
 from os.path import isfile
 from shutil import copyfile
-from common import infomsg, errormsg
+from common import infomsg, errormsg, fatalmsg
 import spackle
 
 
@@ -373,15 +369,34 @@ common.internalpath   = join(common.homepath, "internal")
 common.own_spack_home = join(common.internalpath, "spack")
 common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
 
+# paths needed for _ensureRepo etc
+common.testspath     = join(common.homepath, "tests")
+common.repopath      = join(common.internalpath, "repos", "tests")
+common.workpath      = join(common.homepath, "work")
+if not isdir(common.workpath): makedirs(common.workpath)
+
 # sys.path adjustment is needed to load Spack (& other) modules
 sys.path[1:0] = [ common.own_spack_module_dir,
                   join(common.own_spack_module_dir, "external"),
-                  join(common.own_spack_module_dir, "external", "yaml", "lib"),
                   join(common.own_spack_module_dir, "llnl"),
-#                join(common.internalpath, "src", "util")
                 ]
 
-# (2) now we can set up configuration system so configs can specify important paths
+# (2) Set up internal Spack
+if not isdir(common.own_spack_home):
+    firstTime = True
+    infomsg("Setting up internal Spack...")
+    # extract our Spack from tar file
+    spack_version   = spackle.supportedVersion()
+    spack_tarball   = join(common.internalpath, "spack-{}.tar.gz".format(spack_version))
+    spack_extracted = join(common.internalpath, "spack-{}".format(spack_version))
+    system("cd {}; tar xzf {}".format(common.internalpath, spack_tarball))
+    if not isdir(spack_extracted):
+        fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
+    rename(spack_extracted, common.own_spack_home)
+else:
+    firstTime = False
+
+# (3) now we can set up configuration system so configs can specify important paths
 configpath = join(common.homepath, "config.yaml")
 if not isfile(configpath):
     defaultpath = join(common.internalpath, "src", "config-data", "config-default.yaml")
@@ -391,20 +406,16 @@ if not isfile(configpath):
         errormsg("config.yaml is missing and can't be created with defaults: {}".format(str(e)))
 configuration.initConfig()
 
-# (3) finally we can initialize important user-visible paths, possibly from config settings
+# (4) determine hpctoolkit instance to use, possibly from config settings
 _whichHpcrun         = common.whichDir("hpcrun")
 _hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
 common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
 common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
-common.testspath     = join(common.homepath, "tests")
-common.repopath      = join(common.internalpath, "repos", "tests")
-common.workpath      = join(common.homepath, "work")
-if not isdir(common.workpath): makedirs(common.workpath)
 
-# now set up Spack
+# now set up our repo
 changedPackages = HPCTest._ensureRepo()
-if not isdir(common.own_spack_home):
-    # extract and set up our own Spack
+if firstTime:
+    # set up our previously extracted Spack
     spackle.initSpack()
 else:
     # remove out of date built package binaries
