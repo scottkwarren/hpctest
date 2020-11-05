@@ -65,7 +65,7 @@ def initConfig():
     user    = join("~",      ".hpctest/config.yaml")
     install = join(homepath, "config.yaml")
     configFileLocations = [ builtin, user, install ]
-    
+
     # gather config info from layered yaml files w/ most local == highest priority
     currentConfig = {}
     for path in configFileLocations:
@@ -125,7 +125,6 @@ def _overrideDictByDict(dict1, dict2):
                     dict1[key] = value2
             else:
                 dict1[key] = value2
-
 
 
 
