@@ -216,11 +216,8 @@ def mpiProviders():
 #  Packages  #
 #------------#
 
-def installedPackageNames(namespace, explicit=False, implicit=False):
+def installedPackageNames(explicit=False, implicit=False):
     
-    # for HPCTest, namespace must be "builtin" or "tests"
-    # result is a set of strings for all packages in given namespace, installed or not
-
     import spackle
     from common import fatalmsg
     
@@ -229,19 +226,12 @@ def installedPackageNames(namespace, explicit=False, implicit=False):
            "-X" if implicit and not explicit else \
            fatalmsg("spackle.installedPackageNames called incorrectly w/ explicit, implicit both false")
     
-    # cmd says to print names of all installed packages, with namespace prefixes
-#   spackCmd = "find {0} -N --no-groups".format(flag)   # and no boilerplate -- PENDING SPACK 0.15
-    spackCmd = "find {0} -N".format(flag)
+    # cmd says to print names of all installed packages
+    spackCmd = "find {0}".format(flag)
     out, _ = spackle.do(spackCmd, echo=False)
 
     names  = out.split("\n")[2:]
-    names  = " ".join( names ).split()
-    
-#   names  = filter( lambda n: n.startswith(namespace + ":"), names )    ## PENDING SPACK 0.15
-    names  = filter( lambda n: n.startswith(namespace), names )
-
-#   names  = [ n.replace(namespace + ":", "", 1) for n in names]         ## PENDING SPACK 0.15
-    names  = [ n.replace(namespace, "", 1) for n in names]
+    names  = " ".join( names ).split()  # trick: remove extraneous blank elements due to extra newlines
 
     return names
 

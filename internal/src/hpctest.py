@@ -180,14 +180,14 @@ class HPCTest(object):
         # uninstall tests if desired
         # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
         if tests and confirm("built tests"):
-            for name in sorted( spackle.installedPackageNames("tests", explicit=True) ):
+            for name in sorted( spackle.installedPackageNames(explicit=True) ):
                 spackle.uninstall(name)
                 verbosemsg("  uninstalled {} (all versions)".format(name))
             infomsg("uninstalled all built tests")
         
         # uninstall dependencies if desired
         if dependencies and confirm("built dependencies"):
-            for name in sorted( spackle.installedPackageNames("builtin", implicit=True) ):
+            for name in sorted( spackle.installedPackageNames(implicit=True) ):
                 spackle.uninstall(name)
                 verbosemsg("  uninstalled {} (all versions)".format(name))
             infomsg("uninstalled all built dependencies")
