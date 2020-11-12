@@ -165,13 +165,13 @@ class HPCTest(object):
         from common    import options, yesno, verbosemsg, debugmsg, workpath
         from study     import Study                                      
 
-        def confirm(what):
-            ask    = "Really delete all {}?".format(what)
-            cancel = "Ok, will not delete them."
+        def confirm(what, to_what):
+            ask    = "really {} all {}?".format(what, to_what)
+            cancel = "ok, will not {} them.".format(what)
             return ("force" in options) or yesno(ask, cancel)
             
         # delete studies if desired
-        if studies and confirm("study directories"):
+        if studies and confirm("delete", "study directories"):
             for name in listdir(workpath):
                 path = join(workpath, name)
                 if Study.isStudyDir(path): Study(path).clean()
@@ -179,14 +179,14 @@ class HPCTest(object):
         
         # uninstall tests if desired
         # BUG: "builtin" tests won't be uninstalled: not in 'tests' namespace,
-        if tests and confirm("built tests"):
+        if tests and confirm("uninstall", "built tests"):
             for name in sorted( spackle.installedPackageNames(explicit=True) ):
                 spackle.uninstall(name)
                 verbosemsg("  uninstalled {} (all versions)".format(name))
             infomsg("uninstalled all built tests")
         
         # uninstall dependencies if desired
-        if dependencies and confirm("built dependencies"):
+        if dependencies and confirm("uninstall", "built dependencies"):
             for name in sorted( spackle.installedPackageNames(implicit=True) ):
                 spackle.uninstall(name)
                 verbosemsg("  uninstalled {} (all versions)".format(name))
@@ -384,7 +384,7 @@ sys.path[1:0] = [ common.own_spack_module_dir,
 # (2) Set up internal Spack
 if not isdir(common.own_spack_home):
     firstTime = True
-    infomsg("Setting up internal Spack...")
+    infomsg("setting up internal Spack...")
     # extract our Spack from tar file
     spack_version   = spackle.supportedVersion()
     spack_tarball   = join(common.internalpath, "spack-{}.tar.gz".format(spack_version))
