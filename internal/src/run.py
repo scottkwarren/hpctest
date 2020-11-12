@@ -230,9 +230,8 @@ class Run(object):
         self._prepareJobDirs()
 
         # build the package if necessary
-        self.packagePrefix = spackle.specPrefix(self.spec)
-        self.prefixBin     = join(self.packagePrefix, "bin")
         if spackle.isSpecInstalled(self.spec):
+            self.packagePrefix = spackle.specPrefix(self.spec)  # can only get prefix if pkg installed
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
             buildTime = 0.0
@@ -246,6 +245,7 @@ class Run(object):
                     try:
                         srcDir = self.builddir if not self.test.builtin() else None
                         spackle.installSpec(self.spec, srcDir)
+                        self.packagePrefix = spackle.specPrefix(self.spec)  # can only get prefix if pkg installed
                         status, msg = "OK", None
                     except Exception as e:
                         status, msg =  "FAILED", e.message
@@ -254,14 +254,14 @@ class Run(object):
                         
                 buildTime = t.secs
                 
-        # make alias(es) in build directory to the built product(s)
-        products = self.test.installProducts()
-        for productRelpath in products:
-            productPath   = join(self.rundir, productRelpath)
-            productName   = basename(productPath)
-            productPrefix = join(self.packagePrefix, productName)
-            if not isfile(productPath):
-                os.symlink(productPrefix, productPath)
+            # make alias(es) in build directory to the built product(s)
+            products = self.test.installProducts()
+            for productRelpath in products:
+                productPath   = join(self.rundir, productRelpath)
+                productName   = basename(productPath)
+                productPrefix = join(self.packagePrefix, productName)
+                if not isfile(productPath):
+                    os.symlink(productPrefix, productPath)
             
         # save results
         cmd = "cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir())
@@ -338,7 +338,7 @@ class Run(object):
         
         # compute command to be executed
         # ... start with test's run command
-        binPath   = self.prefixBin
+        binPath   = join(self.packagePrefix, "bin")
         runSubdir = self.test.runSubdir()
         runPath   = join(self.rundir, runSubdir) if runSubdir else self.rundir
         outPath   = self.output.makePath("{}-output.txt", label)

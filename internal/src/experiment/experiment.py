@@ -58,7 +58,7 @@ class Experiment(object):
         # creation parameters
         self.test       = test
         self.runOb      = run
-        self.prefixBin  = run.prefixBin
+        self.prefixBin  = join(run.packagePrefix, "bin")
         self.rundir     = run.rundir
         self.output     = output
 
