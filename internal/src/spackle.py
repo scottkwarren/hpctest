@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
 #  spackle.py                                                                  #
-#  thin wrapper around private Spack to expose operations we need              #
+#  thin wrappers around Spack cmd lines to expose operations we need           #
 #                                                                              #
 #  $HeadURL$                                                                   #
 #  $Id$                                                                        #
@@ -49,11 +49,6 @@
 import sys
 
 
-###############################
-## NONINVASIVE USES OF SPACK ##
-###############################
-
-
 #------------------#
 #  Initialization  #
 #------------------#
@@ -75,14 +70,14 @@ def initSpack():
     spackle.do("repo add --scope site {}".format(repopath))
 
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-# ?
+# ???
 #     spackle.do("config --scope site add config:verify_ssl:False")
 #     spackle.do("config --scope site add config:checksum:False")
-# ?
+# ???
 #     from spack.config import set as xset        # PENDING SPACK 0.14.1
 #     xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
 #     xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
-# ?
+# ???
 #     import spack
 #     from spack import config                        # PENDING SPACK 0.14.1
 #     config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
