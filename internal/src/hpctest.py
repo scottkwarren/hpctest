@@ -375,26 +375,15 @@ common.repopath      = join(common.internalpath, "repos", "tests")
 common.workpath      = join(common.homepath, "work")
 if not isdir(common.workpath): makedirs(common.workpath)
 
-# sys.path adjustment is needed to load Spack (& other) modules
+# and make our general-purpose hidden directory
+hiddenDir = join(common.homepath, ".hpctest")
+if not isdir(hiddenDir): makedirs(hiddenDir)
+
+# (2) sys.path adjustment is needed to load Spack (& other) modules
 sys.path[1:0] = [ common.own_spack_module_dir,
                   join(common.own_spack_module_dir, "external"),
                   join(common.own_spack_module_dir, "llnl"),
                 ]
-
-# (2) Set up internal Spack
-if not isdir(common.own_spack_home):
-    firstTime = True
-    infomsg("setting up internal Spack...")
-    # extract our Spack from tar file
-    spack_version   = spackle.supportedVersion()
-    spack_tarball   = join(common.internalpath, "spack-{}.tar.gz".format(spack_version))
-    spack_extracted = join(common.internalpath, "spack-{}".format(spack_version))
-    system("cd {}; tar xzf {}".format(common.internalpath, spack_tarball))
-    if not isdir(spack_extracted):
-        fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
-    rename(spack_extracted, common.own_spack_home)
-else:
-    firstTime = False
 
 # (3) now we can set up configuration system so configs can specify important paths
 configpath = join(common.homepath, "config.yaml")
@@ -412,19 +401,8 @@ _hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirna
 common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
 common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
 
-# now set up our repo
-changedPackages = HPCTest._ensureRepo()
-if firstTime:
-    # set up our previously extracted Spack
-    spackle.initSpack()
-else:
-    # remove out of date built package binaries
-    for name in changedPackages:
-        spackle.uninstall(name)
-
-# and make our general-purpose hidden directory
-hiddenDir = join(common.homepath, ".hpctest")
-if not isdir(hiddenDir): makedirs(hiddenDir)
+# (5) set up internal Spack
+spackle.initSpack()
 
 
 
