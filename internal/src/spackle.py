@@ -67,7 +67,7 @@ def initSpack():
     import spackle
 
     # add our tests repo
-    spackle.do("repo add --scope site {}".format(repopath))
+    spackle.do("repo add --scope site {}".format(repopath), echo=True)
 
     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
 # ???
@@ -85,7 +85,7 @@ def initSpack():
     
     # display available compilers
     infomsg("Spack found these compilers automatically:")
-    spackle.do("compilers")
+    spackle.do("compilers", echo=True)
     infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
     infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
 
@@ -94,7 +94,7 @@ def initSpack():
 #  Commands  #
 #------------#
 
-def do(cmdstring, echo=True, stdout="/dev/stdout", stderr="/dev/stderr"):
+def do(cmdstring, echo=False, stdout="/dev/stdout", stderr="/dev/stderr"):
 
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
@@ -124,7 +124,7 @@ def uninstall(name):
     import spackle
     
     cmd = "uninstall --all --force --yes-to-all {}".format(name)
-    spackle.do(cmd, echo=False)
+    spackle.do(cmd)
 
 
 #---------#
@@ -136,7 +136,7 @@ def isSpecInstalled(spec):
     import spackle
 
     spackCmd = "find {0}".format(spec)
-    out, _ = spackle.do(spackCmd, echo=False)
+    out, _ = spackle.do(spackCmd)
     return "No package matches the query" not in out
 
 
@@ -149,7 +149,7 @@ def installSpec(spec, srcDir = None):
         spackCmd = "diy -d {1} {0}".format(spec, srcDir)
     else:
         spackCmd = "install --keep-stage --dirty {0}".format(spec)
-    out, err = spackle.do(spackCmd, echo=False)
+    out, err = spackle.do(spackCmd)
     
     # determine success or failure and if failed, retrieve error messages
     if "==> Successfully installed" not in out:
@@ -161,7 +161,7 @@ def specPrefix(spec):
     import spackle
 
     spackCmd = "location --install-dir {0}".format(spec)
-    out, _ = spackle.do(spackCmd, echo=False)
+    out, _ = spackle.do(spackCmd)
     
     ok = "==> Error:" not in out
     return out[:-1] if ok else None
@@ -174,7 +174,7 @@ def mpiPrefix(spec):
     
     # get installed packages & their details
     spackCmd = "spec -y {0}".format(spec)
-    out, _   = spackle.do(spackCmd, echo=False)
+    out, _   = spackle.do(spackCmd)
     outDict, _ = readYamlString(out)
     packageDicts = outDict["spec"]      # list of dicts each with a single key, a package name    
                                         # key's value is a dict of details
@@ -200,7 +200,7 @@ def mpiProviders():
     global providers
     
     if not providers:
-        out, _    = spackle.do("providers mpi", echo=False)
+        out, _    = spackle.do("providers mpi")
         words     = set( {s.strip() for s in out.split()} )
         providers = { w.split("@")[0] for w in words }
         
@@ -223,7 +223,7 @@ def installedPackageNames(explicit=False, implicit=False):
     
     # cmd says to print names of all installed packages
     spackCmd = "find {0}".format(flag)
-    out, _ = spackle.do(spackCmd, echo=False)
+    out, _ = spackle.do(spackCmd)
 
     names  = out.split("\n")[2:]
     names  = " ".join( names ).split()  # trick: remove extraneous blank elements due to extra newlines
