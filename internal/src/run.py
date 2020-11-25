@@ -243,25 +243,26 @@ class Run(object):
                 with ElapsedTimer() as t:
                     
                     try:
+                        
                         srcDir = self.builddir if not self.test.builtin() else None
                         spackle.installSpec(self.spec, srcDir)
                         self.packagePrefix = spackle.specPrefix(self.spec)  # can only get prefix if pkg installed
                         status, msg = "OK", None
+                
+                        # make alias(es) in build directory to the built product(s)
+                        products = self.test.installProducts()
+                        for productRelpath in products:
+                            productPath   = join(self.rundir, productRelpath)
+                            productName   = basename(productPath)
+                            productPrefix = join(self.packagePrefix, productName)
+                            if not isfile(productPath):
+                                os.symlink(productPrefix, productPath)
+
                     except Exception as e:
                         status, msg =  "FAILED", e.message
-                    except BaseException as e:
-                        print "unexpected error: {}".format(e.message)
+                        self.packagePrefix = None
                         
                 buildTime = t.secs
-                
-            # make alias(es) in build directory to the built product(s)
-            products = self.test.installProducts()
-            for productRelpath in products:
-                productPath   = join(self.rundir, productRelpath)
-                productName   = basename(productPath)
-                productPrefix = join(self.packagePrefix, productName)
-                if not isfile(productPath):
-                    os.symlink(productPrefix, productPath)
             
         # save results
         cmd = "cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir())

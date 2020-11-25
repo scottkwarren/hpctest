@@ -256,15 +256,16 @@ def installSpec(spec, srcDir = None):
 
     import spackle
 
+    spackle.do("clean")    # removes all leftover build stage directories
+
     if srcDir:
 ####    spackCmd = "dev-build {0} -d {1}".format(spec, srcDir)           ## PENDING SPACK 0.15
         spackCmd = "diy -d {1} {0}".format(spec, srcDir)
     else:
         spackCmd = "install --keep-stage --dirty {0}".format(spec)
+
     out, err = spackle.do(spackCmd)
-    
-    # determine success or failure and if failed, retrieve error messages
-    if "==> Successfully installed" not in out:
+    if "Error" in err:  # could just be warnings
         raise Exception(err.replace("==> Error: ", ""))
 
 
@@ -273,9 +274,9 @@ def specPrefix(spec):
     import spackle
 
     spackCmd = "location --install-dir {0}".format(spec)
-    out, _ = spackle.do(spackCmd)
+    out, err = spackle.do(spackCmd)
     
-    ok = "==> Error:" not in out
+    ok = len(err) == 0
     return out[:-1] if ok else None
 
 
