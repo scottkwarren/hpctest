@@ -1,4 +1,5 @@
 # HPCTest internals
+config.yaml
 internal/repos/**
 internal/spack/**
 /work
