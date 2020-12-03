@@ -31,6 +31,10 @@ config:
 #     debug:
 #       force: True   # ignore executor's check for availability
 
+build:
+#  compiler:
+#    gcc
+
 run:
 # ulimit:
 #   t: unlimited  # cpu time (seconds)
