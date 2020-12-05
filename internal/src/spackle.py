@@ -273,6 +273,23 @@ def specPrefix(spec):
     
     import spackle
 
+# BUMMER!
+#
+# Spack 0.12.0 claims it will find the prefix even if package is not installed,
+# but in fact gives an error ("spec matches no installed packages")
+
+# BUMMER!
+#
+# Spack 0.12.0 after 'clean --tests' will give an error like the following
+# b/c 'spack/opt' was not emptied:
+#
+#   ==> Error: amgmk@1.0%gcc matches multiple packages.
+#   Matching packages:
+#      3p4jkxr amgmk@1.0%gcc@4.8.5 arch=linux-rhel7-x86_64
+#      nv7yifa amgmk@1.0%gcc@4.9.2 arch=linux-rhel7-x86_64
+#      ha5xyyi amgmk@1.0%gcc@9.3.1 arch=linux-rhel7-x86_64
+#   Use a more specific spec.
+
     spackCmd = "location --install-dir {0}".format(spec)
     out, err = spackle.do(spackCmd)
     
