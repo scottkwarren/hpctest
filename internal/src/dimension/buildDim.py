@@ -63,7 +63,7 @@ class BuildDim(StringDim):
     def default(cls):
 
         import configuration
-        return configuration.get("build.compiler", "%gcc")
+        return "%" + configuration.get("build.compiler", "gcc")
 
 
     # everything else is inherited from StringDim
