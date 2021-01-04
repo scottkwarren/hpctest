@@ -59,93 +59,10 @@ def supportedVersion():
     return "0.12.1"
 
 
-# def initSpack():
-# 
-#     from os import system, rename
-#     from os.path import isdir, join
-#     from common import internalpath, own_spack_home, repopath, infomsg, fatalmsg
-#     import spackle
-# 
-#     # add our tests repo
-#     spackle.do("repo add --scope site {}".format(repopath), echo=True)
-# 
-#     # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-# # ???
-# #     spackle.do("config --scope site add config:verify_ssl:False")
-# #     spackle.do("config --scope site add config:checksum:False")
-# # ???
-# #     from spack.config import set as xset        # PENDING SPACK 0.14.1
-# #     xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
-# #     xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
-# # ???
-# #     import spack
-# #     from spack import config                        # PENDING SPACK 0.14.1
-# #     config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
-# #     config.set("config:checksum",   False, "site")  # PENDING SPACK 0.14.1
-#     
-#     # display available compilers
-#     infomsg("Spack found these compilers automatically:")
-#     spackle.do("compilers", echo=True)
-#     infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
-#     infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
-
-
-# def initSpack():
-# 
-#     from os import system, rename
-#     from os.path import isdir, join
-#     import common
-#     from common import internalpath, own_spack_home, repopath, infomsg, fatalmsg
-#     import spackle
-#     from hpctest import HPCTest
-# 
-#     if not isdir(common.own_spack_home):
-#         firstTime = True
-#         infomsg("setting up internal Spack...")
-#         # extract our Spack from tar file
-#         spack_version   = spackle.supportedVersion()
-#         spack_tarball   = join(common.internalpath, "spack-{}.tar.gz".format(spack_version))
-#         spack_extracted = join(common.internalpath, "spack-{}".format(spack_version))
-#         system("cd {}; tar xzf {}".format(common.internalpath, spack_tarball))
-#         if not isdir(spack_extracted):
-#             fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
-#         rename(spack_extracted, common.own_spack_home)
-#     else:
-#         firstTime = False
-#     
-#     # now set up our repo
-#     changedPackages = HPCTest._ensureRepo()
-# 
-#     if firstTime:
-#     
-#         # add our tests repo
-#         spackle.do("repo add --scope site {}".format(repopath), echo=True)
-#     
-#         # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-#     # ???
-#     #     spackle.do("config --scope site add config:verify_ssl:False")
-#     #     spackle.do("config --scope site add config:checksum:False")
-#     # ???
-#     #     from spack.config import set as xset        # PENDING SPACK 0.14.1
-#     #     xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
-#     #     xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
-#     # ???
-#     #     import spack
-#     #     from spack import config                        # PENDING SPACK 0.14.1
-#     #     config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
-#     #     config.set("config:checksum",   False, "site")  # PENDING SPACK 0.14.1
-#         
-#         # display available compilers
-#         infomsg("Spack found these compilers automatically:")
-#         spackle.do("compilers", echo=True)
-#         infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
-#         infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
-# 
-#     else:
-#         
-#         # remove out of date built package binaries
-#         for name in changedPackages:
-#             spackle.uninstall(name)
+# avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
+# ???
+#     spackle.do("config --scope site add config:verify_ssl:False")
+#     spackle.do("config --scope site add config:checksum:False")
 
 
 def initSpack():
@@ -272,6 +189,23 @@ def installSpec(spec, srcDir = None):
 def specPrefix(spec):
     
     import spackle
+
+# BUMMER!
+#
+# Spack 0.12.0 claims it will find the prefix even if package is not installed,
+# but in fact gives an error ("spec matches no installed packages")
+
+# BUMMER!
+#
+# Spack 0.12.0 after 'clean --tests' will give an error like the following
+# b/c 'spack/opt' was not emptied:
+#
+#   ==> Error: amgmk@1.0%gcc matches multiple packages.
+#   Matching packages:
+#      3p4jkxr amgmk@1.0%gcc@4.8.5 arch=linux-rhel7-x86_64
+#      nv7yifa amgmk@1.0%gcc@4.9.2 arch=linux-rhel7-x86_64
+#      ha5xyyi amgmk@1.0%gcc@9.3.1 arch=linux-rhel7-x86_64
+#   Use a more specific spec.
 
     spackCmd = "location --install-dir {0}".format(spec)
     out, err = spackle.do(spackCmd)
