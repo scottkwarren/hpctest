@@ -230,11 +230,11 @@ class Run(object):
         self._prepareJobDirs()
 
         # build the package if necessary
-        self.packagePrefix = spackle.specPrefix(self.spec)  # can get prefix even if pkg not installed
         if spackle.isSpecInstalled(self.spec):
             if "verbose" in options: infomsg("skipping build, test already installed")
             status, msg = "OK", "already built"
             buildTime = 0.0
+            self.packagePrefix = spackle.specPrefix(self.spec)
         else:
             
             outPath = self.output.makePath("{}-output.txt", "build")
@@ -247,6 +247,7 @@ class Run(object):
                         srcDir = self.builddir if not self.test.builtin() else None
                         spackle.installSpec(self.spec, srcDir)
                         status, msg = "OK", None
+                        self.packagePrefix = spackle.specPrefix(self.spec)
                 
                         # make alias(es) in build directory to the built product(s)
                         products = self.test.installProducts()
@@ -259,6 +260,7 @@ class Run(object):
 
                     except Exception as e:
                         status, msg =  "FAILED", e.message
+                        self.packagePrefix = None
                         
                 buildTime = t.secs
             
