@@ -56,7 +56,8 @@ import sys
 
 def supportedVersion():
     
-    return "0.12.1"
+##  return "0.12.1"
+    return "0.16.0"
 
 
 # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
@@ -176,8 +177,8 @@ def installSpec(spec, srcDir = None):
     spackle.do("clean")    # removes all leftover build stage directories
 
     if srcDir:
-####    spackCmd = "dev-build {0} -d {1}".format(spec, srcDir)           ## PENDING SPACK 0.15
-        spackCmd = "diy -d {1} {0}".format(spec, srcDir)
+        spackCmd = "dev-build -d {1} {0}".format(spec, srcDir)           ## SPACK 0.16.0
+####    spackCmd = "diy -d {1} {0}".format(spec, srcDir)
     else:
         spackCmd = "install --keep-stage --dirty {0}".format(spec)
 
@@ -192,11 +193,6 @@ def specPrefix(spec):
 
 # BUMMER!
 #
-# Spack 0.12.0 claims it will find the prefix even if package is not installed,
-# but in fact gives an error ("spec matches no installed packages")
-
-# BUMMER!
-#
 # Spack 0.12.0 after 'clean --tests' will give an error like the following
 # b/c 'spack/opt' was not emptied:
 #
@@ -206,6 +202,8 @@ def specPrefix(spec):
 #      nv7yifa amgmk@1.0%gcc@4.9.2 arch=linux-rhel7-x86_64
 #      ha5xyyi amgmk@1.0%gcc@9.3.1 arch=linux-rhel7-x86_64
 #   Use a more specific spec.
+#
+# Does this happen in Spack 0.16.0?
 
     spackCmd = "location --install-dir {0}".format(spec)
     out, err = spackle.do(spackCmd)
