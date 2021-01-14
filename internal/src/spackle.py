@@ -128,7 +128,7 @@ def do(cmdstring, echo=False, stdout="/dev/stdout", stderr="/dev/stderr"):
 
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
-    import subprocess, common
+    import os, subprocess, common
     from tempfile import mktemp
     
     out = stdout if echo else mktemp()
@@ -136,8 +136,10 @@ def do(cmdstring, echo=False, stdout="/dev/stdout", stderr="/dev/stderr"):
 
     with open(out, "a") as outf, open(err, "a") as errf:
         shellcmd = common.own_spack_home + "/bin/spack " + cmdstring
-        status = subprocess.call(shellcmd, shell=True, stdout=outf, stderr=errf)
-
+        env = os.environ.copy()
+        env.update(PYTHONPATH = "")   # PYTHONPATH breaks python in subprocess if set
+        status = subprocess.call(shellcmd, shell=True, env=env, stdout=outf, stderr=errf)
+        
     if echo:
         outstr = ""
         errstr = ""
