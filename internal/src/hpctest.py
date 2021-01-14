@@ -357,7 +357,6 @@ from shutil import copyfile
 from common import infomsg, errormsg, fatalmsg
 import spackle
 
-
 # (1) establish preconditions for initializing the config system...
 
 # homepath is needed for everything else
