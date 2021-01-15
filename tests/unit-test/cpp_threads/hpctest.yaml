@@ -6,6 +6,7 @@
 info:
   name:  cpp_threads
   version: 1.0
+  url: hpctest/tests/unit-tests/cpp_threads
   description: TBD
     
 build:

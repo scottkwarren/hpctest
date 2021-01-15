@@ -6,6 +6,7 @@
 info:
   name:  fib-pg-static
   version: 1.0
+  url: hpctest/tests/unit-tests/fib-pg-static
   description: >
     TBD
     

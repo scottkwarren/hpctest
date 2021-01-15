@@ -6,6 +6,7 @@
 info:
   name:  catchthrow
   version: 1.0
+  url: hpctest/tests/unit-tests/catchthrow
   description: >
     Usage: catchthrow [iter [loop]]
     

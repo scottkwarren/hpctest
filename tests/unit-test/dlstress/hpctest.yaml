@@ -6,6 +6,7 @@
 info:
   name:  dlstress
   version: 1.0
+  url: hpctest/tests/unit-tests/dlstress
   description: >
     This tests whether hpcrun deadlocks on dlopen(), dlclose() and optionally dlsym(). 
     

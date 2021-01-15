@@ -6,6 +6,7 @@
 info:
   name:  fib-noread
   version: 1.0
+  url: hpctest/tests/unit-tests/fib-noread
   description: >
     Create and profile an unreadable executable to test hpctoolkit in
     circumstances similar to what we see at LLNL with export-controlled apps.

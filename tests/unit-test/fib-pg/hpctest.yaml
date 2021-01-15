@@ -6,6 +6,7 @@
 info:
   name:  fib-pg
   version: 1.0
+  url: hpctest/tests/unit-tests/fib-pg
   description: >
     TBD
     

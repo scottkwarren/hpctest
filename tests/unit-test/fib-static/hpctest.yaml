@@ -6,6 +6,7 @@
 info:
   name:  fib-static
   version: 1.0
+  url: hpctest/tests/unit-tests/fib-static
   description: >
     TBD
     

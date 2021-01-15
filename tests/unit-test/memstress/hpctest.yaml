@@ -6,6 +6,7 @@
 info:
   name:  memstress
   version: 1.0
+  url: hpctest/tests/unit-tests/memstress
   description: >
     This tests that hpcrun doesn't deadlock on malloc() and free().
     

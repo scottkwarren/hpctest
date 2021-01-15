@@ -7,7 +7,8 @@ from spack import *
 
 class Memstress(MakefilePackage):
 
-    version('1.0', 'hpctest/tests/unit-tests/memlstress')
+    version('1.0', 'hpctest/tests/unit-tests/memstress')
+    url = 'hpctest/tests/unit-tests/memstress'
 
     def install(self, spec, prefix):
     

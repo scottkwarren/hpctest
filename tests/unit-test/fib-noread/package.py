@@ -8,6 +8,7 @@ from spack import *
 class FibNoread(MakefilePackage):
 
     version('1.0', 'hpctest/tests/unit-tests/fib-noread')
+    url = 'hpctest/tests/unit-tests/fib-noread'
 
     def install(self, spec, prefix):
     

@@ -8,6 +8,7 @@ from spack import *
 class FibPg(MakefilePackage):
 
     version('1.0', 'hpctest/tests/unit-tests/fib-pg')
+    url = 'hpctest/tests/unit-tests/fib-pg'
 
     def install(self, spec, prefix):
     
