@@ -84,7 +84,10 @@ class Report():
             if isfile(outPath):
                 resultdict, error = readYamlFile(outPath)
                 if not error:
-                    ok = resultdict["summary"]["status"] == "OK"
+                    try:
+                        ok = resultdict["summary"]["status"] == "OK"
+                    except:
+                        ok = False
                     if reportAll or (reportPassed == ok):
                         passes.append(resultdict)
                     if not ok:
@@ -129,8 +132,16 @@ class Report():
                 
                 # format for display -- line 2
                 info = self.extractRunInfo(result)
-                if info.status != "OK":
-                    line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
+                try:
+                    status = info.status
+                except:
+                    status = "FAILED"
+                try:
+                    msg = info.msg
+                except:
+                    msg = "no status produced"
+                if status != "OK":
+                    line2 = ("| {}: {}").format(status, truncate(msg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 elif info.extractRunInfoMsg:
                     line2 = ("| {}: {}").format("REPORTING FAILED", truncate(info.extractRunInfoMsg, 100))         
@@ -145,7 +156,7 @@ class Report():
                                      _pct(info.trolled,    info.samples)
                                     )
                 else:
-                    line2 = ("| {}: {}").format(info.status, truncate(info.msg, 100))         
+                    line2 = ("| {}: {}").format(status, truncate(msg, 100))         
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
 
                 # print run's summary
