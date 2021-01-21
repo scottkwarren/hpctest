@@ -218,23 +218,35 @@ def mpiPrefix(spec):
     
     import spackle
     from util.yaml import readYamlString
+    from common import errormsg, ExecuteFailed
     
     # get installed packages & their details
     spackCmd = "spec -y {0}".format(spec)
-    out, _   = spackle.do(spackCmd)
-    outDict, _ = readYamlString(out)
-    packageDicts = outDict["spec"]      # list of dicts each with a single key, a package name    
-                                        # key's value is a dict of details
-
-    # find mpi provider and its details
-    providers = spackle.mpiProviders()
-    mpiDicts  = [d for d in packageDicts if d.keys()[0] in providers]
-    mpiDict   = mpiDicts[0]
+    out, err = spackle.do(spackCmd)
+    if err:
+        errormsg("invalid spec {}: {}", spec, err)
+        raise ExecuteFailed()
+    else:
+        outDict, _ = readYamlString(out)
+        packageDicts = outDict["spec"]      # list of dicts each with a single key, a package name    
+                                            # key's value is a dict of details
     
-    # get mpi provider's install prefix
-    mpiName = mpiDict.keys()[0]
-    mpiSpec = mpiName + "@" + mpiDict[mpiName]["version"]
-    prefix = spackle.specPrefix(mpiSpec)
+        # find mpi provider and its details
+        providers = spackle.mpiProviders()
+        mpiDicts  = [d for d in packageDicts if d.keys()[0] in providers]
+        mpiDict   = mpiDicts[0]
+        
+        # make a spec for the mpi provider used in test spec
+        # TODO: this only preserves name & compiler; need to make spec from complete yaml dict
+        mpiName = mpiDict.keys()[0]
+        mpiSpec = ( mpiName
+                    + "@" + mpiDict[mpiName]["version"]
+                    + "%" + mpiDict[mpiName]["compiler"]["name"]
+                            + "@" + mpiDict[mpiName]["compiler"]["version"]
+                  )
+    
+        # get mpi provider's install prefix
+        prefix = spackle.specPrefix(mpiSpec)
     
     return prefix
 
