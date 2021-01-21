@@ -353,7 +353,7 @@ class Run(object):
 
         # ... MPI launching code if wanted
         if mpi:
-            ranks   = self.test.numRanks()
+            ranks = self.test.numRanks()
             mpipath = join(mpiPrefix(self.spec), "bin")
         else:
             ranks = 0       # tells executor.wrap not to use MPI
