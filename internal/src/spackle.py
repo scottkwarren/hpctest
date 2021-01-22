@@ -223,9 +223,10 @@ def mpiPrefix(spec):
     # get installed packages & their details
     spackCmd = "spec -y {0}".format(spec)
     out, err = spackle.do(spackCmd)
-    if err:
-        errormsg("invalid spec {}: {}", spec, err)
-        raise ExecuteFailed()
+    if err and "Warning:" not in err:
+        msg = "invalid spec {}: {}".format(spec, err)
+        errormsg(msg)
+        raise ExecuteFailed(msg)
     else:
         outDict, _ = readYamlString(out)
         packageDicts = outDict["spec"]      # list of dicts each with a single key, a package name    
