@@ -13,7 +13,7 @@ info:
     
 build:
   kind: makefile
-  install: fib-noread
+# install nothing, the executable's not readable!
 
 run:
   cmd: >
