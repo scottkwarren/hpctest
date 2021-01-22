@@ -13,6 +13,8 @@ info:
 build:
   kind: makefile
   install:
+   - bar.so
+   - bar-pg.so
    - fib-bar
    - fib-pg-bar
    - fib-pg-bar-pg
@@ -21,10 +23,10 @@ build:
 run:
   cmd: >
     {
-      hpcrun  ./fib-bar;
-      hpcrun  ./fib-pg-bar;
-      hpcrun  ./fib-pg-bar-pg;
-      hpcrun  ./fib-bar-pg;
+      hpcrun  fib-bar;
+      hpcrun  fib-pg-bar;
+      hpcrun  fib-pg-bar-pg;
+      hpcrun  fib-bar-pg;
     }
 
 profile: no
