@@ -218,7 +218,7 @@ class Run(object):
 
         import os
         from os.path import basename, join, isfile
-        from shutil import copyfileobj
+        from shutil import copyfile
         from sys import stdout
         from util.tee import StdoutTee, StderrTee
         from common import escape
@@ -252,11 +252,13 @@ class Run(object):
                         # make alias(es) in build directory to the built product(s)
                         products = self.test.installProducts()
                         for productRelpath in products:
-                            productPath   = join(self.rundir, productRelpath)
-                            productName   = basename(productPath)
-                            productPrefix = join(self.packagePrefix, productName)
-                            if not isfile(productPath):
-                                os.symlink(productPrefix, productPath)
+                            productPath      = join(self.rundir, productRelpath)
+                            productName      = basename(productPath)
+                            productPrefix    = join(self.packagePrefix, productName)
+                            productBinPrefix = join(self.packagePrefix, "bin", productName)
+                            if not isfile(productPrefix) \
+                               and not isfile(productBinPrefix):
+                                copyfile(productPath, productBinPrefix)
 
                     except Exception as e:
                         status, msg =  "FAILED", e.message
@@ -281,12 +283,16 @@ class Run(object):
             else:
                 errormsg("build failed, " + msg)
                 if "verbose" in options:
-                    if not os.path.exists(e.pkg.build_log_path):
-                        infomsg("...build produced no log.")
-                    else:
+                    try:
+                        logPath = e.pkg.build_log_path
+                    except:
+                        logPath = None
+                    if logPath:
                         infomsg("...build log:")
                         with open(e.pkg.build_log_path) as log:
                             copyfileobj(log, stdout)
+                    else:
+                        infomsg("...build produced no log.")
             self.output.addSummaryStatus("BUILD FAILED", msg)
             raise BuildFailed(msg)
 
@@ -332,7 +338,7 @@ class Run(object):
         from os.path import join
         import sys
         from subprocess import CalledProcessError
-        from common import options, escape, infomsg, verbosemsg, debugmsg, errormsg, fatalmsg, sepmsg
+        from common import options, escape, infomsg, verbosemsg, sepmsg
         from common import HPCTestError, ExecuteFailed
         from spackle import mpiPrefix
         from run import Run
