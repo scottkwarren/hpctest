@@ -56,7 +56,6 @@ import sys
 
 def supportedVersion():
     
-##  return "0.12.1"
     return "0.16.0"
 
 
@@ -179,8 +178,7 @@ def installSpec(spec, srcDir = None):
     spackle.do("clean")    # removes all leftover build stage directories
 
     if srcDir:
-        spackCmd = "dev-build -d {1} {0}".format(spec, srcDir)           ## SPACK 0.16.0
-####    spackCmd = "diy -d {1} {0}".format(spec, srcDir)
+        spackCmd = "dev-build -d {1} {0}".format(spec, srcDir)
     else:
         spackCmd = "install --keep-stage --dirty {0}".format(spec)
 
@@ -192,20 +190,6 @@ def installSpec(spec, srcDir = None):
 def specPrefix(spec):
     
     import spackle
-
-# BUMMER!
-#
-# Spack 0.12.0 after 'clean --tests' will give an error like the following
-# b/c 'spack/opt' was not emptied:
-#
-#   ==> Error: amgmk@1.0%gcc matches multiple packages.
-#   Matching packages:
-#      3p4jkxr amgmk@1.0%gcc@4.8.5 arch=linux-rhel7-x86_64
-#      nv7yifa amgmk@1.0%gcc@4.9.2 arch=linux-rhel7-x86_64
-#      ha5xyyi amgmk@1.0%gcc@9.3.1 arch=linux-rhel7-x86_64
-#   Use a more specific spec.
-#
-# Does this happen in Spack 0.16.0?
 
     spackCmd = "location --install-dir {0}".format(spec)
     out, err = spackle.do(spackCmd)
