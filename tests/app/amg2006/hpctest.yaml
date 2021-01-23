@@ -15,7 +15,7 @@ info:
 build:
   kind: makefile
   install:
-    - test/amg2013
+    - test/amg2006
     - test/sstruct.in.AMG.FD
 
 run:
