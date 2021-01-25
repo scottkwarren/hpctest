@@ -5,7 +5,7 @@
 
 info:
   name:  pennant
-  version: xxx
+  version: 0.9
   homepage: https://github.com/lanl/PENNANT
   url: https://github.com/lanl/PENNANT/archive/pennant_v0.9.tar.gz
   description: >
@@ -17,7 +17,7 @@ info:
 build: builtin
 
 run:
-  cmd: pennant test/sedovsmall.pnt
+  cmd: pennant test/sedovsmall/sedovsmall.pnt
   ranks: 8
   threads: 4
 
