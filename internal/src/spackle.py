@@ -174,6 +174,7 @@ def isSpecInstalled(spec):
 def installSpec(spec, srcDir = None):
 
     import spackle
+    from common import BuildFailed
 
     spackle.do("clean")    # removes all leftover build stage directories
 
@@ -184,14 +185,39 @@ def installSpec(spec, srcDir = None):
 
     out, err = spackle.do(spackCmd)
     if "Error" in err:  # could just be warnings
-        raise Exception(err.replace("==> Error: ", ""))
+        lines = err.split("\n")
+        try:
+            msg = next(s for s in lines if "errors found" in s)
+        except:
+            msg = lines[0]
+        msg = msg.strip().strip(":")
+        raise BuildFailed(msg)
+####    raise Exception(err.replace("==> Error: ", ""))    # for Spack 0.12.0
+
+
+def specConcretized(spec):
+    
+    import spackle
+
+    spackCmd = "spec {0}".format(spec)
+    out, err = spackle.do(spackCmd)
+    ok = len(err) == 0
+
+    if ok:
+        lines = out.split("\n")
+        concrete = lines[6]
+    else:
+        concrete = spec  ## ???
+        
+    return concrete
 
 
 def specPrefix(spec):
     
     import spackle
 
-    spackCmd = "location --install-dir {0}".format(spec)
+    spec = specConcretized(spec)
+    spackCmd = "location --install-dir '{0}'".format(spec)
     out, err = spackle.do(spackCmd)
     
     ok = len(err) == 0
