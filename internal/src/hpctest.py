@@ -167,7 +167,7 @@ class HPCTest(object):
 
         def confirm(what, to_what):
             ask    = "really {} all {}?".format(what, to_what)
-            cancel = "ok, will not {} them.".format(what)
+            cancel = "ok, did not {} them".format(what)
             return ("force" in options) or yesno(ask, cancel)
             
         # delete studies if desired
