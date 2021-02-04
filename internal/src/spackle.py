@@ -216,7 +216,7 @@ def specPrefix(spec):
     
     import spackle
 
-    spec = specConcretized(spec)
+##  spec = specConcretized(spec)        # fixes some bug -- what??
     spackCmd = "location --install-dir '{0}'".format(spec)
     out, err = spackle.do(spackCmd)
     
