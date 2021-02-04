@@ -93,7 +93,7 @@ class TestDim(StringDim):
         
         def appendIf(path):
             if path.startswith(selftestPath) == selftest:
-                if not path.startswith(pendingPath):
+               if not path.startswith(pendingPath):
                     self.valueList.append(path)
 
         if spec == "all":
