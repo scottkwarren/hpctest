@@ -236,9 +236,23 @@ class Run(object):
                         
             buildTime = 0.0     # here in case 'isSpecInstalled' raises an exception
             if spackle.isSpecInstalled(self.spec):
+                
                 if "verbose" in options: infomsg("skipping build, test already installed")
                 status, msg = "OK", "already built"
                 self.packagePrefix = spackle.specPrefix(self.spec)
+
+                # make alias(es) in build dir to product(s) in existing install dir
+                productRelPaths = self.test.installProducts()
+                for relpath in productRelPaths:
+                    productName    = basename(relPath)
+                    buildPath      = join(self.rundir, relpath)
+                    installPath    = join(self.packagePrefix, productName)
+                    installBinPath = join(self.packagePrefix, "bin", productName)
+                    if isfile(installPath):
+                        copyfile(installPath, buildPath)
+                    if isfile(installBinPath):
+                        copyfile(installBinPath, buildPath)
+
             else:
                 
                 outPath = self.output.makePath("{}-output.txt", "build")
