@@ -1,0 +1,19 @@
+HPCTEST BUGS
+============
+
+- fib-noread fails if a;ready built bc its executable is not in build directory
+
+- check validity of each dimspec before starting, e.g. '%gccc@5.3.1' [sic!]
+
+- check each dimension for emptiness; requires each Dimension class to evaluate its spec
+
+- when test fails, automatically print output from the failed phase
+
+- Must print additional report line w/ hpctk path if matrix has > 1 hpctk
+
+- hpctest clean -d does not entirely delete all built dependencies. Survivors are:
+  - libtool
+  - m4
+  - miniamr
+  - pkg-config
+  - util-macros
