@@ -251,16 +251,16 @@ class Run(object):
                         status, msg = "OK", None
                         self.packagePrefix = spackle.specPrefix(self.spec)
                 
-                        # make alias(es) in build directory to the built product(s)
-                        products = self.test.installProducts()
-                        for productRelpath in products:
-                            productPath      = join(self.rundir, productRelpath)
-                            productName      = basename(productPath)
-                            productPrefix    = join(self.packagePrefix, productName)
-                            productBinPrefix = join(self.packagePrefix, "bin", productName)
-                            if not isfile(productPrefix) \
-                               and not isfile(productBinPrefix):
-                                copyfile(productPath, productBinPrefix)
+                        # make alias(es) in install dir to product(s) in build dir
+                        productRelPaths = self.test.installProducts()
+                        for relpath in productRelPaths:
+                            productName    = basename(relPath)
+                            buildPath      = join(self.rundir, relpath)
+                            installPath    = join(self.packagePrefix, productName)
+                            installBinPath = join(self.packagePrefix, "bin", productName)
+                            if not isfile(installPath) \
+                               and not isfile(installBinPath):
+                                copyfile(buildPath, installBinPath)
         
                         buildTime = t.secs
                         
