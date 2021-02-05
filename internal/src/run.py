@@ -100,7 +100,7 @@ class Run(object):
         import time
         import common
         from common import args, homepath, infomsg, sepmsg
-        from common import BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
+        from common import HPCTestError, BadTestDescription, BadBuildSpec, PrepareFailed, BuildFailed, ExecuteFailed, CheckFailed
         from experiment import Experiment
         from experiment.profileExperiment import ProfileExperiment
         from util.tee import StdoutTee, StderrTee
@@ -140,7 +140,7 @@ class Run(object):
             except BadTestDescription as e:
                 msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
             except BadBuildSpec as e:
-                msg = "build spec invalid per Spack ({}):\n{}".format(self.spec, e.message)
+                msg = "build spec invalid per Spack ('{}'):\n{}".format(self.spec, e.message)
             except PrepareFailed as e:
                 msg = "setup for test build failed"
             except BuildFailed as e:
@@ -149,6 +149,8 @@ class Run(object):
                 msg = "test execution failed"
             except CheckFailed as e:
                 msg = "test result check failed"
+            except HPCTestError as e:
+                msg = e.message
             except Exception as e:
                 msg = "unexpected error: {} ({})".format(e.message, type(e).__name__)
             else:
@@ -230,19 +232,19 @@ class Run(object):
         self._prepareJobDirs()
 
         # build the package if necessary
-        if spackle.isSpecInstalled(self.spec):
-            if "verbose" in options: infomsg("skipping build, test already installed")
-            status, msg = "OK", "already built"
-            buildTime = 0.0
-            self.packagePrefix = spackle.specPrefix(self.spec)
-        else:
-            
-            outPath = self.output.makePath("{}-output.txt", "build")
-            filter  = (lambda s: s) if "verbose" in options else (lambda s: None)
-            with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
-                with ElapsedTimer() as t:
-                    
-                    try:
+        try:
+                        
+            buildTime = 0.0     # here in case 'isSpecInstalled' raises an exception
+            if spackle.isSpecInstalled(self.spec):
+                if "verbose" in options: infomsg("skipping build, test already installed")
+                status, msg = "OK", "already built"
+                self.packagePrefix = spackle.specPrefix(self.spec)
+            else:
+                
+                outPath = self.output.makePath("{}-output.txt", "build")
+                filter  = (lambda s: s) if "verbose" in options else (lambda s: None)
+                with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
+                    with ElapsedTimer() as t:
                         
                         srcDir = self.builddir if not self.test.builtin() else None
                         spackle.installSpec(self.spec, srcDir)
@@ -259,13 +261,13 @@ class Run(object):
                             if not isfile(productPrefix) \
                                and not isfile(productBinPrefix):
                                 copyfile(productPath, productBinPrefix)
-
-                    except Exception as e:
-                        status, msg =  "FAILED", e.message
-                        self.packagePrefix = None
+        
+                        buildTime = t.secs
                         
-                buildTime = t.secs
-            
+        except Exception as e:
+            status, msg =  "FAILED", e.message
+            self.packagePrefix = None
+
         # save results
         cmd = "cd {}; cp spack-build.* {} > /dev/null 2>&1".format(self.builddir, self.output.getDir())
         os.system(escape(cmd))
@@ -281,7 +283,7 @@ class Run(object):
             if status == "FATAL":
                 fatalmsg(msg)
             else:
-                errormsg("build failed, " + msg)
+                errormsg("build failed: " + msg)
                 if "verbose" in options:
                     try:
                         logPath = e.pkg.build_log_path

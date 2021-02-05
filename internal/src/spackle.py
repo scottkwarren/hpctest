@@ -165,9 +165,19 @@ def uninstall(name):
 def isSpecInstalled(spec):
 
     import spackle
+    from common import BadBuildSpec
 
     spackCmd = "find {0}".format(spec)
-    out, _ = spackle.do(spackCmd)
+    out, err = spackle.do(spackCmd)
+    
+    if "Error" in err:  # could just be warnings
+        lines = err.split("\n")
+        msg = lines[0]
+        msg = msg.replace("==> Error: ", "")
+        msg = msg.strip().strip(":")
+        msg = msg + " ('{}')".format(spec)
+        raise BadBuildSpec(msg)
+    
     return "No package matches the query" not in out
 
 
