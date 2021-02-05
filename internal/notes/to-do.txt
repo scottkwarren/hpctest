@@ -1,21 +1,6 @@
 HPCTEST TO DO
 
 
-Bugs
-
-- when test fails, automatically print output from the failed phase
-- don't print build output unless --verbose
-- Must print additional report line w/ hpctk path if matrix has > 1 hpctk
-- check each dimension for emptiness; requires each Dimension class to evaluate its spec
-- hpctest clean -d does not delete all built dependencies. Survivors are:
-  - libtool
-  - m4
-  - miniamr
-  - pkg-config
-  - util-macros
-
-
-
 NEW FEATURES
 - 'build --force' means rebuild even if already installed
 - 'clean <tests>' means only remove tests or test dependencies for given tests
@@ -166,7 +151,6 @@ https://gitlab.com/arm-hpc/packages/wikis/categories/application
 
 MINI-APPS FROM SPACK BUILTINS
 
-CoMD:		https://github.com/ECP-copa/CoMD/blob/master/examples/mpi-strongScaling.sh
 miniAero:	https://github.com/Mantevo/miniAero/tree/master/kokkos/tests
 HPCCG:		https://github.com/Mantevo/HPCCG
 miniMD:		https://github.com/Mantevo/miniMD
@@ -174,10 +158,8 @@ miniGhost:	https://github.com/Mantevo/miniGhost/blob/master/ref/runtest.mpi
 miniSMAC:	https://github.com/Mantevo/miniSMAC/blob/master/ref/my_batch_script_mpi_and_threads.bash
 
 amg
-amg2013
 amr-exp-parabolic
 aspa
-branson
 candle-benchmarks
 clamr
 cleverleaf
@@ -185,9 +167,6 @@ cloverleaf
 cloverleaf3d
 cns-nospec
 coevp
-cohmm
-comd
-cosp2
 ebms
 ecp-proxy-apps
 exampm
@@ -196,30 +175,24 @@ hacckernels
 hpccg
 hpgmg
 kripke
-laghos
 lcals
-lulesh
 macsio
 miniaero
-miniamr
-minife
 minighost
 minimd
 minismac2d
 minitri
 minixyce
-nekbone
+>> nekbone
 nginx
 nut
 openmc
 pathfinder
-pennant
 rsbench
 r-somaticsignatures
 serf
 simplemoc
 smc
-snap
 snbone
 sw4lite
 swfft
