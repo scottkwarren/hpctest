@@ -303,7 +303,7 @@ class Run(object):
             if status == "FATAL":
                 fatalmsg(msg)
             else:
-                errormsg("build failed: " + msg)
+                errormsg("build failed, " + msg)
                 if "verbose" in options:
                     try:
                         logPath = e.pkg.build_log_path
