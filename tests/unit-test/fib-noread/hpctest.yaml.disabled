@@ -13,6 +13,7 @@ info:
     
 build:
   kind: makefile
+  always: yes
 # install nothing, the executable's not readable!
 
 run:
