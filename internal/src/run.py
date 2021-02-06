@@ -274,7 +274,7 @@ class Run(object):
                         # make alias(es) in install dir to product(s) in build dir
                         productRelPaths = self.test.installProducts()
                         for relpath in productRelPaths:
-                            productName    = basename(relPath)
+                            productName    = basename(relpath)
                             buildPath      = join(self.rundir, relpath)
                             installPath    = join(self.packagePrefix, productName)
                             installBinPath = join(self.packagePrefix, "bin", productName)
