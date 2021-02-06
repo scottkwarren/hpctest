@@ -181,7 +181,7 @@ def isSpecInstalled(spec):
     return "No package matches the query" not in out
 
 
-def installSpec(spec, srcDir = None):
+def installSpec(spec, srcDir = None, buildOnly = False):
 
     import spackle
     from common import BuildFailed
@@ -189,7 +189,8 @@ def installSpec(spec, srcDir = None):
     spackle.do("clean")    # removes all leftover build stage directories
 
     if srcDir:
-        spackCmd = "dev-build -d {1} {0}".format(spec, srcDir)
+        beforeOption = "-b install" if buildOnly else ""
+        spackCmd = "dev-build -d {1} {2} {0}".format(spec, srcDir, beforeOption)
     else:
         spackCmd = "install --keep-stage --dirty {0}".format(spec)
 
@@ -202,7 +203,6 @@ def installSpec(spec, srcDir = None):
             msg = lines[0]
         msg = msg.strip().strip(":")
         raise BuildFailed(msg)
-####    raise Exception(err.replace("==> Error: ", ""))    # for Spack 0.12.0
 
 
 def specConcretized(spec):
@@ -225,12 +225,16 @@ def specConcretized(spec):
 def specPrefix(spec):
     
     import spackle
+    from common import fatalmsg, BadBuildSpec
 
-##  spec = specConcretized(spec)        # fixes some bug -- what??
     spackCmd = "location --install-dir '{0}'".format(spec)
     out, err = spackle.do(spackCmd)
-    
     ok = len(err) == 0
+    
+    if not ok:
+        msg = "can't find spec prefix for spec '{}':\n{}".format(spec, err)
+        raise BadBuildSpec(msg)
+    
     return out[:-1] if ok else None
 
 

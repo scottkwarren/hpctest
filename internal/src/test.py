@@ -90,6 +90,11 @@ class Test():
          return self._yaml("build") == "builtin" or self._yaml("build.kind") == "builtin"
 
 
+    def buildAlways(self):
+        
+         return self._yaml("build.always", "no") == True
+
+
     def cmd(self):
         
         return self._yaml("run.cmd")

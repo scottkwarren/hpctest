@@ -235,7 +235,13 @@ class Run(object):
         try:
                         
             buildTime = 0.0     # here in case 'isSpecInstalled' raises an exception
-            if spackle.isSpecInstalled(self.spec):
+            
+            # 'always' => build every time, but never actually install
+            # don't actually install b/c Spack treats every 'dev-build' as different,
+            #   so installed instances just pile up
+            always = self.test.buildAlways()
+            
+            if spackle.isSpecInstalled(self.spec) and not always:
                 
                 if "verbose" in options: infomsg("skipping build, test already installed")
                 status, msg = "OK", "already built"
@@ -244,7 +250,7 @@ class Run(object):
                 # make alias(es) in build dir to product(s) in existing install dir
                 productRelPaths = self.test.installProducts()
                 for relpath in productRelPaths:
-                    productName    = basename(relPath)
+                    productName    = basename(relpath)
                     buildPath      = join(self.rundir, relpath)
                     installPath    = join(self.packagePrefix, productName)
                     installBinPath = join(self.packagePrefix, "bin", productName)
@@ -261,7 +267,7 @@ class Run(object):
                     with ElapsedTimer() as t:
                         
                         srcDir = self.builddir if not self.test.builtin() else None
-                        spackle.installSpec(self.spec, srcDir)
+                        spackle.installSpec(self.spec, srcDir, always)
                         status, msg = "OK", None
                         self.packagePrefix = spackle.specPrefix(self.spec)
                 
