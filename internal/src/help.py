@@ -115,10 +115,10 @@ All test artifacts are saved in a "study directory" for later inspection.
 
 A testing matrix is specified on the command line by a sequence of "dimension
 spec" options. Each dimension spec defines a set of alternative values for one
-test condition (a dimension), such as which test cases to run or which Spack
-configurations to build with. The testing matrix is the cross product of those
-dimensions. Each matrix element is then a tuple of test condition values
-(a "configuration") applicable to any individual test run. A dimension spec 
+test condition (a dimension), such as which test case to run or which Spack
+configuration to build with. The testing matrix is the cross product of those
+sets. Each matrix element is then a tuple of test condition values
+(a "configuration") applicable to any individual test run. A dimension spec is
 an expression in dimension-dependent notation specifying a set of values either
 implicitly or explicitly.
 
