@@ -1,7 +1,11 @@
 HPCTEST BUGS
 ============
 
-- fib-noread fails if a;ready built bc its executable is not in build directory
+- fib-noread must be built every time
+	- can't copy the unreadable excutable to fully install
+	- => have to build anew every time
+	- but Spack treats every 'dev-build' execution as yielding a unique package!?
+	- so... uninstall before building>
 
 - check validity of each dimspec before starting, e.g. '%gccc@5.3.1' [sic!]
 
@@ -11,9 +15,4 @@ HPCTEST BUGS
 
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
-- hpctest clean -d does not entirely delete all built dependencies. Survivors are:
-  - libtool
-  - m4
-  - miniamr
-  - pkg-config
-  - util-macros
+- hpctest clean -d does not entirely delete all built dependencies. Survivors include AMG2013@1.0.

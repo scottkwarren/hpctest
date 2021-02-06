@@ -2,11 +2,14 @@ HPCTEST TO DO
 
 
 NEW FEATURES
+- Marty's features (softlinks to study dirs(?), sequenc #s on runs, ...?)
+- note signal 137 == SIGKILL and say so; etc for others eg SIGSEGV
+- capture 'top -b -n 1 -o %CPU" and "top -b -n 1 -o %MEM" before & after
+  a failed test if possible.
 - 'build --force' means rebuild even if already installed
 - 'clean <tests>' means only remove tests or test dependencies for given tests
 - '-o <file>' means just send the report to <file>
 - save report in OUT
-
 
 
 
@@ -154,7 +157,7 @@ MINI-APPS FROM SPACK BUILTINS
 miniAero:	https://github.com/Mantevo/miniAero/tree/master/kokkos/tests
 HPCCG:		https://github.com/Mantevo/HPCCG
 miniMD:		https://github.com/Mantevo/miniMD
-miniGhost:	https://github.com/Mantevo/miniGhost/blob/master/ref/runtest.mpi
+XXX miniGhost:	https://github.com/Mantevo/miniGhost/blob/master/ref/runtest.mpi
 miniSMAC:	https://github.com/Mantevo/miniSMAC/blob/master/ref/my_batch_script_mpi_and_threads.bash
 
 amg
