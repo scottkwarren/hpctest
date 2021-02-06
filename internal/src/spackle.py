@@ -202,6 +202,7 @@ def installSpec(spec, srcDir = None, buildOnly = False):
         except:
             msg = lines[0]
         msg = msg.strip().strip(":")
+        msg = msg.replace("==> Error", "")
         raise BuildFailed(msg)
 
 
