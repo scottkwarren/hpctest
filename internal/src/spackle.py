@@ -188,8 +188,8 @@ def installSpec(spec, srcDir = None, buildOnly = False):
 
     spackle.do("clean")    # removes all leftover build stage directories
 
+    before = "--before install" if buildOnly else ""
     if srcDir:
-        before = "--before install" if buildOnly else ""
         spackCmd = \
             "dev-build -d {0} {1} {2}".format(srcDir, before, spec)
     else:
