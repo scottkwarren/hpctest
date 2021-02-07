@@ -283,14 +283,17 @@ class Run(object):
                                 copyfile(buildPath, installBinPath)
         
                         buildTime = t.secs
+                
+                # save Spack build logs -- TODO: do this for builtin tests as well
+                if not self.test.builtin():
+                    cmd = "cd {}; cp spack-build* {} 2>&1 > /dev/null".format(self.builddir, self.output.getDir())
+                    os.system(escape(cmd))
                         
         except Exception as e:
             status, msg =  "FAILED", e.message
             self.packagePrefix = None
 
         # save results
-        cmd = "cd {}; cp spack-build* {} 2>&1 > /dev/null".format(self.builddir, self.output.getDir())
-        os.system(escape(cmd))
         self.output.add("build", "prefix",     self.packagePrefix)
         self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
         self.output.add("build", "status",     status)
