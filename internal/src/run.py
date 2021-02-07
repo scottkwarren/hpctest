@@ -289,7 +289,7 @@ class Run(object):
             self.packagePrefix = None
 
         # save results
-        cmd = "cd {}; cp spack-build* > {} 2>&1 /dev/null".format(self.builddir, self.output.getDir())
+        cmd = "cd {}; cp spack-build* {} 2>&1 > /dev/null".format(self.builddir, self.output.getDir())
         os.system(escape(cmd))
         self.output.add("build", "prefix",     self.packagePrefix)
         self.output.add("build", "cpu time",   buildTime, format="{:0.2f}")
