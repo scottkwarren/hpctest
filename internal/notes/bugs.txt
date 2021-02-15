@@ -1,6 +1,8 @@
 HPCTEST BUGS
 ============
 
+- 'build time' is reported as zero after spending a long time building builtin 'branson'..
+
 - fib-noread must be built every time
 	- can't copy the unreadable excutable to fully install
 	- => have to build anew every time
