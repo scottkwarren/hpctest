@@ -18,13 +18,13 @@ config:
 #     params:
 #       account:   myaccount
 #       partition: mypartition
-#       time:      "5:00"      # 5 min (time given in seconds)
+#       time:      "5:00"      # 5 min (time for Slurm given in seconds)
 #
 #-- Summit batch manager (custom version of LSF)
 #     manager: Summit
 #     params:
 #       project:   myproject
-#       time:      "0:05"      # 5 min (time given in minutes)
+#       time:      "0:05"      # 5 min (time for Summit given in minutes)
 #     prelude: module unload darshan-runtime
 #
 #-- debugging options
