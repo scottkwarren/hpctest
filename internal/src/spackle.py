@@ -56,7 +56,7 @@ import sys
 
 def supportedVersion():
     
-    return "0.16.0"     # 2020-11-18
+    return "0.16.1"     # 2021-02-25    ## was 0.16.0, 2020-11-18
 
 
 # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
