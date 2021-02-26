@@ -93,7 +93,7 @@ def execute(args):
     # perform the requested operation by calling methods of HPCTest
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
 
-    global HPCTestObm
+    global HPCTestOb
     from collections import OrderedDict
     from os.path import join
     from common import options, verbosemsg, errormsg, fatalmsg, version
