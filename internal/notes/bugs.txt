@@ -17,4 +17,5 @@ HPCTEST BUGS
 
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
-- hpctest clean -d does not entirely delete all built dependencies. Survivors include AMG2013@1.0.
+- hpctest clean -d does not entirely delete all built dependencies. Survivors include
+  amg2013@1.0 or amg2006@1.0.
