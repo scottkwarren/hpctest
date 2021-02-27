@@ -55,7 +55,7 @@ class Report():
 
         from os import listdir
         from os.path import isfile, isdir, join, basename, relpath
-        from common import homepath, options, infomsg, debugmsg, errormsg, fatalmsg, sepmsg, truncate
+        from common import homepath, options, percent, infomsg, debugmsg, errormsg, fatalmsg, sepmsg, truncate
         from util.yaml import readYamlFile, writeYamlFile
 
         def sortKeyFunc(result):
@@ -148,12 +148,12 @@ class Report():
                     line2 += " " * (tableWidth - len(line2) - 1) + "|"
                 elif info.wantProfiling and info.status == "OK":    
                     line2 = ("| overhead: {:>5} | samples: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | trolled: {:>5}  |"
-                            ).format(_pct(info.overhead,   100), 
+                            ).format(info.overhead, 
                                      info.samples, 
-                                     _pct(info.recorded,   info.samples), 
-                                     _pct(info.blocked,    info.samples), 
-                                     _pct(info.errant,     info.samples), 
-                                     _pct(info.trolled,    info.samples)
+                                     percent(info.recorded,   info.samples), 
+                                     percent(info.blocked,    info.samples), 
+                                     percent(info.errant,     info.samples), 
+                                     percent(info.trolled,    info.samples)
                                     )
                 else:
                     line2 = ("| {}: {}").format(status, truncate(msg, 100))         
@@ -242,17 +242,6 @@ class Report():
         if info.wantProfiling:
             label += " and {}".format(info.params)  # TODO: display hpctoolkit path but make sure line's not too long
         return label
-
-
-def _pct(s, d):
-    
-    if (s is None or s == "NA") or (d is None or d == "NA"):
-        formatted = " ---- "
-    else:
-        percent   = (float(s) / float(d)) * 100.0
-        formatted = "  0   " if s == 0 else "< 0.1%" if percent < 0.1  else "< 1  %" if percent < 1.0 else "{:>5.1f}%".format(percent)
-        
-    return formatted
 
 
     

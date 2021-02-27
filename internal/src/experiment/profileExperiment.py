@@ -152,7 +152,7 @@ class ProfileExperiment(Experiment):
      
     def _checkHpcrunExecution(self, normalTime, normalFailMsg, profiledTime, profiledFailMsg):
          
-        from common import infomsg
+        from common import infomsg, percentDelta
         from experiment import Experiment
  
         # check outputs from hpcrun
@@ -165,8 +165,8 @@ class ProfileExperiment(Experiment):
             self.output.add("run", "profiled", "hpcrun", "overhead %", "NA")
             overheadPercent = "NA"
         else:
-            overheadPercent = 100.0 * (profiledTime/normalTime - 1.0)
-            infomsg("hpcrun overhead = {:<0.2f} %".format(overheadPercent))
+            overheadPercent = percentDelta(profiledTime, normalTime)
+            infomsg("hpcrun overhead = {:<2s}".format(overheadPercent))
             self.output.add("run", "profiled", "hpcrun", "overhead %", overheadPercent, format="{:0.2f}")
  
         # summarize hpcrun log

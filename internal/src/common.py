@@ -44,6 +44,7 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ################################################################################
+from rtslib.fabric import Qla2xxxFabricModule
 
 
 # manually maintained version id for hpctest
@@ -67,6 +68,24 @@ testspath            = None     # path to this HPCTest's test directory
 repopath             = None     # path to this HPCTest's repo for test packages
 workpath             = None     # path to this HPCTest's arena for studies
 logger               = None     # used to write test results (TODO)
+
+
+# Math
+
+def percent(a, b):
+    
+    if (a is None or a == "NA") or (b is None or b == "NA" or b == 0):
+        formatted = " ---- "
+    else:
+        p = (float(a) / float(b)) * 100.0
+        formatted = "  0   " if a == 0 else "< 0.1%" if p < 0.1  else "< 1  %" if p < 1.0 else "{:>5.1f}%".format(p)
+        
+    return formatted
+
+
+def percentDelta(a, b):
+    
+    return percent(a-b, b)
 
 
 # Options
