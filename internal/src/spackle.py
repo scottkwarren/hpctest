@@ -49,6 +49,24 @@
 import sys
 
 
+#----------------------#
+# Spack mesage formats #
+#----------------------#
+
+# 00000000001111111111222222222233333333334444444444555555555566666666667
+# 01234567890123456789012345678901234567890123456789012345678901234567890
+#---
+# Error: AMG2006@1.0%gcc@9.3.1 matches multiple packages.
+#   Matching packages:
+#     i54hgah AMG2006@1.0%gcc@9.3.1 arch=linux-rhel7-broadwell
+#     3qzyuj4 AMG2006@1.0%gcc@9.3.1 arch=linux-rhel7-broadwell
+#   Use a more specific spec.
+#---
+# 00000000001111111111222222222233333333334444444444555555555566666666667
+# 01234567890123456789012345678901234567890123456789012345678901234567890
+
+
+
 #------------------#
 #  Initialization  #
 #------------------#
@@ -191,10 +209,10 @@ def installSpec(spec, srcDir = None, buildOnly = False):
     before = "--before install" if buildOnly else ""
     if srcDir:
         spackCmd = \
-            "dev-build -d {0} {1} {2}".format(srcDir, before, spec)
+            "dev-build -d {0} {1} '{2}'".format(srcDir, before, spec)
     else:
         spackCmd =  \
-            "install --keep-stage --dirty --verbose {0} {1}".format(before, spec)
+            "install --keep-stage --dirty --verbose {0} '{1}'".format(before, spec)
 
     out, err = spackle.do(spackCmd)
     if "Error" in err:  # could just be warnings
@@ -212,13 +230,13 @@ def specConcretized(spec):
     
     import spackle
 
-    spackCmd = "spec {0}".format(spec)
+    spackCmd = "spec --cover nodes {0}".format(spec)
     out, err = spackle.do(spackCmd)
     ok = len(err) == 0
 
     if ok:
         lines = out.split("\n")
-        concrete = lines[6]
+        concrete = " ".join( " ".join(lines[6:]).split() )
     else:
         concrete = spec  ## ???
         
@@ -228,10 +246,24 @@ def specConcretized(spec):
 def specPrefix(spec):
     
     import spackle
-    from common import fatalmsg, BadBuildSpec
+    from common import warnmsg, fatalmsg, BadBuildSpec
 
-    spackCmd = "location --install-dir '{0}'".format(spec)
-    out, err = spackle.do(spackCmd)
+    template = "location --install-dir '{0}'"
+
+    cmd = template.format(spec)
+    out, err = spackle.do(cmd)
+    
+    if "matches multiple packages" in err:
+        errLines  = err.split("\n")
+        firstSpec = errLines[2][12:]
+        firstHash = errLines[2][4:11]
+
+        warnmsg("spec matches more than one installed package; using {}/{}"  \
+                .format(firstSpec, firstHash))
+
+        cmd = template.format(firstSpec + "/" + firstHash)
+        out, err = spackle.do(cmd)
+        
     ok = len(err) == 0
     
     if not ok:

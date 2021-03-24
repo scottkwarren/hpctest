@@ -187,6 +187,7 @@ class Run(object):
         
         namespace = "builtin" if self.test.builtin() else "tests"
         spackString = "{}@{}{}".format(namespace + "." + self.test.name(), self.test.version(), self.build)
+####    spackString = spackle.specConcretized(spackString)
         self.spec = spackString  ## NOTE: so after bad-spec exception 'self.spec' can be used in error msg
         self.output.add("input", "spack spec", str(self.spec))
 
