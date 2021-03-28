@@ -212,7 +212,7 @@ def installSpec(spec, srcDir = None, buildOnly = False):
             "dev-build -d {0} {1} '{2}'".format(srcDir, before, spec)
     else:
         spackCmd =  \
-            "install --keep-stage --dirty --verbose {0} '{1}'".format(before, spec)
+            "install --keep-stage --dirty --verbose --show-log-on-error {0} '{1}'".format(before, spec)
 
     out, err = spackle.do(spackCmd)
     if "Error" in err:  # could just be warnings
@@ -222,13 +222,14 @@ def installSpec(spec, srcDir = None, buildOnly = False):
         except:
             msg = lines[0]
         msg = msg.strip().strip(":")
-        msg = msg.replace("==> Error", "")
+        msg = msg.replace("==> Error: ", "")
         raise BuildFailed(msg)
 
 
 def specConcretized(spec):
     
     import spackle
+    from common import BuildFailed
 
     spackCmd = "spec --cover nodes {0}".format(spec)
     out, err = spackle.do(spackCmd)
@@ -238,7 +239,8 @@ def specConcretized(spec):
         lines = out.split("\n")
         concrete = " ".join( " ".join(lines[6:]).split() )
     else:
-        concrete = spec  ## ???
+        msg = "spec {} can't be concretized: {}".format(spec, err)
+        raise BuildFailed(msg.replace("==> Error: ", ""))
         
     return concrete
 

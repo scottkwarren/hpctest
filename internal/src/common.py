@@ -44,7 +44,6 @@
 #  if advised of the possibility of such damage.                               #
 #                                                                              #
 ################################################################################
-from rtslib.fabric import Qla2xxxFabricModule
 
 
 # manually maintained version id for hpctest
