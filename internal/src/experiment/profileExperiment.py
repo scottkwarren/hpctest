@@ -133,14 +133,13 @@ class ProfileExperiment(Experiment):
             profTime, profFailMsg         = 0.0, None
      
         # let caller know if test case failed
-        if   normalFailMsg:     failure, msg  = "NORMAL RUN FAILED", normalFailMsg
-        elif profiledFailMsg:   failure, msg  = "HPCRUN FAILED",     profiledFailMsg
-        elif structFailMsg:     failure, msg  = "HPCSTRUCT FAILED",  structFailMsg
-        elif profFailMsg:       failure, msg  = "HPCPROF FAILED",    profFailMsg
-        else:                   failure, msg  = None,                None
+        if   normalFailMsg:     msg  = normalFailMsg
+        elif profiledFailMsg:   msg  = "HPCRUN FAILED: "    + profiledFailMsg
+        elif structFailMsg:     msg  = "HPCSTRUCT FAILED: " + structFailMsg
+        elif profFailMsg:       msg  = "HPCPROF FAILED: "   + profFailMsg
+        else:                   msg  = None
          
-        if failure:
-            self.output.addSummaryStatus(failure, msg)
+        if msg:
             raise ExecuteFailed(msg)
      
      
