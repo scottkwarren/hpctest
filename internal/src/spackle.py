@@ -202,17 +202,20 @@ def isSpecInstalled(spec):
 def installSpec(spec, srcDir = None, buildOnly = False):
 
     import spackle
-    from common import BuildFailed
+    from common import options, BuildFailed
 
     spackle.do("clean")    # removes all leftover build stage directories
 
-    before = "--before install" if buildOnly else ""
+    before  = "--before install" if buildOnly else ""
+    verbose = "--verbose" if "verbose" in options else ""
     if srcDir:
         spackCmd = \
-            "dev-build -d {0} {1} '{2}'".format(srcDir, before, spec)
+            "dev-build -d {0} {1} '{2}'" \
+                .format(srcDir, before, spec)
     else:
         spackCmd =  \
-            "install --keep-stage --dirty --verbose --show-log-on-error {0} '{1}'".format(before, spec)
+            "install --keep-stage --dirty --show-log-on-error {0} {1} '{2}'" \
+                .format(verbose, before, spec)
 
     out, err = spackle.do(spackCmd)
     if "Error" in err:  # could just be warnings
