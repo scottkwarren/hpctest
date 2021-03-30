@@ -138,23 +138,34 @@ class Run(object):
                     self.output.addSummaryStatus("OK", None)
                 
             except BadTestDescription as e:
-                msg = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
+                what = "READING YAML FAILED"
+                msg  = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
             except BadBuildSpec as e:
-                msg = "build spec invalid per Spack ('{}'):\n{}".format(self.spec, e.message)
+                what = "BAD SPEC"
+                msg  = "build spec invalid per Spack ('{}'):\n{}".format(self.spec, e.message)
             except PrepareFailed as e:
-                msg = "setup for test build failed"
+                what = "PREPARE FAILED"
+                msg  = "setup for test build failed\n{}".format(e.message)
             except BuildFailed as e:
-                msg = "test build failed"
+                what = "BUILD FAILED"
+                msg  = "test build failed\n{}".format(e.message)
             except ExecuteFailed as e:
-                msg = "test execution failed"
+                what = "EXECUTE FAILED"
+                msg  = "test execution failed\n{}".format(e.message)
             except CheckFailed as e:
-                msg = "test result check failed"
+                what = "CHECK FAILED"
+                msg  = "test result check failed\n{}".format(e.message)
             except HPCTestError as e:
-                msg = e.message
+                what = "TEST FAILED"
+                msg  = e.message
             except Exception as e:
-                msg = "unexpected error: {} ({})".format(e.message, type(e).__name__)
+                what = "SOMETHING FAILED"
+                msg  = "unexpected error: {} ({})".format(e.message, type(e).__name__)
             else:
-                msg = None
+                what, msg = None, None
+            finally:
+                if msg:
+                    self.output.addSummaryStatus(what, msg)
                 
             if msg: infomsg(msg)
             
@@ -173,7 +184,6 @@ class Run(object):
         if msg:
             self.wantProfiling = False  # trouble later if missing
             self.output.add("input", "wantProfiling", "False")
-            self.output.addSummaryStatus("READING YAML FAILED", self.test.yamlErrorMsg())
             raise BadTestDescription(msg)
         else:
             self.wantProfiling = self.test.wantProfile()
@@ -213,7 +223,6 @@ class Run(object):
             self.rundir = self.builddir
                 
         except Exception as e:
-            self.output.addSummaryStatus("PREPARE FAILED", e.message)
             raise PrepareFailed(e.message)
         
 
@@ -307,7 +316,6 @@ class Run(object):
             if status == "FATAL":
                 fatalmsg(msg)
             else:
-                errormsg("build failed, " + msg)
                 if "verbose" in options:
                     try:
                         logPath = e.pkg.build_log_path
@@ -319,7 +327,6 @@ class Run(object):
                             copyfileobj(log, stdout)
                     else:
                         infomsg("...build produced no log.")
-            self.output.addSummaryStatus("BUILD FAILED", msg)
             raise BuildFailed(msg)
 
     
