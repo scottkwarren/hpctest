@@ -53,7 +53,7 @@
 # it provides the help message printed by 'hpctest --help' and on cmd line errors.
 
 # NOTE: the docstring must be at the left margin for 'docopt' to interpret it correctly
-#       (ie no leading spaces before 'Usage:' et al)
+#       (ie no leading spaces before 'Usage:')
 
 
 #==============#
