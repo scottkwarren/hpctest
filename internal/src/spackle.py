@@ -113,12 +113,13 @@ def initSpack():
                 continue
             break
         else:
-            fatalmsg("no Spack tarball found in {}".format(common.internalpath))
+            fatalmsg("no compressed Spack found in {}".format(common.internalpath))
+        infomsg("using compressed Spack file " + tarball)
 
         # extract our Spack from tar file
         system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, tarball))
         if not isdir(extracted):
-            fatalmsg("Internal Spack cannot be extracted from {}".format(tarball))
+            fatalmsg("compressed Spack cannot be extracted from {}".format(tarball))
         rename(extracted, common.own_spack_home)
         
         # display available compilers
