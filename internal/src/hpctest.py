@@ -69,8 +69,12 @@ class HPCTest(object):
 
         from common import infomsg, warnmsg, errormsg
         from dimension import TestDim, BuildDim, HPCTkitDim, ProfileDim
+        import spackle
                 
-        if (not common.hpctk_default):
+        # set up internal Spack
+        spackle.initSpack()
+
+        if not common.hpctk_default:
             warnmsg("no default HPCToolkit specified for profiling.\n"
                     "\n"
                     "To run profiling tests, specify '--hpctookit <path to install directory>' on each 'hpctest run' command line.\n"
@@ -394,14 +398,12 @@ if not isfile(configpath):
         errormsg("config.yaml is missing and can't be created with defaults: {}".format(str(e)))
 configuration.initConfig()
 
-# (4) determine hpctoolkit instance to use, possibly from config settings
+# (4) determine default hpctoolkit instance to use, possibly from config settings
 _whichHpcrun         = common.whichDir("hpcrun")
 _hpctkLocal          = dirname(_whichHpcrun) if _whichHpcrun else None  # 'dirname' to get hpctoolkit install dir from 'bin' dir
 common.hpctk_default = configuration.get("profile.hpctoolkit.path", _hpctkLocal)
 common.hpctk_default = expanduser(common.hpctk_default) if common.hpctk_default else None
 
-# (5) set up internal Spack
-spackle.initSpack()
 
 
 
