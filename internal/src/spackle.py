@@ -86,7 +86,7 @@ def supportedVersion():
 def initSpack():
 
     from os import system, rename
-    from os.path import isdir, join
+    from os.path import isfile, isdir, join
     import common
     from common import internalpath, own_spack_home, repopath, infomsg, fatalmsg
     import spackle
@@ -94,19 +94,32 @@ def initSpack():
 
     # set up our repo
     changedPackages = HPCTest._ensureRepo()
-
+    
+    # set it up if necessary
     if not isdir(common.own_spack_home):
         
         infomsg("setting up internal Spack...")
         
+        # select the user's desired Spack tarball
+        for suffix in "develop", spackle.supportedVersion():
+            spackName = "spack-" + suffix
+            for extension in "tar.gz", "tgz", "zip":
+                tarball   = join(common.internalpath, spackName  + "." + extension)
+                if isfile(tarball):
+                    extracted = join(common.internalpath, spackName)
+                    cmd = "unzip" if extension == "zip" else "tar xzf"
+                    break
+            else:
+                continue
+            break
+        else:
+            fatalmsg("no Spack tarball found in {}".format(common.internalpath))
+
         # extract our Spack from tar file
-        spack_version   = spackle.supportedVersion()
-        spack_tarball   = join(common.internalpath, "spack-{}.tar.gz".format(spack_version))
-        spack_extracted = join(common.internalpath, "spack-{}".format(spack_version))
-        system("cd {}; tar xzf {}".format(common.internalpath, spack_tarball))
-        if not isdir(spack_extracted):
-            fatalmsg("Internal Spack version {} cannot be extracted.".format(spack_version))
-        rename(spack_extracted, common.own_spack_home)
+        system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, tarball))
+        if not isdir(extracted):
+            fatalmsg("Internal Spack cannot be extracted from {}".format(tarball))
+        rename(extracted, common.own_spack_home)
         
         # display available compilers
         infomsg("Spack found these compilers automatically:")
