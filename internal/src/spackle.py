@@ -47,6 +47,8 @@
 
 
 import sys
+from rtslib.fabric import Qla2xxxFabricModule
+from pycurl import FTP_SSL_CCC
 
 
 #----------------------#
@@ -85,42 +87,60 @@ def supportedVersion():
 
 def initSpack():
 
-    from os import system, rename
-    from os.path import isfile, isdir, join
+    from os import system, symlink
+    from os.path import abspath, exists, isfile, isdir, join
     import common
-    from common import internalpath, own_spack_home, repopath, infomsg, fatalmsg
+    from common import args, internalpath, own_spack_home, repopath, infomsg, fatalmsg
     import spackle
     from hpctest import HPCTest
 
     # set up our repo
     changedPackages = HPCTest._ensureRepo()
     
-    # set it up if necessary
-    if not isdir(common.own_spack_home):
+    # set up our local Spack instance...
+    
+    # check for existing stuff in the way 
+    if exists(own_spack_home) and args["--spack"]:
+        fatalmsg("'--spack' argument given but something already at: {}".format(own_spack_home))
+    if isfile(own_spack_home):
+        fatalmsg("extraneous file in place of local Spack: {}".format(own_spack_home))
+    if isdir(own_spack_home):
+        _assertSpackDir(own_spack_home)
+    
+    # prepare a Spack instance at 'own_spack_home'
+    if args["--spack"] or not isdir(own_spack_home):
         
         infomsg("setting up internal Spack...")
         
-        # select the user's desired Spack tarball
-        for suffix in "develop", spackle.supportedVersion():
-            spackName = "spack-" + suffix
-            for extension in "tar.gz", "tgz", "zip":
-                tarball   = join(common.internalpath, spackName  + "." + extension)
-                if isfile(tarball):
-                    extracted = join(common.internalpath, spackName)
-                    cmd = "unzip" if extension == "zip" else "tar xzf"
-                    break
-            else:
-                continue
-            break
+        # find our local Spack
+        if args["--spack"]:
+            extracted = abspath(args["PATH"])
+            infomsg("using Spack instance given on command line: " + extracted)
         else:
-            fatalmsg("no compressed Spack found in {}".format(common.internalpath))
-        infomsg("using compressed Spack file " + tarball)
 
-        # extract our Spack from tar file
-        system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, tarball))
-        if not isdir(extracted):
-            fatalmsg("compressed Spack cannot be extracted from {}".format(tarball))
-        rename(extracted, common.own_spack_home)
+            # find a compressed Spack already in our 'internal' directory
+            for suffix in "develop", spackle.supportedVersion():
+                spackName = "spack-" + suffix
+                for extension in "tar.gz", "tgz", "zip":
+                    tarball   = join(internalpath, spackName  + "." + extension)
+                    if isfile(tarball):
+                        extracted = join(internalpath, spackName)
+                        cmd = "unzip" if extension == "zip" else "tar xzf"
+                        break
+                else:
+                    continue
+                break
+            else:
+                fatalmsg("no compressed Spack found in {}".format(internalpath))
+            infomsg("using compressed Spack file " + tarball)
+
+            # extract Spack from compressed file
+            system("cd {}; {} {} > /dev/null".format(internalpath, cmd, tarball))
+            if not isdir(extracted):
+                fatalmsg("compressed Spack cannot be extracted from {}".format(tarball))
+
+        _assertSpackDir(extracted)
+        symlink(extracted, own_spack_home)
         
         # display available compilers
         infomsg("Spack found these compilers automatically:")
@@ -149,7 +169,18 @@ def initSpack():
         # remove out of date built package binaries
         for name in changedPackages:
             spackle.uninstall(name)
+
+
+def _assertSpackDir(dir):
     
+    from os import access, X_OK
+    from os.path import isfile, join
+    from common import assertmsg, own_spack_home
+    
+    exe = join(dir, "bin", "spack")
+    assertmsg(isfile(exe) and access(exe, X_OK),
+              "purported local Spack directoryu has no 'bin/spack': {}".format(own_spack_home))
+
 
 #------------#
 #  Commands  #
