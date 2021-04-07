@@ -64,7 +64,7 @@ _usage = \
          \
 """
 Usage:
-  hpctest init [options]
+  hpctest init [options] [--spack PATH]
   hpctest (build | run | debug) [options] (all | [TESTSPEC...])
           [--test TESTSPEC]
           [--build BUILDSPEC]
