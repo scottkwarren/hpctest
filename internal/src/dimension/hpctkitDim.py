@@ -55,7 +55,18 @@ class HPCTkitDim(StringDim):
     
     # TODO: implement short names for a configured set of HPCToolkit instances
     # TODO: validate each path to ensure it is a valid HPCToolkit install directory
+
     
+    def __init__(self, spec=""):
+        
+        from common import is_path_valid, assertmsg;
+        
+        super(HPCTkitDim, self).__init__(spec);
+        
+        for s in self.valueList:
+            assertmsg(is_path_valid(s),
+                      "invalid path '{}' for new HPCTkitDim instance".format(s));
+
     
     @classmethod
     def name(cls):
