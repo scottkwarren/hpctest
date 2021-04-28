@@ -104,6 +104,31 @@ def optionsArgString(options=None):
     return optString
 
 
+def is_path_valid(path):
+
+    import errno, os
+
+    try:
+        
+        if not isinstance(path, str) or not path:
+            return False
+
+        root = os.path.sep
+
+        # check whether each path component split from this path is valid
+        for part in path.split(os.path.sep):
+            try:
+                os.lstat(root + part)
+            except OSError as e:
+                if e.errno in {errno.ENAMETOOLONG, errno.ERANGE}: # ERANGE if SunOS or *BSD
+                    return False
+    
+    except TypeError as e:  # probably an embedded NUL character
+        return False
+    else:
+        return True
+
+
 # Message output
 
 def infomsg(message):
