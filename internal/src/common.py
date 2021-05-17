@@ -127,6 +127,12 @@ def is_path_valid(path):
         return False
     else:
         return True
+    
+    
+def verboseOption():
+    
+    from common import options
+    return " --verbose " if "verbose" in options else ""
 
 
 # Message output
@@ -262,7 +268,7 @@ class ElapsedTimer(object):
     def __exit__(self, *args):
         
         import time
-        self.secs = time.time() - self.start
+        self.secs += time.time() - self.start
 
 
 # Finding executables on $PATH

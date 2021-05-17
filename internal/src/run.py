@@ -274,7 +274,8 @@ class Run(object):
                 outPath = self.output.makePath("{}-output.txt", "build")
                 filter  = (lambda s: s) if "verbose" in options else (lambda s: None)
                 with StdoutTee(outPath, stream_filters=[filter]), StderrTee(outPath, stream_filters=[filter]):
-                    with ElapsedTimer() as t:
+                    t = ElapsedTimer()
+                    with t:
                         
                         srcDir = self.builddir if not self.test.builtin() else None
                         spackle.installSpec(self.spec, srcDir, always)
@@ -292,7 +293,7 @@ class Run(object):
                                and not isfile(installBinPath):
                                 copyfile(buildPath, installBinPath)
         
-                        buildTime = t.secs
+                    buildTime = t.secs
                 
                 # save Spack build logs -- TODO: do this for builtin tests as well
                 if not self.test.builtin():
