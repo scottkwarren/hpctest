@@ -3,6 +3,14 @@ HPCTEST BUGS
 
 - 'build time' is reported as zero after spending a long time building builtin 'branson'..
 
+- when test fails, automatically print output from the failed phase
+
+- hpctest clean -d does not entirely delete all built dependencies. Survivors include
+  amg2013@1.0 or amg2006@1.0.
+
+
+
+
 - fib-noread must be built every time
 	- can't copy the unreadable excutable to fully install
 	- => have to build anew every time
@@ -13,9 +21,5 @@ HPCTEST BUGS
 
 - check each dimension for emptiness; requires each Dimension class to evaluate its spec
 
-- when test fails, automatically print output from the failed phase
-
 - Must print additional report line w/ hpctk path if matrix has > 1 hpctk
 
-- hpctest clean -d does not entirely delete all built dependencies. Survivors include
-  amg2013@1.0 or amg2006@1.0.
