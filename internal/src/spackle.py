@@ -191,13 +191,14 @@ def do(cmdstring, echo=False, stdout="/dev/stdout", stderr="/dev/stderr"):
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
     import os, subprocess, common
+    from common import verboseOption
     from tempfile import mktemp
     
     out = stdout if echo else mktemp()
     err = stderr if echo else mktemp()
 
     with open(out, "a") as outf, open(err, "a") as errf:
-        shellcmd = common.own_spack_home + "/bin/spack " + cmdstring
+        shellcmd = common.own_spack_home + "/bin/spack " + verboseOption() + cmdstring
         env = os.environ.copy()
         env.update(PYTHONPATH = "")   # PYTHONPATH breaks python in subprocess if set
         status = subprocess.call(shellcmd, shell=True, env=env, stdout=outf, stderr=errf)
@@ -247,12 +248,11 @@ def isSpecInstalled(spec):
 def installSpec(spec, srcDir = None, buildOnly = False):
 
     import spackle
-    from common import options, BuildFailed
+    from common import options, verboseOption, BuildFailed
 
     spackle.do("clean")    # removes all leftover build stage directories
 
     before  = "--before install" if buildOnly else ""
-    verbose = "--verbose" if "verbose" in options else ""
     if srcDir:
         spackCmd = \
             "dev-build -d {0} {1} '{2}'" \
@@ -260,7 +260,7 @@ def installSpec(spec, srcDir = None, buildOnly = False):
     else:
         spackCmd =  \
             "install --keep-stage --dirty --show-log-on-error {0} {1} '{2}'" \
-                .format(verbose, before, spec)
+                .format(verboseOption(), before, spec)
 
     out, err = spackle.do(spackCmd)
     if "Error" in err:  # could just be warnings
@@ -398,6 +398,12 @@ def installedPackageNames(explicit=False, implicit=False):
     names  = " ".join( names ).split()  # trick: remove extraneous blank elements due to extra newlines
 
     return names
+
+
+
+
+
+
 
         
 
