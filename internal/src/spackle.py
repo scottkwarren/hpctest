@@ -249,7 +249,8 @@ def installSpec(spec, srcDir = None, buildOnly = False):
 
     import spackle
     from common import options, verboseOption, BuildFailed
-
+    verbose = verboseOption()
+    
     spackle.do("clean")    # removes all leftover build stage directories
 
     before  = "--before install" if buildOnly else ""
@@ -260,9 +261,10 @@ def installSpec(spec, srcDir = None, buildOnly = False):
     else:
         spackCmd =  \
             "install --keep-stage --dirty --show-log-on-error {0} {1} '{2}'" \
-                .format(verboseOption(), before, spec)
+                .format(verbose, before, spec)
 
-    out, err = spackle.do(spackCmd)
+    out, err = spackle.do(spackCmd, echo = verbose)
+    
     if "Error" in err:  # could just be warnings
         lines = err.split("\n")
         try:
