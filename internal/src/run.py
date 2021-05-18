@@ -292,7 +292,7 @@ class Run(object):
                             if not isfile(installPath) \
                                and not isfile(installBinPath):
                                 copyfile(buildPath, installBinPath)
-        
+                                        
                     buildTime = t.secs
                 
                 # save Spack build logs -- TODO: do this for builtin tests as well
