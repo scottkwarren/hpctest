@@ -21,7 +21,7 @@ info:
 build: builtin
 
 run:
-  cmd: miniFE.x -nx 200 -ny 200 -nz 200
+  cmd: miniFE.x -nx 200 -ny 200 -nz 200 verify_solution=1
   ranks: 4
 
 
