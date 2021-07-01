@@ -175,6 +175,8 @@ class ShellExecutor(Executor):
         
         if retcode is 2:
             msg = "command failed with incorrect usage"
+        elif retcode is 6:
+            msg = "command taisedfailed with SIGABORT"
         elif retcode < 126:
             msg = "command failed".format(retcode)
         elif retcode is 126:
