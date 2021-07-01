@@ -1,0 +1,42 @@
+MPI Initialized         : MPI_THREAD_FUNNELED
+Copyright (c) 2016
+Lawrence Livermore National Security, LLC
+All Rights Reserved
+Quicksilver Version     : 
+Quicksilver Git Hash    : 
+MPI Version             : 3.1
+Number of MPI ranks     : 1
+Number of OpenMP Threads: 72
+Number of OpenMP CPUs   : 72
+
+
+  Arguments are: 
+   --help             -h  arg=0 type=i  print this message
+   --dt               -D  arg=1 type=d  time step (seconds)
+   --fMax             -f  arg=1 type=d  max random mesh node displacement
+   --inputFile        -i  arg=1 type=s  name of input file
+   --energySpectrum   -e  arg=1 type=s  name of energy spectrum output file
+   --crossSectionsOut -S  arg=1 type=s  name of cross section output file
+   --loadBalance      -l  arg=0 type=i  enable/disable load balancing
+   --cycleTimers      -c  arg=1 type=i  enable/disable cycle timers
+   --debugThreads     -t  arg=1 type=i  set thread debug level to 1, 2, 3
+   --lx               -X  arg=1 type=d  x-size of simulation (cm)
+   --ly               -Y  arg=1 type=d  y-size of simulation (cm)
+   --lz               -Z  arg=1 type=d  z-size of simulation (cm)
+   --nParticles       -n  arg=1 type=u  number of particles
+   --batchSize        -g  arg=1 type=u  number of particles in a vault/batch
+   --nBatches         -b  arg=1 type=u  number of vault/batch to start (sets batchSize automaticaly)
+   --nSteps           -N  arg=1 type=i  number of time steps
+   --nx               -x  arg=1 type=i  number of mesh elements in x
+   --ny               -y  arg=1 type=i  number of mesh elements in y
+   --nz               -z  arg=1 type=i  number of mesh elements in z
+   --seed             -s  arg=1 type=i  random number seed
+   --xDom             -I  arg=1 type=i  number of MPI ranks in x
+   --yDom             -J  arg=1 type=i  number of MPI ranks in y
+   --zDom             -K  arg=1 type=i  number of MPI ranks in z
+   --bTally           -B  arg=1 type=i  number of balance tally replications
+   --fTally           -F  arg=1 type=i  number of scalar flux tally replications
+   --cTally           -C  arg=1 type=i  number of scalar cell tally replications
+
+
+

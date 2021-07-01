@@ -1,0 +1,33 @@
+#=========================================#
+# HPCTest description for Quicksilver     #
+#=========================================#
+
+
+info:
+  name:  quicksilver
+  version: 1.0
+  homepage: https://asc.llnl.gov/codes/proxy-apps/quicksilver
+  url: https://github.com/LLNL/Quicksilver
+  description: >
+    Quicksilver is a proxy application that represents some elements of
+    the Mercury workload by solving a simpliﬁed dynamic monte carlo
+    particle transport problem.  Quicksilver attempts to replicate the
+    memory access patterns, communication patterns, and the branching or
+    divergence of Mercury for problems using multigroup cross sections.
+    OpenMP and MPI are used for parallelization.  A GPU version is
+    available.  Unified memory is assumed.
+    
+    Performance of Quicksilver is likely to be dominated by latency bound
+    table look-ups, a highly branchy/divergent code path, and poor
+    vectorization potential.
+
+build: builtin
+
+run:
+  cmd: qs -i Coral2_P1.inp -X 32  -Y 32  -Z 16  -x 32  -y 32  -z 16  -I 4  -J 2  -K 2  -n 655360
+  dir: Examples/CORAL2_Benchmark/Problem1
+  ranks: 16
+  threads: 4
+
+
+
