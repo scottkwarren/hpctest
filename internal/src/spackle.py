@@ -47,8 +47,6 @@
 
 
 import sys
-from rtslib.fabric import Qla2xxxFabricModule
-from pycurl import FTP_SSL_CCC
 
 
 #----------------------#
@@ -307,7 +305,7 @@ def specPrefix(spec):
     
     if "matches multiple packages" in err:
         errLines  = err.split("\n")
-        firstSpec = errLines[2][12:]
+``firstSpec = errLines[2][12:]
         firstHash = errLines[2][4:11]
 
         warnmsg("spec matches more than one installed package; using {}/{}"  \
