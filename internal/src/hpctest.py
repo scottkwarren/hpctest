@@ -120,7 +120,7 @@ class HPCTest(object):
             
             # run all the tests
             study = Study(studyPath if studyPath else common.workpath)
-            if not wantBatch:
+            if wantBatch is None:
                 wantBatch = Executor.defaultToBackground()
             Iterate.doForAll(dims, numrepeats, study, wantBatch)
             print
