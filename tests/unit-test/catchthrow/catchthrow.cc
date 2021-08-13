@@ -40,14 +40,14 @@
 // Usage:
 //   catchthrow [iter [loop]]
 //     Will run "loop" loops of "iter" iteractions of throwing and catching an exception
-//     Default is loop = 25 and iter = 40000; you must specify iter if you want to specify loop
+//     Default is loop = 10 and iter = 40000; you must specify iter if you want to specify loop
 //     
 
 #include <stdlib.h>
 #include <iostream>
 
 #define MAX_ITER   400000
-#define MAX_LOOP   25
+#define MAX_LOOP   10
 
 void    cputime(int);
 
