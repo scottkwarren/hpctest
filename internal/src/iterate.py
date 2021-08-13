@@ -83,7 +83,7 @@ class Iterate():
                         if not err:
                             submittedJobs.add(jobID)
                             numSubmitted += 1
-                            verbosemsg("submitted {} as job # {}".format(Run.descriptionForJob(jobID), jobID))
+                            verbosemsg("submitted job # {} for {}".format(jobID, Run.descriptionForJob(jobID)))
                         else:
                             errormsg("submit failed for test run {}:\n{}".format(test.description(build, hpctoolkit, profile), out))
                     verbosemsg("")
