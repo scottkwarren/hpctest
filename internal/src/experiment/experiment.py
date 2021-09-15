@@ -83,9 +83,21 @@ class Experiment(object):
     
     def run(self):
         
+        self.perform()
+        self.check()
+    
+    
+    def perform(self):
+        
         from common import subclassResponsibility
-        subclassResponsibility("Experiment", "run")
+        subclassResponsibility("Experiment", "perform")
 
+
+    def check(self):
+        
+        from common import subclassResponsibility
+        subclassResponsibility("Experiment", "check")
+    
 
     @classmethod
     def checkDirExists(cls, description, path):
@@ -95,7 +107,7 @@ class Experiment(object):
         if isdir(path):
             msg = None
         else:
-            msg = "no {} was produced".format(description)
+            msg = "no {} was produced at {}".format(description, path)
         
         status = "FAILED" if msg else "OK"
         return status, msg
@@ -109,7 +121,7 @@ class Experiment(object):
         if isfile(path):
             msg = None
         else:
-            msg = "no {} was produced".format(description)
+            msg = "no {} was produced at {}".format(description, path)
         
         status = "FAILED" if msg else "OK"
         return status, msg
@@ -138,7 +150,7 @@ class Experiment(object):
                 else:                                                 msg = None
                 
         else:
-            msg = "no {} was produced".format(description)
+            msg = "no {} was produced at {}".format(description, path)
         
         status = "FAILED" if msg else "OK"
         return status, msg
