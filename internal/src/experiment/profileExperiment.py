@@ -67,7 +67,7 @@ class ProfileExperiment(Experiment):
         # other details
         self.testIncs      = "./+"
         self.runOutpath    = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
-        self.structOutpath = self.output.makePath("{}.hpcstruct".format(self))
+        self.structOutpath = self.output.makePath("{}.hpcstruct".format(self.exeName))
         self.profOutpath   = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
 
      
@@ -177,11 +177,11 @@ class ProfileExperiment(Experiment):
         from os import listdir
         from os.path import join, isdir, isfile, basename, splitext
         import re, string
-        from common import debugmsg, errormsg
+        from common import debugmsg, errormsg, notimplamented
         from util.yaml import writeYamlFile
  
         status, msg = Experiment.checkDirExists("hpcrun log", self.runOutpath)
-        if status == 0:
+        if status == "OK":
               
             pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
                         "         frames: D (trolled: D)\n"
@@ -197,9 +197,10 @@ class ProfileExperiment(Experiment):
              
             for item in listdir(self.runOutpath):
                 itemPath = join(self.runOutpath, item)
-                if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":
+                if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "hpcrun":
                     with open(itemPath, "r") as f:
-                         
+                        notimplamented("new hpcrun output format")  ## FAIL
+                        
                         last3lines  = f.readlines()[-3:]
                         summaryLine = "".join(last3lines)
                         match = rex.match(summaryLine)
@@ -214,6 +215,10 @@ class ProfileExperiment(Experiment):
             sumPath = self.output.makePath("hpcrun-summary.yaml")
             writeYamlFile(sumPath, summedResultDict)
             debugmsg("hpcrun summary = {}".format(summedResultDict))
+            
+        else:
+            debugmsg("hpcrun summary not produced (no hpcrun log)")
+            summedResultDict = dict()
              
         return summedResultDict
  

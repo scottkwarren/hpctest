@@ -48,6 +48,6 @@
 
 
 THISDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-python -B $THISDIR/internal/src/main.py "$@"
+python2 -B $THISDIR/internal/src/main.py "$@"
 
 
