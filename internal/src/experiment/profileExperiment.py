@@ -65,10 +65,9 @@ class ProfileExperiment(Experiment):
         self.profile = profile
          
         # other details
-        self.testIncs      = "./+"
-        self.runOutpath    = self.output.makePath("hpctoolkit-{}-measurements".format(self.exeName))
-        self.structOutpath = self.output.makePath("{}.hpcstruct".format(self.exeName))
-        self.profOutpath   = self.output.makePath("hpctoolkit-{}-database".format(self.exeName))
+        self.runOutpath    = self.output.makePath("hpctoolkit-{}-measurements".format(self.name))
+        self.structOutpath = self.output.makePath("{}.hpcstruct".format(self.name))
+        self.profOutpath   = self.output.makePath("hpctoolkit-{}-database".format(self.name))
 
      
     def description(self, forName=False):
@@ -101,16 +100,17 @@ class ProfileExperiment(Experiment):
             if "verbose" in options: sepmsg()
              
             # (2) run hpcstruct on test executable
-            structCmd = "{}/hpcstruct -o {} {} -I {} {}" \
-                .format(self.hpctoolkitBinPath, self.structOutpath, structParams, self.testIncs, join(self.prefixBin, self.exeName))
+            self.cmdExe = self.cmd.split()[0]
+            structCmd = "{}/hpcstruct -o {} {} \"{}\"" \
+                .format(self.hpctoolkitBinPath, self.structOutpath, structParams, join(self.prefixBin, self.cmdExe))
             self.structTime, self.structFailMsg = self.runOb.execute(structCmd, ["run", "profiled"], "hpcstruct", False, False)
          
             # (3) run hpcprof on test measurements
             if self.profiledFailMsg or self.structFailMsg:
                 infomsg("hpcprof not run due to previous failure")
             else:
-                profCmd = "{}/hpcprof -o {} -S {} {} -I {} {}" \
-                    .format(self.hpctoolkitBinPath, self.profOutpath, self.structOutpath, profParams, self.testIncs, self.runOutpath)
+                profCmd = "{}/hpcprof -o {} -S {} {} {}" \
+                    .format(self.hpctoolkitBinPath, self.profOutpath, self.structOutpath, profParams, self.runOutpath)
                 self.profTime, self.profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
              
             # (4) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
@@ -130,6 +130,7 @@ class ProfileExperiment(Experiment):
         else:                       msg = None
          
         if msg:
+
             raise ExecuteFailed(msg)
 
 
@@ -177,32 +178,44 @@ class ProfileExperiment(Experiment):
         from os import listdir
         from os.path import join, isdir, isfile, basename, splitext
         import re, string
-        from common import debugmsg, errormsg, notimplamented
+        from common import debugmsg, errormsg, notimplemented
         from util.yaml import writeYamlFile
  
         status, msg = Experiment.checkDirExists("hpcrun log", self.runOutpath)
         if status == "OK":
-              
-            pattern = ( "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
+            
+            # prepare to extract results
+            pattern = ( "UNWIND ANOMALIES: total: D errant: D, total-frames: D, total-libunwind-fails: D\n"
+                        "ACC SUMMARY:\n"
+                        "         accelerator trace records: D (processed: D, dropped: D)\n"
+                        "         accelerator samples: D (recorded: D, dropped: D)\n"
+                        "SAMPLE ANOMALIES: blocks: D (async: D, dlopen: D), errors: D (segv: D, soft: D)\n"
+                        "SUMMARY: samples: D (recorded: D, blocked: D, errant: D, trolled: D, yielded: D),\n"
                         "         frames: D (trolled: D)\n"
                         "         intervals: D (suspicious: D)\n"
                       )
-            fieldNames = [ "samples", "recorded", "blocked", "errant", "trolled", "yielded", "frames", "trolled", "intervals", "suspicious" ]
+            fieldNames = [ "acc-trace-records", "acc-processed", "acc-dropped", "acc-samples", "acc-recorded",
+                           "acc-dropped", "acc-blocks", "acc-async", "acc-dlopen", "acc-errors", "acc-segv", "acc-soft"
+                           "samples", "recorded", "blocked", "errant", "trolled", "yielded", "frames", "trolled", "intervals", "suspicious" ]
             pattern = string.replace(pattern, r"(", r"\(")
             pattern = string.replace(pattern, r")", r"\)")
-            pattern = string.replace(pattern, r"D", r"(\d+)")
+            pattern = string.replace(pattern, r" D", r"( \d+)") # note space char at front of each patterns
             rex = re.compile(pattern)
-     
+                  
+            # summarize the profiling results for each execution
             scrapedResultTupleList = []
-             
             for item in listdir(self.runOutpath):
                 itemPath = join(self.runOutpath, item)
-                if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "hpcrun":
+                if isfile(itemPath) and (splitext(basename(item))[1])[1:] == "log":     ## was "hpcrun"
                     with open(itemPath, "r") as f:
-                        notimplamented("new hpcrun output format")  ## FAIL
                         
-                        last3lines  = f.readlines()[-3:]
-                        summaryLine = "".join(last3lines)
+                        if True:
+                            last8lines  = f.readlines()[-8:]
+                            summaryLine = "".join(last8lines)
+                        else:
+                            last3lines  = f.readlines()[-3:]
+                            summaryLine = "".join(last3lines)
+
                         match = rex.match(summaryLine)
                         if match:
                             scrapedResultTuple = map(int, match.groups())   # convert matched strings to ints

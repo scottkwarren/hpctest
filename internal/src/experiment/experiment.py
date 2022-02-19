@@ -64,15 +64,12 @@ class Experiment(object):
 
         # derived values
         self.cmd        = self.test.cmd()
+        self.name       = self.test.name()
         self.runSubdir  = self.test.runSubdir()
         self.numRanks   = self.test.numRanks()
         self.numThreads = self.test.numThreads()
         self.wantMPI    = self.numRanks > 0
         self.wantOMP    = self.numThreads > 0
-        self.exeName    = self.cmd.split()[0]
-        
-        # other detailss
-        self.testIncs          = "./+"
     
     
     def description(self, forName=False):

@@ -116,7 +116,7 @@ class Report():
                 if key in dimkey_map:
                     dimkeys.append(dimkey_map[key])
                 else:
-                    errormsg("unknown sort key for report ignored: '{}'".format(key))
+                    errormsg("unknown sort key for report: '{}'".format(key))
             if len(dimkeys):
                 # key func returns list of result fields corresponding to dimkey_list
                 passes.sort(key=sortKeyFunc)
@@ -149,11 +149,11 @@ class Report():
                 elif info.wantProfiling and info.status == "OK":    
                     line2 = ("| overhead: {:>5} | samples: {:>5} | recorded: {:>5} | blocked: {:>5} | errant: {:>5} | trolled: {:>5}  |"
                             ).format(info.overhead, 
-                                     info.samples, 
-                                     percent(info.recorded,   info.samples), 
-                                     percent(info.blocked,    info.samples), 
-                                     percent(info.errant,     info.samples), 
-                                     percent(info.trolled,    info.samples)
+                                     info.frames, 
+                                     percent(info.recorded,   info.frames), 
+                                     percent(info.blocked,    info.frames), 
+                                     percent(info.errant,     info.frames), 
+                                     percent(info.trolled,    info.frames)
                                     )
                 else:
                     line2 = ("| {}: {}").format(status, truncate(msg, 100))         
@@ -216,7 +216,7 @@ class Report():
                 info.frames     = hpcrun["frames"]
                 info.intervals  = hpcrun["intervals"]
                 info.recorded   = hpcrun["recorded"]
-                info.samples    = hpcrun["samples"]
+                info.suspicious = hpcrun["suspicious"]
                 info.trolled    = hpcrun["trolled"]
                 info.yielded    = hpcrun["yielded"]
             else:
@@ -225,7 +225,7 @@ class Report():
                 info.frames     = None
                 info.intervals  = None
                 info.recorded   = None
-                info.samples    = None
+                info.suspicious = None
                 info.trolled    = None
                 info.yielded    = None
             
