@@ -13,7 +13,7 @@ class CppThreads(MakefilePackage):
     def install(self, spec, prefix):
     
         mkdirp(prefix.bin)
-        install('fib', prefix.bin)
+        install('cpp_threads', prefix.bin)
 
 
 
