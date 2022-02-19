@@ -18,10 +18,7 @@ build:
 
 run:
   cmd: >
-    {
-      hpcrun  fib-static;
-      hpcrun  fib-pg-static;
-    }
+    hpcrun  fib-pg-static
 
 profile: no
 
