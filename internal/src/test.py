@@ -112,7 +112,12 @@ class Test():
         p = ProfileDim.format(profile,     forName)
         
         return f.format(t, c, p)
-
+    
+        
+    def exeName(self):
+        
+        return split(self._yaml("run.cmd"))[0]
+        
 
     def hasChanged(self):
         
