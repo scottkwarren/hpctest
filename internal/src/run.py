@@ -134,18 +134,6 @@ class Run(object):
                     self.experiment = ProfileExperiment(self.test, self, self.output,
                                                         self.build, self.hpctoolkit, self.profile)
                     self.experiment.run()
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                     self.output.addSummaryStatus("OK", None)
                 
             except BadTestDescription as e:
