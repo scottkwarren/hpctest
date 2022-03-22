@@ -47,7 +47,6 @@
 
 
 import sys
-from rtslib.fabric import Qla2xxxFabricModule
 
 
 #----------------------#
