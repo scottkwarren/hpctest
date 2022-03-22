@@ -134,6 +134,18 @@ class Run(object):
                     self.experiment = ProfileExperiment(self.test, self, self.output,
                                                         self.build, self.hpctoolkit, self.profile)
                     self.experiment.run()
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     self.output.addSummaryStatus("OK", None)
                 
             except BadTestDescription as e:
@@ -249,6 +261,8 @@ class Run(object):
             #   so installed instances just pile up
             always = self.test.buildAlways()
             
+            status = None
+            msg = None
             if spackle.isSpecInstalled(self.spec) and not always:
                 
                 if "verbose" in options: infomsg("skipping build, test already installed")

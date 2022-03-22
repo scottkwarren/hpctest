@@ -49,8 +49,6 @@
 #### TEMPORARY: ALL CODE INVOLVING 'numrepeats' IS STUBBED OUT FOR NOW
 
 
-from hpctest import HPCTest
-
 global HPCTestOb
 HPCTestOb = None
 
@@ -93,12 +91,13 @@ def execute(args):
     # perform the requested operation by calling methods of HPCTest
     # TODO: figure out how to dispatch on subcommand so can implement 'hpctest clean'
 
-    global HPCTestOb
     from collections import OrderedDict
     from os.path import join
     from common import options, verbosemsg, errormsg, fatalmsg, version
     from help import help_message
 
+    from hpctest import HPCTest
+    global HPCTestOb
     HPCTestOb = HPCTest()      # must come early b/c initializes paths in common.*
 
     if args["init"]:
@@ -187,7 +186,7 @@ def execute(args):
     elif args["--version"]:
         
             print "HPCTest version {}.\n" \
-                  "Copyright ((c)) 2002-2020, Rice University.\n" \
+                  "Copyright ((c)) 2002-2022, Rice University.\n" \
                   "All rights reserved." \
                   .format(version)
     
