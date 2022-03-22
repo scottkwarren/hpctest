@@ -47,6 +47,7 @@
 
 
 import sys
+from rtslib.fabric import Qla2xxxFabricModule
 
 
 #----------------------#
@@ -74,21 +75,15 @@ import sys
 
 def supportedVersion():
     
-    return "0.16.1"     # 2021-02-25    ## was 0.16.0, 2020-11-18
-
-
-# avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-# ???
-#     spackle.do("config --scope site add config:verify_ssl:False")
-#     spackle.do("config --scope site add config:checksum:False")
+    return "0.17.1"     # 2022-03-01
 
 
 def initSpack():
 
     from os import system, symlink
-    from os.path import abspath, exists, isfile, isdir, join
+    from os.path import abspath, exists, isfile, isdir, join, basename
     import common
-    from common import args, internalpath, own_spack_home, repopath, infomsg, fatalmsg
+    from common import args, internalpath, repopath, infomsg, fatalmsg
     import spackle
     from hpctest import HPCTest
 
@@ -97,48 +92,47 @@ def initSpack():
     
     # set up our local Spack instance...
     
-    # check for existing stuff in the way 
-    if exists(own_spack_home) and args["--spack"]:
-        fatalmsg("'--spack' argument given but something already at: {}".format(own_spack_home))
-    if isfile(own_spack_home):
-        fatalmsg("extraneous file in place of local Spack: {}".format(own_spack_home))
-    if isdir(own_spack_home):
-        _assertSpackDir(own_spack_home)
+    # detect a suitable Spack instance, if any 
+    if  args["--spack"]:
+        home  = args["--spack"]
+        where = "'--spack' {}".format(home)
+        _assertSpackDir(home)
+    else:
+        home  = join(common.internalpath, "spack")
+        where = "default directory {}".format(home)
+    common.own_spack_home = home
     
-    # prepare a Spack instance at 'own_spack_home'
-    if args["--spack"] or not isdir(own_spack_home):
+    # prepare a Spack instance at 'home'
+    if isSpackDir(home):
+        # remove out of date built package binaries
+        for name in changedPackages:
+            spackle.uninstall(name)
+    else:
         
         infomsg("setting up internal Spack...")
         
-        # find our local Spack
-        if args["--spack"]:
-            extracted = abspath(args["PATH"])
-            infomsg("using Spack instance given on command line: " + extracted)
-        else:
-
-            # find a compressed Spack already in our 'internal' directory
-            for suffix in "develop", spackle.supportedVersion():
-                spackName = "spack-" + suffix
-                for extension in "tar.gz", "tgz", "zip":
-                    tarball   = join(internalpath, spackName  + "." + extension)
-                    if isfile(tarball):
-                        extracted = join(internalpath, spackName)
-                        cmd = "unzip" if extension == "zip" else "tar xzf"
-                        break
-                else:
-                    continue
-                break
+        # find a compressed Spack already in our 'internal' directory
+        compressed = None
+        for suffix in "develop", spackle.supportedVersion():
+            spackName = "spack-" + suffix
+            for extension in "tar.gz", "tgz", "zip":
+                compressed = join(common.internalpath, spackName  + "." + extension)
+                if isfile(compressed):
+                    cmd = "unzip" if extension == "zip" else "tar xzf"
+                    break
+        if compressed:
+            system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, compressed))
+            extracted = join(common.internalpath, spackName)
+            if isdir(extracted):
+                assertSpackDir(extracted)
+                infomsg("using compressed Spack file " + compressed)
             else:
-                fatalmsg("no compressed Spack found in {}".format(internalpath))
-            infomsg("using compressed Spack file " + tarball)
+                fatalmsg("compressed Spack cannot be extracted from {}".format(compressed))
+        else:
+            fatalmsg("no compressed Spack found in {}".format(common.internalpath))
 
-            # extract Spack from compressed file
-            system("cd {}; {} {} > /dev/null".format(internalpath, cmd, tarball))
-            if not isdir(extracted):
-                fatalmsg("compressed Spack cannot be extracted from {}".format(tarball))
-
-        _assertSpackDir(extracted)
-        symlink(extracted, own_spack_home)
+        common.own_spack_home = extracted
+        symlink(extracted, join(common.internalpath, "spack"))
         
         # display available compilers
         infomsg("Spack found these compilers automatically:")
@@ -147,37 +141,24 @@ def initSpack():
         infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
 
         # add our tests repo
-        spackle.do("repo add --scope site {}".format(repopath), echo=True)
-    
-        # avoid checking repo tarball checksums b/c they are often wrong in Spack's packages
-    # ???
-    #     spackle.do("config --scope site add config:verify_ssl:False")
-    #     spackle.do("config --scope site add config:checksum:False")
-    # ???
-    #     from spack.config import set as xset        # PENDING SPACK 0.14.1
-    #     xset("config:verify_ssl", False, "site")    # PENDING SPACK 0.14.1
-    #     xset("config:checksum",   False, "site")    # PENDING SPACK 0.14.1
-    # ???
-    #     import spack
-    #     from spack import config                        # PENDING SPACK 0.14.1
-    #     config.set("config:verify_ssl", False, "site")  # PENDING SPACK 0.14.1
-    #     config.set("config:checksum",   False, "site")  # PENDING SPACK 0.14.1
-        
-    else:
-        # remove out of date built package binaries
-        for name in changedPackages:
-            spackle.uninstall(name)
+        out, err = spackle.do("repo list", echo=False)
+        if not ( basename(repopath) in out ):
+            spackle.do("repo add --scope site {}".format(repopath), echo=True)        
 
 
-def _assertSpackDir(dir):
+def isSpackDir(dir):
     
     from os import access, X_OK
     from os.path import isfile, join
-    from common import assertmsg, own_spack_home
     
     exe = join(dir, "bin", "spack")
-    assertmsg(isfile(exe) and access(exe, X_OK),
-              "purported local Spack directoryu has no 'bin/spack': {}".format(own_spack_home))
+    return isfile(exe) and access(exe, X_OK)
+
+
+def assertSpackDir(dir):
+    
+    from common import assertmsg
+    assertmsg(isSpackDir(dir), "No Spack found at {}".format(dir))
 
 
 #------------#
@@ -189,6 +170,7 @@ def do(cmdstring, echo=False, stdout="/dev/stdout", stderr="/dev/stderr"):
     # cmdstring contents must be shell-escaped by caller, including the 'stdout' & 'stderr' args
         
     import os, subprocess, common
+    from os.path import join
     from common import verboseOption
     from tempfile import mktemp
     
@@ -196,7 +178,7 @@ def do(cmdstring, echo=False, stdout="/dev/stdout", stderr="/dev/stderr"):
     err = stderr if echo else mktemp()
 
     with open(out, "a") as outf, open(err, "a") as errf:
-        shellcmd = common.own_spack_home + "/bin/spack " + verboseOption() + cmdstring
+        shellcmd = join(common.own_spack_home, "bin/spack ") + verboseOption() + cmdstring
         env = os.environ.copy()
         env.update(PYTHONPATH = "")   # PYTHONPATH breaks python in subprocess if set
         status = subprocess.call(shellcmd, shell=True, env=env, stdout=outf, stderr=errf)
@@ -227,20 +209,29 @@ def uninstall(name):
 def isSpecInstalled(spec):
 
     import spackle
-    from common import BadBuildSpec
+    from common import BadBuildSpec, errormsg
+    import re
+    
+    r = re.compile("([^\.]+\.)*([a-zA-Z0-9_\-]+)(@(.+))")
+    s = r.search(spec)
+    dotPrefix = s.group(1)
+    testName  = s.group(2)
+    version   = s.group(3)
 
-    spackCmd = "find {0}".format(spec)
+    spackCmd = "find {0}".format(testName)      # is it installed?   
     out, err = spackle.do(spackCmd)
     
-    if "Error" in err:  # could just be warnings
-        lines = err.split("\n")
-        msg = lines[0]
-        msg = msg.replace("==> Error: ", "")
-        msg = msg.strip().strip(":")
-        msg = msg + " ('{}')".format(spec)
-        raise BadBuildSpec(msg)
+    # when no such package, 'out' gets eg:
+    # ==> No package matches the query: tests.amgmk@1.0%gcc\n
     
-    return "No package matches the query" not in out
+    if "No package matches" in out: 
+        installed = False
+    elif "==> 0 packages" in out:
+        installed = False
+    else:
+        installed = True
+    
+    return installed
 
 
 def installSpec(spec, srcDir = None, buildOnly = False):
@@ -258,17 +249,13 @@ def installSpec(spec, srcDir = None, buildOnly = False):
                 .format(srcDir, before, spec)
     else:
         spackCmd =  \
-            "install --keep-stage --dirty --show-log-on-error {0} {1} '{2}'" \
+            "install --reuse --keep-stage --dirty --show-log-on-error {0} {1} '{2}'" \
                 .format(verbose, before, spec)
 
     out, err = spackle.do(spackCmd, echo = verbose)
     
     if "Error" in err:  # could just be warnings
-        lines = err.split("\n")
-        try:
-            msg = next(s for s in lines if "errors found" in s)
-        except:
-            msg = lines[0]
+        msg = err
         msg = msg.strip().strip(":")
         msg = msg.replace("==> Error: ", "")
         raise BuildFailed(msg)
@@ -337,22 +324,21 @@ def mpiPrefix(spec):
         errormsg(msg)
         raise ExecuteFailed(msg)
     else:
-        outDict, _ = readYamlString(out)
-        packageDicts = outDict["spec"]      # list of dicts each with a single key, a package name    
-                                            # key's value is a dict of details
-    
         # find mpi provider and its details
-        providers = spackle.mpiProviders()
-        mpiDicts  = [d for d in packageDicts if d.keys()[0] in providers]
-        mpiDict   = mpiDicts[0]
+        outDict, _ = readYamlString(out)
+        packages   = outDict["spec"]["nodes"]      # list of dicts each with a single key, a package name                                                # key's value is a dict of details
+        providers  = spackle.mpiProviders()
+        mpiDicts   = [d for d in packages
+                        if d["name"] in providers]
+        mpiDict    = mpiDicts[0]
         
         # make a spec for the mpi provider used in test spec
-        # TODO: this only preserves name & compiler; need to make spec from complete yaml dict
-        mpiName = mpiDict.keys()[0]
+        # TODO: this only preserves name/compiler/version; do we need to make spec from complete yaml dict
+        mpiName = mpiDict["name"]
         mpiSpec = ( mpiName
-                    + "@" + mpiDict[mpiName]["version"]
-                    + "%" + mpiDict[mpiName]["compiler"]["name"]
-                            + "@" + mpiDict[mpiName]["compiler"]["version"]
+                    + "@" + mpiDict["version"]
+                    + "%" + mpiDict["compiler"]["name"]
+                            + "@" + mpiDict["compiler"]["version"]
                   )
     
         # get mpi provider's install prefix

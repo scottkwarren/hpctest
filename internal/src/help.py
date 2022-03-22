@@ -156,6 +156,9 @@ Options: Testing
             Add a dimension with the set PROFILESPEC of profile options as
             alternatives. Each element is a colon-separated triple of options
             for hpcrun, hpcstruct, and hpcprof.
+  -o, --spack SPACKPATH
+            If given, use the Spack installed at SPACKPATH. Otherwise use
+            the default Spack embedded in hpctest.
   -o, --study STUDYPATH
             If given, create the study directory at the specified path. Otherwise
             the default is to create it inside the hpctest/work directory.
@@ -225,6 +228,7 @@ _optlist = \
     '--help',
     "--nochecksum"
     "--quiet",
+    "--spack"
     "--traceback",
     '--verbose',
     ]

@@ -71,7 +71,7 @@ class HPCTest(object):
         from dimension import TestDim, BuildDim, HPCTkitDim, ProfileDim
         import spackle
                 
-        # set up internal Spack
+        # set up internal Spack if necessary
         spackle.initSpack()
 
         if not common.hpctk_default:
@@ -359,7 +359,7 @@ class HPCTest(object):
 from os.path import isfile
 from shutil import copyfile
 from common import infomsg, errormsg, fatalmsg
-import spackle
+from spackle import initSpack
 
 # (1) establish preconditions for initializing the config system...
 
@@ -367,12 +367,8 @@ import spackle
 common.homepath = normpath( join(dirname(realpath(__file__)), "..", "..") )
 environ["HPCTEST_HOME"] = common.homepath
 
-# paths needed to initialize Spack's location
-common.internalpath   = join(common.homepath, "internal")
-common.own_spack_home = join(common.internalpath, "spack")
-common.own_spack_module_dir = join( common.own_spack_home, "lib", "spack" )
-
 # paths needed for _ensureRepo etc
+common.internalpath  = join(common.homepath, "internal")
 common.testspath     = join(common.homepath, "tests")
 common.repopath      = join(common.internalpath, "repos", "tests")
 common.workpath      = join(common.homepath, "work")
@@ -383,9 +379,12 @@ hiddenDir = join(common.homepath, ".hpctest")
 if not isdir(hiddenDir): makedirs(hiddenDir)
 
 # (2) sys.path adjustment is needed to load Spack (& other) modules
-sys.path[1:0] = [ common.own_spack_module_dir,
-                  join(common.own_spack_module_dir, "external"),
-                  join(common.own_spack_module_dir, "llnl"),
+# have to initialize Spack to get its location (=> common.own_spack_home)
+initSpack()
+spack_module_dir = join( common.own_spack_home, "lib", "spack" )
+sys.path[1:0] = [ spack_module_dir,
+                  join(spack_module_dir, "external"),
+                  join(spack_module_dir, "llnl"),
                 ]
 
 # (3) now we can set up configuration system so configs can specify important paths
