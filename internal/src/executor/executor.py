@@ -300,14 +300,6 @@ class Executor(object):
         return out, err
     
 
-#    NOT USED
-#     def _envDictToString(self, envDict):
-#         
-#             s = ""
-#             for key, value in envDict.iteritems():
-#                 s += (key + "=" + value + " ")
-#             return s
-
 
 
 
