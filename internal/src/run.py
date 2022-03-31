@@ -415,6 +415,7 @@ class Run(object):
         verbosemsg("Executing {} test:\n{}".format(label, cmd))
         msg = None  # for cpu-time messaging below
         try:
+            
              Run.executor.run(cmd, runPath, binPath, ranks, threads, outPath, self.description())
                 
         except HPCTestError as e:
