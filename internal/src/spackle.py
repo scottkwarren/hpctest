@@ -111,7 +111,7 @@ def initSpack():
         infomsg("setting up internal Spack...")
         
         # find a compressed Spack already in our 'internal' directory
-        compressed = None
+        cmd = None  
         for suffix in "develop", spackle.supportedVersion():
             spackName = "spack-" + suffix
             for extension in "tar.gz", "tgz", "zip":
@@ -119,7 +119,7 @@ def initSpack():
                 if isfile(compressed):
                     cmd = "unzip" if extension == "zip" else "tar xzf"
                     break
-        if compressed:
+        if cmd:
             system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, compressed))
             extracted = join(common.internalpath, spackName)
             if isdir(extracted):
