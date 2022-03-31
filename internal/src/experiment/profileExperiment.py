@@ -130,7 +130,6 @@ class ProfileExperiment(Experiment):
         else:                       msg = None
          
         if msg:
-
             raise ExecuteFailed(msg)
 
 
