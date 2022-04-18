@@ -119,6 +119,7 @@ def initSpack():
                 if isfile(compressed):
                     cmd = "unzip" if extension == "zip" else "tar xzf"
                     break
+            if cmd: break
         if cmd:
             system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, compressed))
             extracted = join(common.internalpath, spackName)
