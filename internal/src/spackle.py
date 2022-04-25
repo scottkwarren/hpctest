@@ -74,7 +74,7 @@ import sys
 
 def supportedVersion():
     
-    return "0.17.1"     # 2022-03-01
+    return "0.17.2"     # 2022-04-18
 
 
 def initSpack():
@@ -119,6 +119,7 @@ def initSpack():
                 if isfile(compressed):
                     cmd = "unzip" if extension == "zip" else "tar xzf"
                     break
+            if cmd: break
         if cmd:
             system("cd {}; {} {} > /dev/null".format(common.internalpath, cmd, compressed))
             extracted = join(common.internalpath, spackName)
