@@ -47,7 +47,7 @@
 
 
 # manually maintained version id for hpctest
-version = "1.0b4"
+version = "1.0"
 
 # magic cookie shielding 'hpctest _runOne' from civilians
 magic_cookie = "Arma virumque cano Troiae qui primus ab oris"
