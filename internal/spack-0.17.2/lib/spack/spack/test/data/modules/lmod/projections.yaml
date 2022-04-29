@@ -1,6 +1,0 @@
-enable:
-  - lmod
-lmod:
-  projections:
-    all: '{name}/v{version}'
-    mpileaks: '{name}-mpiprojection'

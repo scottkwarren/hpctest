@@ -1,4 +1,0 @@
-enable:
-  - tcl
-tcl:
-  naming_scheme: '{name}/{version}-{compiler.name}'
