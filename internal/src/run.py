@@ -221,7 +221,6 @@ class Run(object):
             self.rundir = self.builddir
                 
         except Exception as e:
-##          raise PrepareFailed(e.message)
             raise PrepareFailed(str(e))
         
 
