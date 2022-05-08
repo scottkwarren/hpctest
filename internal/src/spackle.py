@@ -86,11 +86,6 @@ def initSpack():
     import spackle
     from hpctest import HPCTest
 
-    # set up our repo
-    changedPackages = HPCTest._ensureRepo()
-    
-    # set up our local Spack instance...
-    
     # detect a suitable Spack instance, if any 
     if  args["--spack"]:
         home  = args["--spack"]
@@ -104,6 +99,7 @@ def initSpack():
     # prepare a Spack instance at 'home'
     if isSpackDir(home):
         # remove out of date built package binaries
+        changedPackages = HPCTest._ensureRepo()
         for name in changedPackages:
             spackle.uninstall(name)
     else:
