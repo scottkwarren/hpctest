@@ -127,7 +127,7 @@ class Run(object):
             # run the test
             try:
                 
-                self._examineYaml()
+                self._examineYaml()   
                 self._buildTest()
                 
                 if not common.args["build"]:    # ie not build-only
@@ -141,7 +141,7 @@ class Run(object):
                 msg  = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
             except BadBuildSpec as e:
                 what = "BAD SPEC"
-                msg  = "build spec invalid per Spack ('{}'):\n{}".format(self.spec, e.message)
+                msg  = "build spec invalid (per Spack) ('{}'):\n{}".format(self.spec, e.message)
             except PrepareFailed as e:
                 what = "PREPARE FAILED"
                 msg  = "setup for test build failed\n{}".format(e.message)
