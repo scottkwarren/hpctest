@@ -1,0 +1,17 @@
+#==========================================#
+# HPCTest description for hpcstruct test 1 #
+#==========================================#
+
+
+info:
+  name:  hpcstruct-1
+  description: >
+    Run hpcstruct in parallel on itself (-j 4) and measure
+    “-e PAPI_TOT_INS” and “-e PAPI_TOT_CYC”
+
+build: none
+
+run:
+  cmd: hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC `which hpcstruct`
+
+
