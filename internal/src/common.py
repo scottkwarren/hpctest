@@ -138,7 +138,7 @@ def verboseOption():
 
 def infomsg(message):
     
-    print message
+    print message.strip()
 
 
 def verbosemsg(message):
