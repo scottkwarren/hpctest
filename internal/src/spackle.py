@@ -220,7 +220,12 @@ def isSpecInstalled(spec):
     # when no such package, 'out' gets eg:
     # ==> No package matches the query: tests.amgmk@1.0%gcc\n
     
-    if "No package matches" in out: 
+    # when erroneous query, 'out' gets eg:
+    # ==> Error: module 'spack.pkg.tests.fib-pg' has no attribute 'FibPg'\n
+    
+    if err:
+        installed = False
+    elif "No package matches" in out: 
         installed = False
     elif "==> 0 packages" in out:
         installed = False
