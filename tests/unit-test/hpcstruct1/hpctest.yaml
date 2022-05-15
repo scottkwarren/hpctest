@@ -4,7 +4,7 @@
 
 
 info:
-  name:  hpcstruct-1
+  name:  hpcstruct1
   description: >
     Run hpcstruct in parallel on itself (-j 4) and measure
     “-e PAPI_TOT_INS” and “-e PAPI_TOT_CYC”
@@ -12,6 +12,6 @@ info:
 build: none
 
 run:
-  cmd: hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC `which hpcstruct`
+  cmd: "hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC `which hpcstruct`"
 
 
