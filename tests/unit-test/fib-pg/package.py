@@ -1,5 +1,5 @@
 #=========================#
-# FIB-NOREAD PACKAGE FILE #
+# FIB-PG PACKAGE FILE     #
 #=========================#
 
 

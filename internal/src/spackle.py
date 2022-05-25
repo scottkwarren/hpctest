@@ -74,7 +74,7 @@ import sys
 
 def supportedVersion():
     
-    return "0.17.2"     # 2022-04-18
+    return "05-25-22"
 
 
 def initSpack():
@@ -220,7 +220,7 @@ def isSpecInstalled(spec):
     # when no such package, 'out' gets eg:
     # ==> No package matches the query: tests.amgmk@1.0%gcc\n
     
-    # when erroneous query, 'out' gets eg:
+    # when erroneous query, 'err' gets eg:
     # ==> Error: module 'spack.pkg.tests.fib-pg' has no attribute 'FibPg'\n
     
     if err:
