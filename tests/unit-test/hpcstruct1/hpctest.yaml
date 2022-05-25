@@ -1,0 +1,20 @@
+#=========================================#
+# HPCTest description for hpcstruct1      #
+#=========================================#
+
+
+info:
+  name:  hpcstruct1
+  version: 1.0
+  url: hpctest/tests/unit-tests/hpcstruct1
+  description: >
+    TBD
+    
+build: none
+
+run:
+  cmd: hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC
+
+profile: no
+
+
