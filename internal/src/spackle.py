@@ -132,9 +132,12 @@ def initSpack():
         
         # display available compilers
         infomsg("Spack found these compilers automatically:")
+        infomsg("")
         spackle.do("compilers", echo=True)
+        infomsg("")
         infomsg("To add more existing compilers or build new ones, use 'hpctest spack <spack-cmd>' and")
         infomsg("see 'Getting Started > Compiler configuration' at spack.readthedocs.io.\n")
+        infomsg("")
 
         # add our tests repo
         out, err = spackle.do("repo list", echo=False)
