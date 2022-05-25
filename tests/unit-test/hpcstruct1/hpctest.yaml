@@ -1,10 +1,17 @@
+<<<<<<< HEAD
 #=========================================#
 # HPCTest description for hpcstruct1      #
 #=========================================#
+=======
+#==========================================#
+# HPCTest description for hpcstruct test 1 #
+#==========================================#
+>>>>>>> 897665c1e850a4f4ca0c10bf2a96319a58cc23c4
 
 
 info:
   name:  hpcstruct1
+<<<<<<< HEAD
   version: 1.0
   url: hpctest/tests/unit-tests/hpcstruct1
   description: >
@@ -16,5 +23,15 @@ run:
   cmd: hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC
 
 profile: no
+=======
+  description: >
+    Run hpcstruct in parallel on itself (-j 4) and measure
+    “-e PAPI_TOT_INS” and “-e PAPI_TOT_CYC”
+
+build: none
+
+run:
+  cmd: "hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC `which hpcstruct`"
+>>>>>>> 897665c1e850a4f4ca0c10bf2a96319a58cc23c4
 
 
