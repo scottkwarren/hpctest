@@ -137,7 +137,7 @@ class Run(object):
                     self.output.addSummaryStatus("OK", None)
                 
             except BadTestDescription as e:
-                what = "READING YAML FAILED"
+                what = "YAML IMPORT FAILED"
                 msg  = "missing or invalid '{}' file: {}".format("hpctest.yaml", e.message)
             except BadBuildSpec as e:
                 what = "BAD SPEC"
