@@ -57,23 +57,26 @@ main(int argc, char *argv[])
   int max = MAX_ITER;
   int loop = MAX_LOOP;
 
-  if (argc == 2) {
+  if( argc == 2 )
+  {
     max = atoi(argv[1]);
-  } else if (argc == 3) {
+  }
+  else if( argc == 3 )
+  {
     max = atoi(argv[1]);
     loop = atoi(argv[2]);
   }
-	
-  std::cerr << "Will run " << loop << " loops of " << max << " iterations each" << std::endl;
 
-  for (int j=0; j<loop; j++) {
-    for (int i=0; i<max; i++) {
-      try {
-  throw "exception";
-      } catch (const char *message) {
-      }
+  std::cerr << "Will run " << loop << " loops of " << max << " iterations each" << std::endl;
+  for( int j=0; j < loop; j++ )
+  {
+    for( int i = 0; i < max; i++ )
+    {
+    	try { throw "exception"; }
+      	catch (const char * message) {}
     }
     std::cerr << "End loop " << j  << std::endl;
+    
     // delay using CPU time
     cputime(10 * j);
   }
