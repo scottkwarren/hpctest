@@ -74,7 +74,7 @@ import sys
 
 def supportedVersion():
     
-    return "05-25-22"
+    return "0.18.0"
 
 
 def initSpack():
@@ -110,10 +110,10 @@ def initSpack():
         cmd = None  
         for suffix in "develop", spackle.supportedVersion():
             spackName = "spack-" + suffix
-            for extension in "tar.gz", "tgz", "zip":
+            for extension in "tar.gz", "tgz", "tar", "zip":
                 compressed = join(common.internalpath, spackName  + "." + extension)
                 if isfile(compressed):
-                    cmd = "unzip" if extension == "zip" else "tar xzf"
+                    cmd = "tar xf" if extension == "tar" else "unzip" if extension == "zip" else "tar xzf"
                     break
             if cmd: break
         if cmd:
