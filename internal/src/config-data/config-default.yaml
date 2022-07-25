@@ -40,16 +40,16 @@ run:
 #   t: unlimited  # cpu time (seconds)
 
 profile:
-# hpctoolkit:
+# hpctoolkit: 
 #   -- if no path is given, your PATH setting will be used
 #   path: ~/hpctoolkit/INSTALL/
 #    
 #   -- profiling params to use when none are specified on hpctest command line
 #   -- if none are given here, ("REALTIME@10000", "", "") will be used
-#   hpcrun params:     "PAPI_TOT_CYC@6000000 + PAPI_FP_OPS + IO"
+#   hpcrun params:     ""
 #   hpcstruct params:  ""  
-#   hpcprof params:    "--force-metric"  
+#   hpcprof params:    ""  
 
 
-
+-e PAPI_TOT_INS” and “-e PAPI_TOT_CYC
  
