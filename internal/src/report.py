@@ -204,21 +204,21 @@ class Report():
             run                 = result["run"]
                                             
             if info.wantProfiling and (run != "NA"):
-                hpcrun          = run["profiled"]["hpcrun"]["summary"]
+                summary         = run["profiled"]["hpcrun"]["summary"]
                 info.overhead   = run["profiled"]["hpcrun"]["overhead %"]
             else:
-                hpcrun          = "NA"
+                summary         = "NA"
                 info.overhead   = "NA"
                 
-            if hpcrun != "NA":
-                info.blocked    = hpcrun["blocked"]
-                info.errant     = hpcrun["errant"]
-                info.frames     = hpcrun["frames"]
-                info.intervals  = hpcrun["intervals"]
-                info.recorded   = hpcrun["recorded"]
-                info.suspicious = hpcrun["suspicious"]
-                info.trolled    = hpcrun["trolled"]
-                info.yielded    = hpcrun["yielded"]
+            if summary != "NA":
+                info.blocked    = summary["blocked"]
+                info.errant     = summary["errant"]
+                info.frames     = summary["frames"]
+                info.intervals  = summary["intervals"]
+                info.recorded   = summary["recorded"]
+                info.suspicious = summary["suspicious"]
+                info.trolled    = summary["trolled"]
+                info.yielded    = summary["yielded"]
             else:
                 info.blocked    = None
                 info.errant     = None
@@ -230,7 +230,7 @@ class Report():
                 info.yielded    = None
             
         except Exception as e:
-            info.extractRunInfoMsg = e.message      # TODO: 'KeyError' => "status"; e.message and str(e) no better
+            info.extractRunInfoMsg = str(e)      # TODO: 'KeyError' => "status"; e.message and str(e) no better
     
         return info
 
