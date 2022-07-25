@@ -114,7 +114,7 @@ class ProfileExperiment(Experiment):
                 self.profTime, self.profFailMsg = self.runOb.execute(profCmd, ["run", "profiled"], "hpcprof", False, False)
              
             # (4) TODO: open hpcviewer on experiment database (& get it to do something nontrivial, if possible)
-            #           -- omplicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
+            #           -- complicated b/c hpcviewer is written in Java; need a VM and some kind of UI access (?)
                  
         else:
             verbosemsg("profiling is disabled by hpctest.yaml")
