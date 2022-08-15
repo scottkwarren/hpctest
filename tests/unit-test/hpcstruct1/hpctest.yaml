@@ -14,8 +14,11 @@ info:
 build: none
 
 run:
-  cmd: "hpcstruct -j4 -e PAPI_TOT_INS -e PAPI_TOT_CYC `which hpcstruct`"
+  cmd: ./test.sh
 
-profile: no
+profile:
+  hpctoolkit:
+    hpcrun params: PAPI_TOT_INS + PAPI_TOT_CYC
+    hpcstruct params: --nocache
 
 
