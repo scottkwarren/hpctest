@@ -74,7 +74,7 @@ import sys
 
 def supportedVersion():
     
-    return "0.18.0"
+    return "0.18.1"
 
 
 def initSpack():
