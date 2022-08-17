@@ -1,6 +1,6 @@
 """Filename globbing utility."""
 
-from __future__ import absolute_import
+
 
 import sys
 import os
@@ -9,7 +9,7 @@ from os.path import join
 from . import fnmatch
 
 try:
-    from itertools import imap
+    
 except ImportError:
     imap = map
 
@@ -82,7 +82,7 @@ class Globber(object):
                              norm_paths, case_sensitive, sep)
         if with_matches:
             return result
-        return imap(lambda s: s[0], result)
+        return map(lambda s: s[0], result)
 
     def _iglob(self, pathname, rootcall, include_hidden,
                norm_paths, case_sensitive, sep):
@@ -144,8 +144,8 @@ class Globber(object):
             if isinstance(pattern, bytes):
                 dirname = bytes(os.curdir, 'ASCII')
         else:
-            if isinstance(pattern, unicode) and not isinstance(dirname, unicode):
-                dirname = unicode(dirname, sys.getfilesystemencoding() or
+            if isinstance(pattern, str) and not isinstance(dirname, str):
+                dirname = str(dirname, sys.getfilesystemencoding() or
                                            sys.getdefaultencoding())
 
         # If no magic, short-circuit, only check for existence
@@ -169,7 +169,7 @@ class Globber(object):
                 names = [''] if globstar_with_root else []
                 for top, entries in self.walk(dirname, sep=sep):
                     _mkabs = lambda s: _join_paths([top[len(dirname) + 1:], s], sep=sep)
-                    names.extend(map(_mkabs, entries))
+                    names.extend(list(map(_mkabs, entries)))
                 # Reset pattern so that fnmatch(), which does not understand
                 # ** specifically, will only return a single group match.
                 pattern = '*'
@@ -182,7 +182,7 @@ class Globber(object):
             # Remove hidden files, but take care to ensure
             # that the empty string we may have added earlier remains.
             # Do not filter out the '' that we might have added earlier
-            names = filter(lambda x: not x or not _ishidden(x), names)
+            names = [x for x in names if not x or not _ishidden(x)]
         return fnmatch.filter(names, pattern, norm_paths, case_sensitive, sep)
 
 

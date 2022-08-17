@@ -48,7 +48,7 @@
 
 
 
-from executor import Executor
+from .executor import Executor
 from common import options
 
 

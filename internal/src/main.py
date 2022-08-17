@@ -65,8 +65,8 @@ def main():
     from util.docopt import docopt, DocoptExit
     
     # parse the command line and execute it if valid
-    argv = filter(lambda s: s != "\n", sys.argv[1:])                    # remove standalone newlines, eg at end of lines
-    argv = map(lambda s: s.replace("\n"," ").replace("\\"," "), argv)   # remove newlines and backslashes within each string, eg in continued string constants
+    argv = [s for s in sys.argv[1:] if s != "\n"]                    # remove standalone newlines, eg at end of lines
+    argv = [s.replace("\n"," ").replace("\\"," ") for s in argv]   # remove newlines and backslashes within each string, eg in continued string constants
     try:
 
         args = docopt(doc=help_message, argv=argv, help=False)
@@ -81,7 +81,7 @@ def main():
 
     except DocoptExit as d:
 
-        print usage_message + "\n" + "For more information use '--help'." + "\n"
+        print(usage_message + "\n" + "For more information use '--help'." + "\n")
         sys.exit()
 
     return execute(args)
@@ -167,7 +167,7 @@ def execute(args):
         
     elif args["selftest"]:
         
-        print  "The selftest command is not implemented."
+        print("The selftest command is not implemented.")
         return
         
         testspec   = "all" if args["all"] else         \
@@ -180,15 +180,15 @@ def execute(args):
     
     elif args["--help"]:
         
-            print help_message
+            print(help_message)
             
     
     elif args["--version"]:
         
-            print "HPCTest version {}.\n" \
+            print("HPCTest version {}.\n" \
                   "Copyright ((c)) 2002-2022, Rice University.\n" \
                   "All rights reserved." \
-                  .format(version)
+                  .format(version))
     
     elif args["_runOne"]:
         

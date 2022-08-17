@@ -431,7 +431,7 @@ class Run(object):
         # print test's output and cpu time
         if "verbose" in options:
             with open(outPath, "r") as f:
-                print f.read()
+                print(f.read())
             
         if failed:
             cputime, errno, errmsg = None, 0, None
@@ -496,7 +496,7 @@ class Run(object):
              
             with open(timePath, "r") as f:
                 line = f.read()
-                times = csv.reader([line], delimiter=" ").next()
+                times = next(csv.reader([line], delimiter=" "))
                 cpuTime = float(times[1]) + float(times[2])
                  
         except IOError as e:
@@ -606,7 +606,7 @@ class Run(object):
             return (Test(testdir), build, hpctoolkit, profile, numrepeats, study)
         
         else:
-            print "The _runOne command is for internal use only."
+            print("The _runOne command is for internal use only.")
             exit()
 
 

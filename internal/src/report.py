@@ -122,7 +122,7 @@ class Report():
                 passes.sort(key=sortKeyFunc)
                 fails.sort(key=sortKeyFunc)
 
-            print
+            print()
             for result in passes:
                                 
                 # format for display -- line 1
@@ -161,22 +161,22 @@ class Report():
 
                 # print run's summary
                 sepmsg(tableWidth)
-                print line1
-                print line2
+                print(line1)
+                print(line2)
                        
             sepmsg(tableWidth)
-            print; print
+            print(); print()
             
             # final summary
-            print "TESTS:  {}".format(numTests)
-            print "PASSED: {}".format(numPasses)
-            print "FAILED: {}".format(numFails)
-            print
+            print("TESTS:  {}".format(numTests))
+            print("PASSED: {}".format(numPasses))
+            print("FAILED: {}".format(numFails))
+            print()
             if numFails:
-                print "Failed tests:"
+                print("Failed tests:")
                 for f in fails:
-                    print "    {}".format(self.labelForTest(f))
-            print; print
+                    print("    {}".format(self.labelForTest(f)))
+            print(); print()
 
         else:
             infomsg("no completed runs to report")

@@ -112,13 +112,13 @@ class TestDim(StringDim):
 
     def values(self):
             
-        return frozenset( map(self._makeTest, self.valueList) )
+        return frozenset( list(map(self._makeTest, self.valueList)) )
 
 
     def __iter__(self):
         
-        from itertools import imap
-        return imap(self._makeTest, self.valueList)
+        
+        return map(self._makeTest, self.valueList)
         
 
     @staticmethod

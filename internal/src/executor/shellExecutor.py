@@ -48,7 +48,7 @@
 
 
 
-from executor import Executor
+from .executor import Executor
 
 
 class ShellExecutor(Executor):
@@ -143,7 +143,7 @@ class ShellExecutor(Executor):
             out     = ""
             err     = process.returncode
 
-        except StandardError as e:
+        except Exception as e:
             out = e.strerror
             err = e.errno
             raise ExecuteFailed("{}: {})".format(self.exe[0], out), err)

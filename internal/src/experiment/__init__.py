@@ -50,8 +50,8 @@
 
 
 
-from experiment        import Experiment
-from profileExperiment import ProfileExperiment
+from .experiment        import Experiment
+from .profileExperiment import ProfileExperiment
 
 
 

@@ -290,7 +290,7 @@ class Executor(object):
                 if not err_out: err_out = ""
                 if err: out = err_out.strip()
             
-        except StandardError as e:
+        except Exception as e:
             out = e.strerror
             err = e.errno
         except Exception as e:

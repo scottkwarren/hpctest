@@ -138,7 +138,7 @@ def verboseOption():
 
 def infomsg(message):
     
-    print message.strip()
+    print(message.strip())
 
 
 def verbosemsg(message):
@@ -202,10 +202,10 @@ def mustNotCall(whatClass, whatMethod, reason):
 
 def sepmsg(long=False):
     
-    if type(long) is int:
-        num = long
+    if type(int) is int:
+        num = int
     else:
-        num = (2 if long else 1) * 35
+        num = (2 if int else 1) * 35
     infomsg("-" * num)
 
 
@@ -236,7 +236,7 @@ def traceback():
 
 def yesno(prompt, cancelmsg):
     
-    reply = raw_input(prompt + " (y/n)?")
+    reply = input(prompt + " (y/n)?")
     ok = len(reply) > 0 and (reply[0] == "y" or reply[0] == "Y")
     if not ok: infomsg(cancelmsg)
     return ok

@@ -47,7 +47,7 @@
 ################################################################################
 
 
-from experiment import Experiment
+from .experiment import Experiment
 
 
 class ProfileExperiment(Experiment):
@@ -143,7 +143,7 @@ class ProfileExperiment(Experiment):
     def _checkHpcrunExecution(self):
          
         from common import infomsg, percentDelta
-        from experiment import Experiment
+        from .experiment import Experiment
  
         # check outputs from hpcrun
         status, msg = "OK", None
@@ -217,13 +217,13 @@ class ProfileExperiment(Experiment):
 
                         match = rex.match(summaryLine)
                         if match:
-                            scrapedResultTuple = map(int, match.groups())   # convert matched strings to ints
+                            scrapedResultTuple = list(map(int, match.groups()))   # convert matched strings to ints
                             scrapedResultTupleList.append(scrapedResultTuple)
                         else:
                             errormsg("hpcrun log '{}' has unexpected format:\n{}".format(item, summaryLine))
                              
-            summedResultTuple = map(sum, zip(*scrapedResultTupleList))
-            summedResultDict  = dict(zip(fieldNames, summedResultTuple))
+            summedResultTuple = list(map(sum, list(zip(*scrapedResultTupleList))))
+            summedResultDict  = dict(list(zip(fieldNames, summedResultTuple)))
             sumPath = self.output.makePath("hpcrun-summary.yaml")
             writeYamlFile(sumPath, summedResultDict)
             debugmsg("hpcrun summary = {}".format(summedResultDict))
@@ -238,7 +238,7 @@ class ProfileExperiment(Experiment):
     def _checkHpcstructExecution(self):
          
         import xml.etree.ElementTree as ET
-        from experiment import Experiment
+        from .experiment import Experiment
 
         if self.structFailMsg:
             status, msg = "NA", self.structFailMsg
@@ -270,7 +270,7 @@ class ProfileExperiment(Experiment):
         from os.path import join
         from run import Run
         from common import infomsg
-        from experiment import Experiment
+        from .experiment import Experiment
 
         if self.profFailMsg:
             status, msg = "FAILED", profFailMsg

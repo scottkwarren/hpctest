@@ -115,7 +115,7 @@ def _overrideDictByDict(dict1, dict2):
 
     from collections import Mapping, MutableMapping
 
-    for key, value2 in dict2.iteritems():
+    for key, value2 in dict2.items():
         if value2 != None:
             if key in dict1 and dict1[key]:
                 value1 = dict1[key]

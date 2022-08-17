@@ -123,15 +123,15 @@ class HPCTest(object):
             if wantBatch is None:
                 wantBatch = Executor.defaultToBackground()
             Iterate.doForAll(dims, numrepeats, study, wantBatch)
-            print
+            print()
             
             # report results
             if not common.args["build"]:
                 reporter = Report()
-                reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else argDimSpecs.keys())
+                reporter.printReport(study, reportspec, sortKeys if len(sortKeys) else list(argDimSpecs.keys()))
             else:
-                print
-                print "building complete."
+                print()
+                print("building complete.")
         else:
             errormsg("no --hpctoolkit paths given and no default hpctoolkit is set")
          
@@ -220,7 +220,7 @@ class HPCTest(object):
                 }
         study = Study(studyPath if studyPath else common.workpath)
         Iterate.doForAll(dims, 1, study, Executor.defaultToBackground())
-        print
+        print()
             
         # report results
         reporter = Report()

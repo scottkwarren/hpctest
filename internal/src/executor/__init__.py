@@ -50,10 +50,10 @@
 
 
 
-from executor       import Executor
-from lsfExecutor import LSFExecutor
-from shellExecutor  import ShellExecutor
-from slurmExecutor  import SlurmExecutor
+from .executor       import Executor
+from .lsfExecutor import LSFExecutor
+from .shellExecutor  import ShellExecutor
+from .slurmExecutor  import SlurmExecutor
 
 
 
