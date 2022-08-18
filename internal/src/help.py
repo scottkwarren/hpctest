@@ -49,8 +49,8 @@
 
 
 # This string serves two purposes:
-# it defines and implements the 'hpctest' command line syntax ( via 'docopt'), and
-# it provides the help message printed by 'hpctest --help' and on cmd line errors.
+# - it defines and implements the 'hpctest' command line syntax ( via 'docopt'), and
+# - it provides the help message printed by 'hpctest --help' and on cmd line errors.
 
 # NOTE: the docstring must be at the left margin for 'docopt' to interpret it correctly
 #       (ie no leading spaces before 'Usage:')
@@ -93,15 +93,6 @@ Usage:
 #===============#
 # HELP TEMPLATE #
 #===============#
-
-# Example description:
-#     HPCToolkit is an integrated suite of tools for measurement and analysis
-#     of program performance on computers ranging from multicore desktop
-#     systems to the nation's largest supercomputers. By using statistical
-#     sampling of timers and hardware performance counters, HPCToolkit
-#     collects accurate measurements of a program's work, resource
-#     consumption, and inefficiency and attributes them to the full calling
-#     context in which they occur.
 
 _help = \
         \
@@ -156,7 +147,7 @@ Options: Testing
             Add a dimension with the set PROFILESPEC of profile options as
             alternatives. Each element is a colon-separated triple of options
             for hpcrun, hpcstruct, and hpcprof.
-  -o, --spack SPACKPATH
+  -s, --spack SPACKPATH
             If given, use the Spack installed at SPACKPATH. Otherwise use
             the default Spack embedded in hpctest.
   -o, --study STUDYPATH
@@ -172,16 +163,18 @@ Options: Reporting
             Print the test results sorted by each specified field in turn.
 
 Options: Cleaning
+  all
+            Remove everything below.
   -s, --studies
             Remove all study directories from hpctest/work.
   -B, --built
-            Remove all built test executables, not including their dependencies.
+            Remove all built test executables, but not their dependencies.
   -d, --dependencies
             Remove all built dependencies of all tests.
   -f, --force
             Don't ask for confirmation, just remove the specified objects.
 
-Arguments:        All lists are comma separated.
+Arguments:        All lists are space-separated without commas.
   BUILDSPEC       list of Spack specs minus package names, eg '%gcc@4.4.7'
   HPCTKSPEC       list of paths with wildcards pointing to hpctoolkit/install dirs
   PROFILESPEC     list of colon-separated arguments to hpcrun:hpcstruct:hpcprof
@@ -194,21 +187,21 @@ Arguments:        All lists are comma separated.
 Examples:
 
   hpctest run all
-  hpctest run app/amgmk,app/lulesh, app/laghos
-  hpctest run app/amg*, unit-test/*
+  hpctest run app/amgmk app/lulesh app/laghos
+  hpctest run app/amg* unit-test/*
 
   hpctest run all --build %gcc@4.4.7
   hpctest run all --build %clang^mpich@3.1.4
-  hpctest run all --build "%gcc@4.4.7, %gcc@4.8.5, clang"
+  hpctest run all --build "%gcc@4.4.7 %gcc@4.8.5 clang"
 
-  hpctest run unit-test/*, app/amg*  \\
-          --build "%gcc@4.4.7, %gcc@4.8.5"  \\
-          --profile "REALTIME@10000, REALTIME@1000, REALTIME@100"  \\
+  hpctest run unit-test/* app/amg*  \\
+          --build "%gcc@4.4.7 %gcc@4.8.5"  \\
+          --profile "REALTIME@10000 REALTIME@1000 REALTIME@100"  \\
           --study ~/mystudies/june/trial_12
   
-  hpctest report --study study-2020-06-01--18-29-59 --which fail --sort build
+  hpctest report --study work/study-2020-06-01--18-29-59 --which fail --sort build
   
-  hpctest clean --all -f
+  hpctest clean all -f
   
 """
 
